@@ -1,0 +1,17 @@
+{
+  "name": "v2",
+  "owner": {
+    "name": "Vittorio Vittori",
+    "url": "https://vittoriovittori.com"
+  },
+  "description": "The Claude Code plugin of Vittorio Vittori's design principles.",
+  "plugins": [
+    {
+      "name": "v2",
+      "source": "./",
+      "description": "Skills that bring the UX, design system and AI design principles that apply into what an agent builds, and audit the result.",
+      "category": "design",
+      "tags": ["design-principles", "ux", "design-systems", "ai-design"]
+    }
+  ]
+}

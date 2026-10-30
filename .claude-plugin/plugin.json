@@ -1,0 +1,14 @@
+{
+  "name": "v2",
+  "displayName": "v2",
+  "description": "Vittorio Vittori's design principles for AI agents: skills that tell an agent which UX, design system and AI design principles apply to what it builds, then check the result.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Vittorio Vittori",
+    "url": "https://vittoriovittori.com"
+  },
+  "homepage": "https://github.com/vitto/v2",
+  "repository": "https://github.com/vitto/v2",
+  "license": "MIT",
+  "keywords": ["design-principles", "ux", "design-systems", "ai-design", "accessibility"]
+}
