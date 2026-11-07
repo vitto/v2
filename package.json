@@ -1,0 +1,14 @@
+{
+  "name": "v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Claude Code plugin of Vittorio: where the work stands, how to test it, the merges a person approves.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test \"scripts/**/*.spec.ts\"",
+    "validate": "claude plugin validate ."
+  }
+}

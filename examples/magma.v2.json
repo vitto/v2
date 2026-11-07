@@ -1,0 +1,64 @@
+{
+  "$comment": "The .claude/v2.json of magma-design-system/magma, as its docs/WORKFLOW.md and the scripts of PR #1320 describe it. The preview serves on ports other than the checkout's (Storybook 6006, studio 5177).",
+  "merge": {
+    "method": "queue",
+    "blockingWorkflows": [{ "workflow": "publish.yml", "event": "workflow_dispatch" }]
+  },
+  "preview": {
+    "install": "npm ci",
+    "build": ["npx nx run stencil:build"],
+    "serve": [
+      {
+        "name": "storybook",
+        "url": "http://localhost:6008",
+        "command": "npx storybook dev -p 6008 --ci --no-open",
+        "cwd": "projects/stencil"
+      },
+      {
+        "name": "studio",
+        "url": "http://localhost:5178",
+        "command": "npx vite --port 5178",
+        "cwd": "projects/studio"
+      },
+      {
+        "name": "previews",
+        "url": "http://localhost:5180",
+        "command": "npx nx run mcp:serve.previews"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "type": "storybook",
+      "server": "storybook",
+      "root": "projects/stencil",
+      "groups": ["src/components/{component}/**"]
+    },
+    {
+      "type": "command",
+      "server": "studio",
+      "files": "projects/studio/**",
+      "command": "npx tsx -e \"import { COLORS_PAGES, BEHAVIOR_PAGES, hrefOf } from './projects/studio/src/routes.ts'; const links = [...COLORS_PAGES.map((p) => ({ label: 'Colors / ' + p.label, url: '/' + hrefOf({ section: 'colors', view: p.id }) })), { label: 'Theme', url: '/' + hrefOf({ section: 'theme' }) }, ...BEHAVIOR_PAGES.map((p) => ({ label: 'Behavior / ' + p.label, url: '/' + hrefOf({ section: 'behavior', page: p.id }) }))]; console.log(JSON.stringify([{ title: 'studio', links }]));\""
+    },
+    {
+      "type": "command",
+      "server": "studio",
+      "files": "projects/design-tokens/**",
+      "command": "npx tsx -e \"import { COLORS_PAGES, hrefOf } from './projects/studio/src/routes.ts'; const links = COLORS_PAGES.map((p) => ({ label: 'Colors / ' + p.label, url: '/' + hrefOf({ section: 'colors', view: p.id }) })); console.log(JSON.stringify([{ title: 'design tokens', links, note: 'and the components that use them, in Storybook' }]));\""
+    },
+    {
+      "type": "static",
+      "server": "storybook",
+      "files": "projects/styles/**",
+      "title": "styles",
+      "links": [{ "label": "Storybook", "path": "/" }],
+      "note": "the components show them"
+    },
+    {
+      "type": "static",
+      "server": "previews",
+      "files": "docs/agents/patterns/previews/{folder}/{name}.html",
+      "path": "/view/previews/{folder}/{name}"
+    }
+  ]
+}

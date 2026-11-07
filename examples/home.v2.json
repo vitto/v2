@@ -1,0 +1,55 @@
+{
+  "$comment": "The .claude/v2.json of vitto/home: an Astro site, pages served by file path. Copy it to .claude/v2.json in the repository.",
+  "preview": {
+    "install": "npm ci",
+    "serve": [
+      {
+        "name": "site",
+        "url": "http://localhost:4411",
+        "command": "npm run dev -- --port 4411"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "type": "static",
+      "server": "site",
+      "files": "src/pages/{page}.astro",
+      "path": "/{page}"
+    },
+    {
+      "type": "static",
+      "server": "site",
+      "files": "src/pages/{page}.xml.ts",
+      "path": "/{page}.xml"
+    },
+    {
+      "type": "static",
+      "server": "site",
+      "files": [
+        "src/components/**",
+        "src/layouts/**",
+        "src/styles/**",
+        "src/data/**",
+        "src/utils/**",
+        "src/icons/**",
+        "src/svg/**",
+        "src/assets/**",
+        "src/middleware.ts",
+        "public/**",
+        "astro.config.mjs",
+        "iconsauce.config.cjs",
+        "package.json"
+      ],
+      "title": "the whole site",
+      "links": [
+        { "label": "Home", "path": "/" },
+        { "label": "Design systems", "path": "/design-systems" },
+        { "label": "User-centered design", "path": "/user-centered-design" },
+        { "label": "Human-centered AI design", "path": "/human-centered-ai-design" },
+        { "label": "About", "path": "/about" }
+      ],
+      "note": "shared by every page: check the ones the change touches"
+    }
+  ]
+}
