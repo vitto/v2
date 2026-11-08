@@ -115,11 +115,13 @@ npm test
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
 - The files of the workflow are English and ASCII. Every answer of a script is Markdown tables, and its header says where each answer comes from.
 - `claude plugin validate . --strict` checks the manifests.
+- The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:merge` waits for.
 
 ### Layout
 
 ```
 .claude-plugin/   marketplace.json (the marketplace) and plugin.json (the plugin)
+.github/          the workflow that runs the specs
 skills/<name>/    one folder per skill: SKILL.md
 principles/       the principles, one file each, by section of the site
 docs/             the pilot audit

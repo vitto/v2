@@ -1,0 +1,25 @@
+# The specs of the scripts, on every pull request and on main: the check /v2:merge waits for
+# (GOVERNANCE.md rule 1: a merge needs its checks green). No dependency to install.
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm test
