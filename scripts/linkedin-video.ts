@@ -91,7 +91,10 @@ export interface Take {
   click: (target?: Target, ms?: number) => Promise<void>;
   /** Presses where the pointer is and drags to a target. */
   drag: (to: Target, ms?: number) => Promise<void>;
-  /** Drags the thumb of a range input (or of the one in a component's shadow root) to a value. */
+  /**
+   * Drags the thumb of a range input (or of the one in a component's shadow root) to a value; the
+   * arrows take the last steps a pixel misses, so it lands on the value.
+   */
   slide: (range: Target, value: number, ms?: number) => Promise<void>;
   /** Presses a key: Escape, Enter, Tab, ArrowRight, ...; `times` presses `gap` ms apart. */
   key: (key: string, times?: number, gap?: number) => Promise<void>;
@@ -101,7 +104,10 @@ export interface Take {
    * select never shows in a headless screencast.
    */
   choose: (select: Target, value: string, ms?: number) => Promise<void>;
-  /** Scrolls a container (the page when null) to a position, `end`, or a target, and waits for it. */
+  /**
+   * Scrolls a container (the page when null) to a position, `end`, or a target (placed 24 pixels
+   * under its top), and waits until it stops.
+   */
   scroll: (container: Target | null, to: number | 'end' | Target, smooth?: boolean) => Promise<void>;
   /** A caption at the bottom of the frame, `bottom` pixels up; null hides it. */
   caption: (text: string | null, place?: { bottom?: number }) => Promise<void>;
@@ -427,6 +433,10 @@ const run = async (): Promise<void> => {
       const xOf = (v: number) => Math.round(r.x + thumb + ((v - r.min) / (r.max - r.min)) * (r.w - 2 * thumb));
       await move({ x: xOf(r.value), y: Math.round(r.y) }, 900);
       await drag({ x: xOf(value), y: Math.round(r.y) }, ms);
+      // A pixel is not a step (a zoom, the inset of the thumb): the arrows take it the last steps,
+      // the range keeping the focus the drag gave it.
+      const reached = await evaluate<number>(`+${rangeOf(range)}.value`);
+      if (reached !== value) await key(reached < value ? 'ArrowRight' : 'ArrowLeft', Math.abs(value - reached), 40);
     };
     const key = async (name: string, times = 1, gap = 0) => {
       const known = KEYS[name] ?? { code: name.length === 1 ? `Key${name.toUpperCase()}` : name, keyCode: name.toUpperCase().charCodeAt(0) };
@@ -454,15 +464,13 @@ const run = async (): Promise<void> => {
       const box =
         container === null ? 'document.scrollingElement' : typeof container === 'object' && 'x' in container ? null : elementOf(container);
       if (!box) throw new Error('t.scroll needs a container, not a point');
-      const top =
-        to === 'end'
-          ? '1e7'
-          : typeof to === 'number'
-            ? String(to)
-            : typeof to === 'object' && 'x' in to
-              ? String(to.y)
-              : `(${box}.scrollTop + ${elementOf(to)}.getBoundingClientRect().top - ${box}.getBoundingClientRect().top - 24)`;
-      await evaluate(`(async () => { const b = ${box}; b.scrollTo({ top: ${top}, behavior: '${smooth ? 'smooth' : 'instant'}' });
+      const behavior = smooth ? 'smooth' : 'instant';
+      // To an element, the browser places it (24 pixels under the top), whatever zoom the page has.
+      const go =
+        typeof to === 'object' && !('x' in to)
+          ? `{ const e = ${elementOf(to)}; e.style.scrollMarginTop = '24px'; e.scrollIntoView({ behavior: '${behavior}', block: 'start' }); }`
+          : `b.scrollTo({ top: ${to === 'end' ? '1e7' : typeof to === 'number' ? to : to.y}, behavior: '${behavior}' });`;
+      await evaluate(`(async () => { const b = ${box}; ${go}
         let last = -1; while (b.scrollTop !== last) { last = b.scrollTop; await new Promise((r) => setTimeout(r, 120)); } })()`);
     };
     const caption = async (text: string | null, where: { bottom?: number } = {}) => {

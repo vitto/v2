@@ -59,10 +59,16 @@ What the scene must get right (each one cost a take):
 
 - **Warm up off the take**: open every page once before `t.mark()`, so fonts, icons and frames
   are cached; mark when the first page is ready.
-- **The effect is on screen when it happens.** When a control and what it changes do not fit in
-  1350 pixels, act on the control, scroll to the effect (`t.scroll`), and go on with the keyboard
-  (`t.key`): the control keeps the focus the pointer gave it. A change the viewer cannot see is a
-  wasted second.
+- **The control and its effect are on screen together, before the action.** Scroll first, then
+  act: the viewer must see what the control changes while it changes. When they do not fit in
+  1350 pixels, look for the wider layout of the product: a zoom on its content
+  (`style.zoom = '0.9'` gives 1200 pixels of layout in 1080) often sets them side by side; set it
+  while the take is cut (`t.pause()`), so the page comes in already laid out. Only when no layout
+  holds both, act, scroll to the effect, and go on with the keyboard (`t.key`): the control keeps
+  the focus the pointer gave it. A change the viewer cannot see is a wasted second.
+- **Show the strongest change first**: a mode or a theme that barely differs in light can be
+  plain in dark; switch the mode first, then the theme, from a neutral one to a warm or a dark
+  one.
 - **A run of keys crawls when each key makes the product work** (a range that solves a palette
   again at each step): PageUp and PageDown move a range a tenth at a time; keep the arrows for the
   last steps.
