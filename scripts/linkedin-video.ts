@@ -1,7 +1,7 @@
 /*
   A short video of a product for LinkedIn: 1080x1350 (4:5, the format that fills the most of a
   phone's feed), 30 fps, H.264, no audio, the message carried by captions in the frame. The skill
-  /v2:product-to-linkedin writes the scene and runs this.
+  /v2:share-to-linkedin writes the scene and runs this.
 
     node scripts/linkedin-video.ts --scene=<scene.mjs> [--lang=en] [--out=<folder>] [--name=<name>]
         records the scene into <out>/<name>-<lang>.mp4, with its contact sheet
