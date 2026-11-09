@@ -36,7 +36,12 @@ else:
 - the text above it shows its first two or three lines before "see more": the news and the
   promise go there;
 - an article is long form that opens off the feed: write one only when the person asks for it,
-  with the video inside and a title of its own.
+  with a title of its own. Its cover is a wide frame: a 4:5 video set there plays in the middle
+  with bands on its sides, so an article needs a landscape take (16:9), or the 4:5 video goes in
+  a post that links the article.
+
+Say which one the video is for before the person publishes: a 4:5 video posted as an article
+cover is the most common way to spoil it.
 
 The video: 1080x1350 (4:5, the format that fills the most of a phone's feed), 20 to 35 seconds,
 5 to 8 captions of one idea each and at most about 50 characters, the product's own words, then a
