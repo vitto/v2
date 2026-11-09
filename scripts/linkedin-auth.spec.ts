@@ -25,6 +25,20 @@ describe('parseCallback', () => {
     assert.match((parseCallback(at('code=AQT'), 's') as { error: string }).error, /state/);
   });
 
+  it('names the products a scope error means', () => {
+    const result = parseCallback(at('error=invalid_scope_error&error_description=The+requested+permission+scope+is+not+valid&state=s'), 's') as { error: string };
+    assert.match(result.error, /^invalid_scope_error: The requested permission scope is not valid\. The app lacks a product/);
+    assert.match(result.error, /"Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn"$/);
+  });
+
+  it('names the one product a refused scope needs, the entities of the description read', () => {
+    const description = encodeURIComponent('Scope &quot;openid&quot; is not authorized for your application');
+    assert.deepEqual(parseCallback(at(`error=unauthorized_scope_error&error_description=${description}&state=s`), 's'), {
+      error:
+        'unauthorized_scope_error: Scope "openid" is not authorized for your application. The app lacks the product "Sign In with LinkedIn using OpenID Connect": add it in the Products tab of the app',
+    });
+  });
+
   it("says LinkedIn's error, and ignores the other paths", () => {
     assert.deepEqual(parseCallback(at('error=user_cancelled_authorize&error_description=The+member+refused&state=s'), 's'), {
       error: 'user_cancelled_authorize: The member refused',

@@ -46,6 +46,13 @@ const WAIT = 5 * 60 * 1000;
 
 export const redirectOf = (port: number): string => `http://localhost:${port}/callback`;
 
+/** The product of the developer app that grants each scope ("Getting Access to LinkedIn APIs"). */
+export const PRODUCTS: Record<string, string> = {
+  openid: 'Sign In with LinkedIn using OpenID Connect',
+  profile: 'Sign In with LinkedIn using OpenID Connect',
+  w_member_social: 'Share on LinkedIn',
+};
+
 /** The authorization page: the scope delimited by spaces, encoded as %20. */
 export const authorizeUrl = (clientId: string, redirectUri: string, state: string, scopes = SCOPES): string =>
   `${OAUTH}/authorization?${[
@@ -64,7 +71,26 @@ export const parseCallback = (url: URL, state: string): { code: string } | { err
   if (url.searchParams.get('state') !== state)
     return { error: 'the state of the redirect is not the one sent: start again from the script' };
   const error = url.searchParams.get('error');
-  if (error) return { error: `${error}: ${url.searchParams.get('error_description') ?? 'no description'}` };
+  if (error) {
+    // LinkedIn writes the description with HTML entities: `Scope &quot;openid&quot; is not authorized`.
+    const description = (url.searchParams.get('error_description') ?? 'no description')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&');
+    const scope = /scope "([\w.]+)"/i.exec(description)?.[1];
+    const product = scope ? PRODUCTS[scope] : undefined;
+    return {
+      error: `${error}: ${description}${
+        product
+          ? `. The app lacks the product "${product}": add it in the Products tab of the app`
+          : /scope/.test(error)
+            ? `. The app lacks a product: in the Products tab of the app, ${Object.values(PRODUCTS).filter((p, i, all) => all.indexOf(p) === i).map((p) => `"${p}"`).join(' and ')}`
+            : ''
+      }`,
+    };
+  }
   const code = url.searchParams.get('code');
   return code ? { code } : { error: 'the redirect carries no code' };
 };

@@ -143,9 +143,9 @@ It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` wit
 
 **The setup, once, by you** (macOS):
 
-1. At [linkedin.com/developers/apps](https://www.linkedin.com/developers/apps), create an app (LinkedIn asks for a LinkedIn Page to associate with it).
-2. In its **Products** tab, add **Share on LinkedIn** (it grants `w_member_social`, to post as you) and **Sign In with LinkedIn using OpenID Connect** (`openid`, `profile`: who you are).
-3. In its **Auth** tab, add `http://localhost:8723/callback` to the **Authorized redirect URLs** (another port: pass the same `--port=` to `linkedin-auth.ts`).
+1. At [linkedin.com/developers/apps](https://www.linkedin.com/developers/apps) (**My apps**), **Create app**: a name (it shows when you authorize it), a LinkedIn Page, a square logo of 100 pixels or more. The app stays tied to its Page for good: a company Page of your own (**Create a new LinkedIn Page** in the form), never your employer's, whose admins would have to approve it. The Page only owns the app: the posts are yours, as `w_member_social` posts for the member who signs in.
+2. In the **Products** tab of the app (the row of tabs under its name, not **Products** of the top bar, which is a catalogue), **Request access** for **Share on LinkedIn** (it grants `w_member_social`, to post as you) and **Sign In with LinkedIn using OpenID Connect** (`openid`, `profile`: who you are). Both must be under **Added products**; the **Auth** tab then lists their scopes under **OAuth 2.0 scopes** ("No permissions added" means none is there yet).
+3. In its **Auth** tab, add `http://localhost:8723/callback` to the **Authorized redirect URLs for your app**, exactly (another port: pass the same `--port=` to `linkedin-auth.ts`).
 4. Put its **Client ID** and **Primary Client Secret** in the Keychain. Each command asks for the value, hidden, so it never lands in a file, the shell history or a conversation:
 
    ```bash
@@ -153,7 +153,7 @@ It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` wit
    security add-generic-password -s v2-linkedin -a client-secret -w
    ```
 
-5. Sign in: `node scripts/linkedin-auth.ts` opens LinkedIn in your browser; you sign in and allow the app there. The token goes to the Keychain (`v2-linkedin`, account `token`) and lasts 60 days, after which you sign in again (LinkedIn gives a self-serve app no refresh token); `--status` says until when, `--sign-out` removes it.
+5. Sign in: `node scripts/linkedin-auth.ts` opens LinkedIn in your browser; you sign in and allow the app there. When LinkedIn refuses it, the script says why: a redirect URL that does not match step 3, or a scope whose product step 2 has not added yet (it names the product). The token goes to the Keychain (`v2-linkedin`, account `token`) and lasts 60 days, after which you sign in again (LinkedIn gives a self-serve app no refresh token); `--status` says until when, `--sign-out` removes it.
 6. Try it without publishing: the command of a post with `--rehearse` and no `--approved` goes all the way to LinkedIn and stops before the post. It checks your sign-in, uploads the video and its cover (they stay on LinkedIn in no post, seen by nobody), waits until LinkedIn has processed them, and prints the post it would send. With `--at=` a time a few minutes ahead, it also schedules the job of this Mac, which at that minute checks again and stops before the post; a notification says how it went.
 
    ```bash
