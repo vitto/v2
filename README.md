@@ -1,6 +1,6 @@
 # v2
 
-Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: where it stands, how to see and test it, and the merges a person approves.
+Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: where it stands, how to see and test it, and the merges a person approves; and, once it ships, how to tell people about it.
 
 v2 is V twice, for Vittorio Vittori. It is also my second version: the one that works inside an agent, with the principles I apply when I design.
 
@@ -12,13 +12,26 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 ## Skills
 
+### Design principles
+
 | Skill | Say | What it does |
 |-------|-----|--------------|
 | `design` | loads by itself | Which UX, design system and AI design principles apply to the UI being built, the rules to follow, the checks to run before handing over. |
 | `/v2:audit <target>` | "audit", "review the UX" | Audits a screen, a component or a change against the principles: every check as pass, fail or not verifiable. |
+
+### Workflow
+
+| Skill | Say | What it does |
+|-------|-----|--------------|
 | `/v2:status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
 | `/v2:test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
 | `/v2:merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
+
+### Sharing the work
+
+| Skill | Say | What it does |
+|-------|-----|--------------|
+| `/v2:product-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin" | Announces a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, and the text of the post that carries it. Asks for the description only when the product does not say it. |
 
 ## What it does
 
@@ -26,6 +39,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
 - **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
 - **Around the work**, it says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
+- **Once it ships**, it tells people: a video of the live product and the post that carries it, for LinkedIn.
 
 ## Install in Claude Code
 
@@ -100,10 +114,24 @@ The workflow skills run them; they also run by hand, from the folder of the proj
 | `node scripts/preview.ts <epic> [--branch=] [--dir=] [--repo=] [--config=]` | rebuilds the local preview of the epic | only the preview folder and its local branch; it refuses to run over work of its own |
 | `node scripts/pages.ts [--base=] [--head=] [--<server>=<url>] [--config=]` | the pages to test what changed | nothing |
 | `node scripts/merge.ts <pr> [--approved="<words>"] [--repo=] [--config=]` | checks a merge; with the person's words naming the pull request, carries it out | the merge, only then |
+| `node scripts/linkedin-video.ts --scene=<file> [--lang=] [--name=] [--out=] [--probe]` | records the video of a scene, its contact sheet and its cover (Sharing the work) | only the files of `--out` |
 
 The skills let Claude Code run `status`, `preview` and `pages` without asking; `merge.ts` always asks for permission, a second gate after the person's ok.
 
 The status of an epic matches, table and next action, what `nx run magma:epic.status` prints for the same epic in Magma.
+
+## Sharing the work
+
+`/v2:product-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the post. The person publishes it.
+
+The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/product-to-linkedin/magma-studio.mjs](examples/product-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
+
+```bash
+node scripts/linkedin-video.ts --scene=<scene.mjs> --probe --out=probe
+node scripts/linkedin-video.ts --scene=<scene.mjs> --lang=en --name=<product> --out=out
+```
+
+It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` with `ffprobe`, besides Node 24.
 
 ## Development
 
@@ -114,6 +142,7 @@ npm test
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
 - The files of the workflow are English and ASCII. Every answer of a script is Markdown tables, and its header says where each answer comes from.
+- The recorder of `/v2:product-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - `claude plugin validate . --strict` checks the manifests.
 - The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:merge` waits for.
 
@@ -127,7 +156,7 @@ principles/       the principles, one file each, by section of the site
 docs/             the pilot audit
 scripts/          one script per job of the workflow, and its spec beside it
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
-examples/         the .claude/v2.json of real projects
+examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video
 schema/           the JSON Schema of .claude/v2.json
 GOVERNANCE.md     the rules of the workflow
 ```
