@@ -1,7 +1,7 @@
 /*
   A short video of a product for LinkedIn: 1080x1350 (4:5, the format that fills the most of a
   phone's feed), 30 fps, H.264, no audio, the message carried by captions in the frame. The skill
-  /v2:product-to-linkedin writes the scene and runs this.
+  /v2:share-to-linkedin writes the scene and runs this.
 
     node scripts/linkedin-video.ts --scene=<scene.mjs> [--lang=en] [--out=<folder>] [--name=<name>]
         records the scene into <out>/<name>-<lang>.mp4, with its contact sheet
@@ -298,7 +298,9 @@ const launch = async (chrome: string, profile: string) => {
     if (existsSync(file)) {
       const [port] = (await readFile(file, 'utf8')).split('\n');
       if (port) {
-        const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json();
+        const target = (await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json()) as {
+          webSocketDebuggerUrl: string;
+        };
         return { child, page: await connect(target.webSocketDebuggerUrl) };
       }
     }
@@ -466,8 +468,9 @@ const run = async (): Promise<void> => {
       if (!box) throw new Error('t.scroll needs a container, not a point');
       const behavior = smooth ? 'smooth' : 'instant';
       // To an element, the browser places it (24 pixels under the top), whatever zoom the page has.
+      // A selector is an element too: only a number, `end` and a point scroll to a position.
       const go =
-        typeof to === 'object' && !('x' in to)
+        to !== 'end' && typeof to !== 'number' && !(typeof to === 'object' && 'x' in to)
           ? `{ const e = ${elementOf(to)}; e.style.scrollMarginTop = '24px'; e.scrollIntoView({ behavior: '${behavior}', block: 'start' }); }`
           : `b.scrollTo({ top: ${to === 'end' ? '1e7' : typeof to === 'number' ? to : to.y}, behavior: '${behavior}' });`;
       await evaluate(`(async () => { const b = ${box}; ${go}

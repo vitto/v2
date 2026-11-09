@@ -31,7 +31,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:product-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin" | Announces a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, and the text of the post that carries it. Asks for the description only when the product does not say it. |
+| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, and the text of the post that carries it. Asks for the description only when the product does not say it. Publishes the post through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
 
 ## What it does
 
@@ -39,7 +39,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
 - **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
 - **Around the work**, it says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
-- **Once it ships**, it tells people: a video of the live product and the post that carries it, for LinkedIn.
+- **Once it ships**, it tells people: a video of the live product and the post that carries it, published on LinkedIn when the person approves it.
 
 ## Install in Claude Code
 
@@ -115,16 +115,18 @@ The workflow skills run them; they also run by hand, from the folder of the proj
 | `node scripts/pages.ts [--base=] [--head=] [--<server>=<url>] [--config=]` | the pages to test what changed | nothing |
 | `node scripts/merge.ts <pr> [--approved="<words>"] [--repo=] [--config=]` | checks a merge; with the person's words naming the pull request, carries it out | the merge, only then |
 | `node scripts/linkedin-video.ts --scene=<file> [--lang=] [--name=] [--out=] [--probe]` | records the video of a scene, its contact sheet and its cover (Sharing the work) | only the files of `--out` |
+| `node scripts/linkedin-auth.ts [--status] [--sign-out] [--port=]` | signs the person in to LinkedIn in their browser, or says until when they are | the token in the Keychain |
+| `node scripts/linkedin-post.ts --video= --cover= --text= --visibility= --at= [--zone=] [--title=] [--approved="<words>"]` | checks a post and gives its id; with the person's words naming that id, publishes it or schedules it. `--rehearse` goes to LinkedIn and stops before the post; `--suggest`, `--queue`, `--cancel=<id>` | the post on LinkedIn, only then; a scheduled post's job on this Mac |
 
-The skills let Claude Code run `status`, `preview` and `pages` without asking; `merge.ts` always asks for permission, a second gate after the person's ok.
+The skills let Claude Code run `status`, `preview` and `pages` without asking; `merge.ts`, `linkedin-auth.ts` and `linkedin-post.ts` always ask for permission, a second gate after the person's ok.
 
 The status of an epic matches, table and next action, what `nx run magma:epic.status` prints for the same epic in Magma.
 
 ## Sharing the work
 
-`/v2:product-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the post. The person publishes it.
+`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the post. Then the person posts it by hand, or approves it and the skill publishes it, now or at a moment it suggests.
 
-The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/product-to-linkedin/magma-studio.mjs](examples/product-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
+The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/share-to-linkedin/magma-studio.mjs](examples/share-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
 
 ```bash
 node scripts/linkedin-video.ts --scene=<scene.mjs> --probe --out=probe
@@ -132,6 +134,31 @@ node scripts/linkedin-video.ts --scene=<scene.mjs> --lang=en --name=<product> --
 ```
 
 It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` with `ffprobe`, besides Node 24.
+
+### Publishing on LinkedIn
+
+[scripts/linkedin-post.ts](scripts/linkedin-post.ts) publishes a post with a native video through LinkedIn's official API (the Videos API, then the Posts API), only with the words of the person naming that post. Its dry run checks the video, the cover, the text, the visibility, the time and the account, and gives the post an id, a fingerprint of all of them: the approval names the id ("pubblica 3f9a2c1d"), so it covers exactly what the person saw, once. Anything changed makes another id.
+
+**When.** `--suggest` gives the next good moments for the audience's time zone: working days, Tuesday to Thursday first, mid-morning, then mid-afternoon, and Italy's public holidays skipped for Europe/Rome. They follow what the studies of LinkedIn engagement of 2026 agree on; they are a suggestion, not a measure of your audience. LinkedIn's API publishes at once and cannot schedule, so a post scheduled waits on this Mac: with the approval the video is uploaded and processed, and a one-shot launchd job creates the post at its minute. The Mac must be on and awake then; more than 30 minutes late, nothing goes out and a notification says so. `--queue` lists the scheduled posts, `--cancel=<id>` cancels one.
+
+**The setup, once, by you** (macOS):
+
+1. At [linkedin.com/developers/apps](https://www.linkedin.com/developers/apps) (**My apps**), **Create app**: a name (it shows when you authorize it), a LinkedIn Page, a square logo of 100 pixels or more. The app stays tied to its Page for good: a company Page of your own (**Create a new LinkedIn Page** in the form), never your employer's, whose admins would have to approve it. The Page only owns the app: the posts are yours, as `w_member_social` posts for the member who signs in.
+2. In the **Products** tab of the app (the row of tabs under its name, not **Products** of the top bar, which is a catalogue), **Request access** for **Share on LinkedIn** (it grants `w_member_social`, to post as you) and **Sign In with LinkedIn using OpenID Connect** (`openid`, `profile`: who you are). Both must be under **Added products**; the **Auth** tab then lists their scopes under **OAuth 2.0 scopes** ("No permissions added" means none is there yet).
+3. In its **Auth** tab, add `http://localhost:8723/callback` to the **Authorized redirect URLs for your app**, exactly (another port: pass the same `--port=` to `linkedin-auth.ts`).
+4. Put its **Client ID** and **Primary Client Secret** in the Keychain. Each command asks for the value, hidden, so it never lands in a file, the shell history or a conversation:
+
+   ```bash
+   security add-generic-password -s v2-linkedin -a client-id -w
+   security add-generic-password -s v2-linkedin -a client-secret -w
+   ```
+
+5. Sign in: `node scripts/linkedin-auth.ts` opens LinkedIn in your browser; you sign in and allow the app there. When LinkedIn refuses it, the script says why: a redirect URL that does not match step 3, or a scope whose product step 2 has not added yet (it names the product). The token goes to the Keychain (`v2-linkedin`, account `token`) and lasts 60 days, after which you sign in again (LinkedIn gives a self-serve app no refresh token); `--status` says until when, `--sign-out` removes it.
+6. Try it without publishing: the command of a post with `--rehearse` and no `--approved` goes all the way to LinkedIn and stops before the post. It checks your sign-in, uploads the video and its cover (they stay on LinkedIn in no post, seen by nobody), waits until LinkedIn has processed them, and prints the post it would send. With `--at=` a time a few minutes ahead, it also schedules the job of this Mac, which at that minute checks again and stops before the post; a notification says how it went.
+
+   ```bash
+   node scripts/linkedin-post.ts --video=<mp4> --cover=<png> --text=<txt> --visibility=CONNECTIONS --at=now --rehearse
+   ```
 
 ## Development
 
@@ -142,7 +169,8 @@ npm test
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
 - The files of the workflow are English and ASCII. Every answer of a script is Markdown tables, and its header says where each answer comes from.
-- The recorder of `/v2:product-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
+- The recorder of `/v2:share-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
+- The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - `claude plugin validate . --strict` checks the manifests.
 - The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:merge` waits for.
 

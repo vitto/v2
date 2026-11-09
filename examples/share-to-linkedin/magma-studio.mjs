@@ -1,7 +1,7 @@
-// The scene of the Magma Studio video (2026-11-09), an example for /v2:product-to-linkedin:
+// The scene of the Magma Studio video (2026-11-09), an example for /v2:share-to-linkedin:
 // one take on the live studio, about 32 seconds.
 //
-//   node scripts/linkedin-video.ts --scene=examples/product-to-linkedin/magma-studio.mjs --lang=en --out=out
+//   node scripts/linkedin-video.ts --scene=examples/share-to-linkedin/magma-studio.mjs --lang=en --out=out
 //
 // 1. The Start page: its hero plays by itself (a pale banner fixed until the contrast gate passes).
 // 2. The Colors menu opens Semantic surface, at 90% so the studio lays its targets beside their
