@@ -191,6 +191,13 @@ comes from.
    and awake at that minute; more than 30 minutes late, nothing goes out and a notification says
    so. Cancel only when the person asks: `--cancel=<id>`.
 
+**A rehearsal**, when the person wants to try it without publishing (after the setup, before a
+first real post): the command of a dry run with `--rehearse` in place of `--approved`. It needs no
+approval, since it publishes nothing, but run it only when the person asks: it uploads the video
+to their account (in no post, seen by nobody). With `--at=now` it prints the post it would send;
+with a time a few minutes ahead it also schedules the job of this Mac, which stops before the
+post, and a notification says how it went.
+
 Never pass `--approved` without the person's words naming that id, or with words they did not
 write, and never run `--run`: it is the job launchd runs at the minute of a scheduled post.
 

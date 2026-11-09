@@ -8,6 +8,10 @@
     ... the same options and --approved="<the person's words>"
         checks again, then publishes (--at=now) or schedules (--at=<time>), only when the words
         name the id of this post alone and nothing holds it; prints what LinkedIn answered
+    ... the same options and --rehearse
+        a rehearsal against LinkedIn that publishes nothing, for a first try: the account, the
+        video and its cover uploaded and processed (in no post, seen by nobody), the post printed
+        as it would be sent; with a time, the job of this Mac too, which stops before the post
     node scripts/linkedin-post.ts --suggest [--zone=<time zone>] [--from=<YYYY-MM-DDTHH:MM>]
         the next good moments to post, for an audience in that time zone
     node scripts/linkedin-post.ts --queue
@@ -60,8 +64,12 @@
     ~/Library/Application Support/v2/linkedin/<id>/, and a LaunchAgent runs that copy at the
     minute of the post (the Mac's clock), creates the post, then removes itself. A Mac asleep or
     off at that minute runs it when it wakes: more than 30 minutes late, it publishes nothing and
-    says so (a notification, the queue). A post scheduled and cancelled leaves its video uploaded
-    in no post.
+    says so (a notification, the queue). A post scheduled and cancelled, like a rehearsal, leaves
+    its video uploaded in no post;
+  - a rehearsal: the same calls up to the post, which is printed instead of sent. LinkedIn takes a
+    video of a member only from that member ("the caller needs to match the video owner"), so a
+    rehearsal also proves the author the post would have. The documentation shows no sandbox for
+    a member's posts, and no draft: a post is created PUBLISHED or not at all.
 */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -410,7 +418,7 @@ export const renderPost = (f: Facts, checks: Check[], id: string | null, moments
       : held.length || !id
         ? [`- It waits: ${held.map((check) => check.what.toLowerCase()).join(', ') || 'a part of the post'}. Nothing was published.`]
         : [
-            `- Ready: it waits for the person's ok naming this post ("pubblica ${id}"). Then the same command with \`--approved="<their words>"\`.`,
+            `- Ready: it waits for the person's ok naming this post ("pubblica ${id}"). Then the same command with \`--approved="<their words>"\`; \`--rehearse\` tries it against LinkedIn first and publishes nothing.`,
           ]),
   ].join('\n');
 };
@@ -562,10 +570,19 @@ export interface Scheduled {
   zone: string;
   post: Post;
   videoUrn: string;
-  state: 'scheduled' | 'posted' | 'missed' | 'failed' | 'cancelled';
+  state: 'scheduled' | 'posted' | 'rehearsed' | 'missed' | 'failed' | 'cancelled';
+  /** A rehearsal: the job stops before the post. */
+  rehearsal?: boolean;
   message?: string;
   url?: string;
 }
+
+/** A rehearsal is another post for the id: its approval can never publish the real one. */
+export const rehearsalOf = (post: Post): Post => ({ ...post, when: `rehearsal ${post.when}` });
+
+/** The time a scheduled post must carry in its fingerprint. */
+export const expectedWhen = (scheduled: Pick<Scheduled, 'at' | 'zone' | 'rehearsal'>): string =>
+  `${scheduled.rehearsal ? 'rehearsal ' : ''}${whenKey({ at: scheduled.at, zone: scheduled.zone })}`;
 
 const xml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -656,7 +673,7 @@ const runScheduled = async (id: string): Promise<void> => {
     await removeAgent(id);
   };
   if (scheduled.state !== 'scheduled') return removeAgent(id);
-  if (fingerprint(scheduled.post) !== id || scheduled.post.when !== whenKey({ at: scheduled.at, zone }))
+  if (fingerprint(scheduled.post) !== id || scheduled.post.when !== expectedWhen(scheduled))
     return finish('failed', `Post ${id} not published: what is on disk is not the post the person approved.`);
   // A job started before its minute (the Mac's time zone changed) waits for it.
   while (dueOf(scheduled.at, Date.now()) === 'early') await sleep(Math.min(60000, scheduled.at - Date.now()));
@@ -672,6 +689,11 @@ const runScheduled = async (id: string): Promise<void> => {
     return finish('failed', `Post ${id} not published: another LinkedIn account is signed in (${token.name}).`);
   try {
     await waitAvailable(fetch, token, scheduled.videoUrn, { timeout: 10 * 60 * 1000 });
+    if (scheduled.rehearsal)
+      return finish(
+        'rehearsed',
+        `Rehearsal ${id} done, nothing published: at ${dateText(Date.now(), zone, true)} ${token.name} was signed in and the video was ready on LinkedIn.`,
+      );
     const { url } = await createPost(fetch, token, postBody(scheduled.post, scheduled.videoUrn));
     await finish('posted', `Post ${id} published on LinkedIn: ${url}`, url);
   } catch (error) {
@@ -696,7 +718,7 @@ const queueReport = (): string => {
       posts.map((p) => [
         p.id,
         cell(dateText(p.at, p.zone, true)),
-        p.state,
+        p.rehearsal ? `${p.state} (rehearsal)` : p.state,
         existsSync(agentOf(p.id)) ? 'waiting' : 'none',
         cell(p.url ?? p.message ?? `"${p.post.text.split('\n')[0].slice(0, 60)}"`),
       ]),
@@ -762,11 +784,47 @@ const main = async (): Promise<void> => {
   const post = postOf(facts);
   const id = post && !checks.some((check) => check.holds) ? fingerprint(post) : null;
   const approved = args.value('approved');
+  const rehearse = args.flag('rehearse');
+  if (rehearse && approved !== undefined) throw new Error('--rehearse publishes nothing: it takes no --approved');
+  const holding = checks.filter((c) => c.holds).map((c) => c.what.toLowerCase());
+  const holdsIt = `${holding.join(', ')} ${holding.length === 1 ? 'holds' : 'hold'} it`;
   const outcome: string[] = [];
-  if (approved !== undefined) {
+  /** The video and its cover on LinkedIn, processed. */
+  const upload = async () => {
+    const log = (line: string) => console.error(line);
+    const urn = await uploadVideo(fetch, facts.token as Token, facts.video as Media, facts.cover as Media, log);
+    await waitAvailable(fetch, facts.token as Token, urn, {}, log);
+    return urn;
+  };
+  if (rehearse) {
     if (!id || !post) {
-      const holding = checks.filter((c) => c.holds).map((c) => c.what.toLowerCase());
-      outcome.push(`- Not published, though approved ("${cell(approved)}"): ${holding.join(', ')} ${holding.length === 1 ? 'holds' : 'hold'} it.`);
+      outcome.push(`- No rehearsal: ${holdsIt}.`);
+      process.exitCode = 1;
+    } else {
+      const when = facts.when as When;
+      const urn = await upload();
+      if ('now' in when)
+        outcome.push(
+          `- Rehearsal, nothing published: ${(facts.token as Token).name} is signed in, and LinkedIn took the video and its cover as theirs and processed them (\`${urn}\`, in no post, seen by nobody).`,
+          '- The post `--approved` would create (`POST /rest/posts`), the text in little text format:',
+          '',
+          '```json',
+          JSON.stringify(postBody(post, urn), null, 2),
+          '```',
+        );
+      else {
+        const rehearsal = rehearsalOf(post);
+        const rid = fingerprint(rehearsal);
+        await schedule({ id: rid, approved: '(a rehearsal: no approval)', approvedAt: new Date().toISOString(), at: when.at, zone: when.zone, post: rehearsal, videoUrn: urn, state: 'scheduled', rehearsal: true });
+        outcome.push(
+          `- Rehearsal ${rid} scheduled for ${whenText(when)}, nothing will be published: the video is on LinkedIn (in no post). At that minute the job of this Mac checks the account and the video and stops before the post; a notification says how it went.`,
+          `- \`--queue\` shows it; \`--cancel=${rid}\` removes it.`,
+        );
+      }
+    }
+  } else if (approved !== undefined) {
+    if (!id || !post) {
+      outcome.push(`- Not published, though approved ("${cell(approved)}"): ${holdsIt}.`);
       process.exitCode = 1;
     } else if (!names(approved, id)) {
       outcome.push(
@@ -774,15 +832,10 @@ const main = async (): Promise<void> => {
       );
       process.exitCode = 1;
     } else {
-      const video = facts.video as Media;
-      const cover = facts.cover as Media;
-      const token = facts.token as Token;
       const when = facts.when as When;
-      const log = (line: string) => console.error(line);
-      const urn = await uploadVideo(fetch, token, video, cover, log);
-      await waitAvailable(fetch, token, urn, {}, log);
+      const urn = await upload();
       if ('now' in when) {
-        const { url } = await createPost(fetch, token, postBody(post, urn));
+        const { url } = await createPost(fetch, facts.token as Token, postBody(post, urn));
         outcome.push(`- Approved ("${cell(approved)}") and published: ${url}`);
       } else {
         await schedule({ id, approved, approvedAt: new Date().toISOString(), at: when.at, zone: when.zone, post, videoUrn: urn, state: 'scheduled' });

@@ -12,6 +12,7 @@ import {
   createPost,
   dueOf,
   easter,
+  expectedWhen,
   etagOf,
   finalizeUpload,
   fingerprint,
@@ -25,6 +26,7 @@ import {
   postBody,
   postOf,
   quiet,
+  rehearsalOf,
   renderPost,
   suggest,
   uploadVideo,
@@ -162,6 +164,7 @@ describe('postOf and renderPost', () => {
     const report = renderPost(f, checksOf(f), id, suggest(NOW, ROME), []);
     assert.match(report, new RegExp(`^## LinkedIn post ${id}`));
     assert.match(report, new RegExp(`"pubblica ${id}"`));
+    assert.match(report, /`--rehearse` tries it against LinkedIn first and publishes nothing/);
     assert.match(report, /```text\nMagma Studio is out\nTry it\n```/);
     assert.equal(postOf(facts({ token: null })), null);
   });
@@ -354,6 +357,15 @@ describe('a scheduled post', () => {
     assert.match(plist, /<string>\/Users\/a b\/Library\/Application Support\/v2\/x&amp;y\.ts<\/string><string>--run=3f9a2c1d<\/string>/);
     assert.match(plist, /<key>Month<\/key><integer>11<\/integer><key>Day<\/key><integer>10<\/integer><key>Hour<\/key><integer>10<\/integer><key>Minute<\/key><integer>0<\/integer>/);
     assert.match(plist, /<key>RunAtLoad<\/key><false\/>/);
+  });
+
+  it('as a rehearsal, is another post: its id never publishes the real one', () => {
+    const post: Post = { author: token.person, video: video.sha256, cover: cover.sha256, text: 'hi', visibility: 'PUBLIC', title: '', when: whenKey({ at: at('2026-11-10T10:00'), zone: ROME }) };
+    const rehearsal = rehearsalOf(post);
+    assert.notEqual(fingerprint(rehearsal), fingerprint(post));
+    assert.equal(rehearsal.when, expectedWhen({ at: at('2026-11-10T10:00'), zone: ROME, rehearsal: true }));
+    assert.equal(post.when, expectedWhen({ at: at('2026-11-10T10:00'), zone: ROME }));
+    assert.notEqual(rehearsal.when, expectedWhen({ at: at('2026-11-10T10:00'), zone: ROME }), 'a rehearsal on disk does not pass for a post');
   });
 
   it('goes out from its minute to 30 minutes after, never later', () => {
