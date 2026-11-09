@@ -4,14 +4,14 @@
     "name": "Vittorio Vittori",
     "url": "https://vittoriovittori.com"
   },
-  "description": "The Claude Code plugin of Vittorio Vittori's design principles.",
+  "description": "The Claude Code plugin of Vittorio Vittori's design principles and way of working.",
   "plugins": [
     {
       "name": "v2",
       "source": "./",
-      "description": "Skills that bring the UX, design system and AI design principles that apply into what an agent builds, and audit the result.",
+      "description": "Skills that bring the UX, design system and AI design principles that apply into what an agent builds and audit the result, and the workflow around it: /v2:status, /v2:test, /v2:merge.",
       "category": "design",
-      "tags": ["design-principles", "ux", "design-systems", "ai-design"]
+      "tags": ["design-principles", "ux", "design-systems", "ai-design", "workflow", "governance"]
     }
   ]
 }

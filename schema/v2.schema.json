@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vitto/v2/schema/v2.schema.json",
+  "title": "v2 project configuration (.claude/v2.json)",
+  "description": "What the scripts of the v2 plugin cannot read from git and GitHub. Every key is optional. scripts/lib/config.ts is the reference: it checks the file and names any wrong key.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^\\$": {} },
+  "properties": {
+    "merge": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
+      "properties": {
+        "method": {
+          "description": "How a pull request into the default branch merges. Missing: the merge queue when GitHub has one on the default branch, else a merge commit. Squash and rebase are never used (GOVERNANCE.md rule 1).",
+          "enum": ["merge", "queue"]
+        },
+        "blockingWorkflows": {
+          "description": "Workflows whose runs, while not finished (queued, waiting for an approval, in progress), hold every merge into the default branch: a release, for example.",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string", "minLength": 1, "description": "The workflow file (publish.yml) or name." },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["workflow"],
+                "properties": {
+                  "workflow": { "type": "string", "minLength": 1 },
+                  "event": { "type": "string", "minLength": 1, "description": "Only the runs started by this event, e.g. workflow_dispatch." }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": { "^\\$": {} },
+      "properties": {
+        "dir": {
+          "description": "The folder of the preview of an epic. {main} is the main worktree, {repo} its folder name, {epic} the number. Relative paths are relative to the main worktree.",
+          "type": "string",
+          "default": "{main}-wt-{epic}-preview"
+        },
+        "install": { "type": "string", "minLength": 1, "description": "The install command, run once in a new folder." },
+        "installed": {
+          "type": "string",
+          "default": "node_modules",
+          "description": "What the install creates: when it is missing, the install is due."
+        },
+        "build": {
+          "description": "The build commands, in order.",
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "serve": {
+          "description": "The servers that show the work. Give them ports other than those of the checkout the person runs.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "url"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Used by the page rules and as --<name>=<url> by the scripts." },
+              "url": { "type": "string", "pattern": "^https?://" },
+              "command": { "type": "string", "minLength": 1 },
+              "cwd": { "type": "string", "minLength": 1, "description": "Relative to the root of the checkout." }
+            }
+          }
+        }
+      }
+    },
+    "pages": {
+      "description": "Where a change shows, in order: a changed file goes to the first rule that takes it; the others are listed as 'no page in the browser'.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "server", "root"],
+            "properties": {
+              "type": { "const": "storybook" },
+              "server": { "type": "string" },
+              "root": { "type": "string", "description": "The folder Storybook runs in; importPath of its index entries is relative to it." },
+              "groups": {
+                "description": "Folders that make one row each, relative to root, ending in /** with a {name}: src/components/{component}/**.",
+                "oneOf": [
+                  { "type": "string", "pattern": "\\{[A-Za-z_]\\w*\\}.*/\\*\\*$" },
+                  { "type": "array", "items": { "type": "string", "pattern": "\\{[A-Za-z_]\\w*\\}.*/\\*\\*$" } }
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "server", "files"],
+            "properties": {
+              "type": { "const": "static" },
+              "server": { "type": "string" },
+              "files": { "$ref": "#/$defs/patterns" },
+              "path": { "type": "string", "description": "One page per file: /{page}, filled with the captures of files; a last segment named index is dropped." },
+              "links": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Or the same pages for every matched file.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["label", "path"],
+                  "properties": { "label": { "type": "string" }, "path": { "type": "string" } }
+                }
+              },
+              "title": { "type": "string" },
+              "note": { "type": "string" }
+            },
+            "oneOf": [{ "required": ["path"] }, { "required": ["links"] }]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "files", "command"],
+            "properties": {
+              "type": { "const": "command" },
+              "server": { "type": "string" },
+              "files": { "$ref": "#/$defs/patterns" },
+              "command": {
+                "type": "string",
+                "description": "Run with sh in the root of the checkout, { files, base, head, url } as JSON on its input; prints [{ title, links: [{ label, url }], note? }]."
+              },
+              "title": { "type": "string" }
+            }
+          }
+        ]
+      }
+    },
+    "ignoreCommits": {
+      "description": "Commit subjects with nothing to test, as regular expressions.",
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["^chore\\(release\\)"]
+    }
+  },
+  "$defs": {
+    "patterns": {
+      "description": "File patterns relative to the root of the repository: ** any folders, * and ? within a folder, {a,b} alternatives, {name} a capture.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      ]
+    }
+  }
+}
