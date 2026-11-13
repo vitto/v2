@@ -1,6 +1,6 @@
 # v2
 
-Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: where it stands, how to see and test it, and the merges a person approves; and, once it ships, how to tell people about it.
+Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: what it is made of, where it stands, how to see and test it, and the merges a person approves; and, once it ships, how to tell people about it.
 
 v2 is V twice, for Vittorio Vittori. It is also my second version: the one that works inside an agent, with the principles I apply when I design.
 
@@ -23,6 +23,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
+| `/v2:map [planned \| done] [issue, PR, epic or branch]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. |
 | `/v2:status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
 | `/v2:test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
 | `/v2:merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
@@ -32,15 +33,15 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, and the text of the post that carries it. Asks for the description only when the product does not say it. Publishes the post through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
+| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, as the cover of a LinkedIn article: its title, its body and the text that shares it in the feed, which the person publishes by hand. Asks for the description only when the product does not say it. A post with the native video only when asked for one: published through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
 
 ## What it does
 
 - **Before building**, the agent finds the principles that apply to the task, across sections: a form that sends AI-generated text needs both Error Prevention and Design for Uncertainty.
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
 - **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
-- **Around the work**, it says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
-- **Once it ships**, it tells people: a video of the live product and the post that carries it, published on LinkedIn when the person approves it.
+- **Around the work**, it draws what the work is made of, before and after, says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
+- **Once it ships**, it tells people: a video of the live product as the cover of a LinkedIn article, and the text that shares it.
 
 ## Install in Claude Code
 
@@ -125,7 +126,9 @@ The status of an epic matches, table and next action, what `nx run magma:epic.st
 
 ## Sharing the work
 
-`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the post. Then the person posts it by hand, or approves it and the skill publishes it, now or at a moment it suggests.
+`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the article the video is the cover of: its title, its body and the text that shares it. The person publishes the article by hand, since LinkedIn's API cannot create one. A post with the native video, when they ask for one, they post by hand, or approve it and the skill publishes it, now or at a moment it suggests.
+
+The article is the format because it reached more people: on the author's account, an article with a 4:5 video cover had 1,984 impressions, 27 reactions and 12 comments after two weeks, a post with a native 4:5 video 92 impressions and 5 reactions after 18 hours. In the feed the cover filled its card; the native video played in a landscape frame with bands on its sides.
 
 The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/share-to-linkedin/magma-studio.mjs](examples/share-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
 
@@ -138,7 +141,7 @@ It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` wit
 
 ### Publishing on LinkedIn
 
-[scripts/linkedin-post.ts](scripts/linkedin-post.ts) publishes a post with a native video through LinkedIn's official API (the Videos API, then the Posts API), only with the words of the person naming that post. Its dry run checks the video, the cover, the text, the visibility, the time and the account, and gives the post an id, a fingerprint of all of them: the approval names the id ("pubblica 3f9a2c1d"), so it covers exactly what the person saw, once. Anything changed makes another id.
+For a post with the native video, when the person asks for one instead of the article, [scripts/linkedin-post.ts](scripts/linkedin-post.ts) publishes it through LinkedIn's official API (the Videos API, then the Posts API), only with the words of the person naming that post. Its dry run checks the video, the cover, the text, the visibility, the time and the account, and gives the post an id, a fingerprint of all of them: the approval names the id ("pubblica 3f9a2c1d"), so it covers exactly what the person saw, once. Anything changed makes another id.
 
 **When.** `--suggest` gives the next good moments for the audience's time zone: working days, Tuesday to Thursday first, mid-morning, then mid-afternoon, and Italy's public holidays skipped for Europe/Rome. They follow what the studies of LinkedIn engagement of 2026 agree on; they are a suggestion, not a measure of your audience. LinkedIn's API publishes at once and cannot schedule, so a post scheduled waits on this Mac: with the approval the video is uploaded and processed, and a one-shot launchd job creates the post at its minute. The Mac must be on and awake then; more than 30 minutes late, nothing goes out and a notification says so. `--queue` lists the scheduled posts, `--cancel=<id>` cancels one.
 
@@ -169,7 +172,8 @@ npm test
 
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
-- The files of the workflow are English and ASCII. Every answer of a script is Markdown tables, and its header says where each answer comes from.
+- The files of the workflow are English and ASCII. Every answer of a script is Markdown tables (the map adds its diagram), and its header says where each answer comes from.
+- The map of `/v2:map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
 - The recorder of `/v2:share-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - `claude plugin validate . --strict` checks the manifests.
