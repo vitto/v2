@@ -1,6 +1,6 @@
 ---
 name: route
-description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token".'
+description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session, and never use a model or a service billed per use beyond the person''s plan without their yes. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token".'
 argument-hint: "[auto | minimo | basso | medio | alto | massimo] [model] [the work]"
 ---
 
@@ -22,7 +22,8 @@ the stronger one only what needs it.
 | `auto`, or nothing | chosen in step 2 |
 
 - **A model** the person names (`haiku`, `sonnet`, `opus`, or a model of another host) is used as
-  it is. Without one, it is chosen in step 2.
+  it is, within step 3: one their plan does not cover still needs their yes to what it costs.
+  Without one, it is chosen in step 2.
 - The same can come in words instead of arguments: "fallo con impegno alto", "usa haiku per
   questo".
 - What the person fixed holds for this piece of work only.
@@ -46,15 +47,34 @@ The effort, when the person fixed none: light `low`, standard `medium`, heavy `h
 that already failed once at `high` gets `xhigh` where the host has it. `max` only when the person
 asks for it: it is the costliest.
 
-## 3. Here or in a subagent
+## 3. Only what the plan covers
+
+A model, a mode or a service is used only when the person's plan covers it: a flat subscription
+that includes it, within its limits. One that would be billed per use on top of the plan (extra
+usage, pay as you go, API credits, a paid service of the host or of another one) is no by default,
+for every model and every service. Say in one line what it is, why the work needs it and that it
+is billed per use, and use it only on the person's yes naming it; the yes covers that piece of
+work only.
+
+- **What the plan covers**: from the host, where it shows it (its model picker, its status or
+  usage page); otherwise ask the person once, the first time a model or a service would be used,
+  and keep the answer for the conversation. Never take it for included without knowing.
+- **A tier whose model the plan does not cover**: the strongest covered model below it, at a
+  higher effort, and one line that says so.
+- **An account with no flat plan** (an API key, pay as you go): every use is billed; ask once
+  whether routing may use other models in this conversation.
+- **The model of the session** is the person's choice, made when they opened it: this step weighs
+  only what the skill adds.
+
+## 4. Here or in a subagent
 
 The tier of the session is the tier of the model this conversation runs on, by the table of
-step 4. A model the table does not name: ask the person once which tier it is.
+step 5. A model the table does not name: ask the person once which tier it is.
 
 - **Keep it here** when its tier is the session's and the person fixed nothing; when it is a
   handful of steps (a brief would cost more than it saves); when it leans on this conversation so
   much that a brief would have to retell most of it.
-- **Otherwise run it in a subagent** with the model and the effort of step 2: lighter work goes
+- **Otherwise run it in a subagent** with the model and the effort of steps 2 and 3: lighter work goes
   down, heavier work goes up. This skill is the explicit request a host may want before setting a
   subagent's effort. The brief stands alone: the goal, the files, what is ruled out, what to
   return. Check what comes back before calling it done: a cheaper model's mistakes come back as
@@ -74,7 +94,7 @@ step 4. A model the table does not name: ask the person once which tier it is.
 Before the work, one line: `route: <tier> -> <model>, effort <level> (auto | fixed), <here |
 subagent>`.
 
-## 4. The hosts
+## 5. The hosts
 
 | Host | light | standard | heavy | Effort levels | Another model for a piece of work |
 |------|-------|----------|-------|---------------|-----------------------------------|
@@ -84,16 +104,16 @@ Aliases, not versions: each points to the latest model of its family, so the tab
 release.
 
 Above `opus`, Claude Code has `fable`: the most capable model, and costlier than `opus`. A session
-on `fable` is of the heavy tier. Work goes to `fable` only when the person names it, as with `max`;
-heavy work that failed on `opus` at `xhigh`: say in one line that `fable` could do it, and use it
-only on their yes.
+on `fable` is of the heavy tier. Heavy work that resisted `opus` at `xhigh`, or that the person
+sends to it, may go up to `fable`, by step 3: when the plan covers it; otherwise only on their yes.
 
 **A host not in the table** (another agent harness, another AI service): find from its own docs
-or tools its models for the three tiers, its effort levels, and whether it can run a piece of work
-on another model; propose its row to the person and add it here only on their yes. Until then,
-weigh the work as in step 2 and say in one line which model and effort it needs.
+or tools its models for the three tiers, its effort levels, whether it can run a piece of work
+on another model and how each is billed; propose its row to the person and add it here only on
+their yes. Until then, weigh the work as in step 2 and say in one line which model and effort it
+needs.
 
-## 5. Once per machine
+## 6. Once per machine
 
 The skill acts when it is called or when its description matches the work. For it to weigh every
 piece of work, the global instructions of the host need one line that calls it. The first time it
@@ -104,5 +124,9 @@ reads AGENTS.md its global AGENTS.md. When no line names `route`, offer to add t
 Before starting a piece of work or handing it to a subagent, apply the v2 `route` skill: it picks the model and the effort the work needs.
 ```
 
-That file is the person's, outside the project: write it only on their yes. Once the line is
+Once the person has said what their plan covers (step 3), offer to add it after that line, in
+their words, so it is not asked again: for example "My plan covers haiku, sonnet and opus; fable
+and any other paid service are billed per use." It is theirs to change when the plan changes.
+
+That file is the person's, outside the project: write it only on their yes. Once the lines are
 there, the machine needs nothing more.
