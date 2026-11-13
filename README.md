@@ -32,7 +32,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, and the text of the post that carries it. Asks for the description only when the product does not say it. Publishes the post through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
+| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, as the cover of a LinkedIn article: its title, its body and the text that shares it in the feed, which the person publishes by hand. Asks for the description only when the product does not say it. A post with the native video only when asked for one: published through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
 
 ## What it does
 
@@ -40,7 +40,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
 - **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
 - **Around the work**, it draws what the work is made of, before and after, says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
-- **Once it ships**, it tells people: a video of the live product and the post that carries it, published on LinkedIn when the person approves it.
+- **Once it ships**, it tells people: a video of the live product as the cover of a LinkedIn article, and the text that shares it.
 
 ## Install in Claude Code
 
@@ -125,7 +125,9 @@ The status of an epic matches, table and next action, what `nx run magma:epic.st
 
 ## Sharing the work
 
-`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the post. Then the person posts it by hand, or approves it and the skill publishes it, now or at a moment it suggests.
+`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the article the video is the cover of: its title, its body and the text that shares it. The person publishes the article by hand, since LinkedIn's API cannot create one. A post with the native video, when they ask for one, they post by hand, or approve it and the skill publishes it, now or at a moment it suggests.
+
+The article is the format because it reached more people: on the author's account, an article with a 4:5 video cover had 1,984 impressions, 27 reactions and 12 comments after two weeks, a post with a native 4:5 video 92 impressions and 5 reactions after 18 hours. In the feed the cover filled its card; the native video played in a landscape frame with bands on its sides.
 
 The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/share-to-linkedin/magma-studio.mjs](examples/share-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
 
@@ -138,7 +140,7 @@ It needs Google Chrome or Chromium (or `CHROME` naming another) and `ffmpeg` wit
 
 ### Publishing on LinkedIn
 
-[scripts/linkedin-post.ts](scripts/linkedin-post.ts) publishes a post with a native video through LinkedIn's official API (the Videos API, then the Posts API), only with the words of the person naming that post. Its dry run checks the video, the cover, the text, the visibility, the time and the account, and gives the post an id, a fingerprint of all of them: the approval names the id ("pubblica 3f9a2c1d"), so it covers exactly what the person saw, once. Anything changed makes another id.
+For a post with the native video, when the person asks for one instead of the article, [scripts/linkedin-post.ts](scripts/linkedin-post.ts) publishes it through LinkedIn's official API (the Videos API, then the Posts API), only with the words of the person naming that post. Its dry run checks the video, the cover, the text, the visibility, the time and the account, and gives the post an id, a fingerprint of all of them: the approval names the id ("pubblica 3f9a2c1d"), so it covers exactly what the person saw, once. Anything changed makes another id.
 
 **When.** `--suggest` gives the next good moments for the audience's time zone: working days, Tuesday to Thursday first, mid-morning, then mid-afternoon, and Italy's public holidays skipped for Europe/Rome. They follow what the studies of LinkedIn engagement of 2026 agree on; they are a suggestion, not a measure of your audience. LinkedIn's API publishes at once and cannot schedule, so a post scheduled waits on this Mac: with the approval the video is uploaded and processed, and a one-shot launchd job creates the post at its minute. The Mac must be on and awake then; more than 30 minutes late, nothing goes out and a notification says so. `--queue` lists the scheduled posts, `--cancel=<id>` cancels one.
 
