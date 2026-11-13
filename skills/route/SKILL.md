@@ -78,10 +78,15 @@ subagent>`.
 
 | Host | light | standard | heavy | Effort levels | Another model for a piece of work |
 |------|-------|----------|-------|---------------|-----------------------------------|
-| Claude Code (terminal, desktop, web, IDE) | `haiku` | `sonnet` | `opus` | low, medium, high, xhigh, max; minimal is low | a subagent (the Agent tool) with `model` and `effort` |
+| Claude Code (terminal, desktop, web, IDE) | `haiku` | `sonnet` | `opus` | low, medium, high, xhigh, max; minimal is low | a subagent (the Agent tool) with `model` and `effort`; not a fork, which keeps the model and the effort of the session |
 
 Aliases, not versions: each points to the latest model of its family, so the table outlives a new
 release.
+
+Above `opus`, Claude Code has `fable`: the most capable model, and costlier than `opus`. A session
+on `fable` is of the heavy tier. Work goes to `fable` only when the person names it, as with `max`;
+heavy work that failed on `opus` at `xhigh`: say in one line that `fable` could do it, and use it
+only on their yes.
 
 **A host not in the table** (another agent harness, another AI service): find from its own docs
 or tools its models for the three tiers, its effort levels, and whether it can run a piece of work
