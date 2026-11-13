@@ -1,6 +1,6 @@
 ---
 name: share-to-linkedin
-description: 'Share a product on LinkedIn: a short video of the live product (1080x1350, captions in the frame, a pointer that clicks, drags and types for real, a closing card) recorded from a scene written for it, the text of the post that carries it, and its publication through LinkedIn''s API, now or at a suggested moment, once the person approves that post by naming it. Use when asked for a LinkedIn post, video or article about a product, a site, a release or a feature, or to publish or schedule one; in Italian "post per linkedin", "video per linkedin", "annuncio su linkedin", "articolo per linkedin", "pubblica su linkedin", "programma il post".'
+description: 'Share a product on LinkedIn: a short video of the live product (1080x1350, captions in the frame, a pointer that clicks, drags and types for real, a closing card) recorded from a scene written for it, and the LinkedIn article it is the cover of (its title, its body and the text that shares it in the feed), which the person publishes by hand; a post with the native video only when asked for one, published through LinkedIn''s API, now or at a suggested moment, once the person approves that post by naming it. Use when asked for a LinkedIn post, video or article about a product, a site, a release or a feature, or to publish or schedule one; in Italian "post per linkedin", "video per linkedin", "annuncio su linkedin", "articolo per linkedin", "pubblica su linkedin", "programma il post".'
 argument-hint: "<url> [description]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-video.ts *), Bash(ffmpeg *), Bash(ffprobe *)
 ---
@@ -28,20 +28,26 @@ the toolkit a scene drives the product with.
 
 ## 2. The format
 
-A **post with a native video** and a short text above it, unless the person asks for something
-else:
+An **article with the video as its cover**, unless the person asks for something else. It is what
+people mean by "the post": in the feed it shows the text that shares it, the video playing, then
+a band with the title of the article and the name of its author.
 
 - the video plays by itself, muted, in the feed: its captions carry the message, it needs no
   audio;
-- the text above it shows its first two or three lines before "see more": the news and the
+- the text that shares it shows its first two or three lines before "see more": the news and the
   promise go there;
-- an article is long form that opens off the feed: write one only when the person asks for it,
-  with a title of its own. Its cover is a wide frame: a 4:5 video set there plays in the middle
-  with bands on its sides, so an article needs a landscape take (16:9), or the 4:5 video goes in
-  a post that links the article.
+- the title says the news in one sentence: it is the band under the video;
+- the body is for whoever opens it: what the product is and for whom, what a person can do with
+  it, how to start.
 
-Say which one the video is for before the person publishes: a 4:5 video posted as an article
-cover is the most common way to spoil it.
+Why not a post with the native video, measured on the person's own account (2026-11-10): an
+article with a 4:5 video cover had 1,984 impressions, 27 reactions and 12 comments after two
+weeks; a post with a native 4:5 video, 92 impressions and 5 reactions after 18 hours. The layout
+said it before the numbers: in the feed the cover of the article filled its card at 4:5, while
+the native video played in a landscape frame with bands on its sides and an empty space under
+it. Where the article is edited, its cover sits in a wide frame (16:9, LinkedIn's help says), with
+bands on the sides of a 4:5 video; the feed shows it whole, so the take stays 4:5. A post with the
+native video only when the person asks for one.
 
 The video: 1080x1350 (4:5, the format that fills the most of a phone's feed), 20 to 35 seconds,
 5 to 8 captions of one idea each and at most about 50 characters, the product's own words, then a
@@ -115,9 +121,29 @@ Read the sheet, and at full size the frames where something changes
 Then copy the videos and covers where the person finds them (`~/Downloads/<product>-linkedin-<lang>.mp4`,
 `-cover-<lang>.png`) and send them.
 
-## 5. The post
+## 5. The article
 
-Plain text, since LinkedIn renders no Markdown, in a code block ready to paste:
+Three texts, each in a code block ready to paste. LinkedIn renders no Markdown: no `#` and no
+`**`; the headings of the body are set with the style menu of the editor.
+
+**The title**, one line: the news, in the words of the captions and of the product.
+
+**The body**, short:
+
+```text
+<two or three lines: the news, what the product does and for whom, in its own words>
+
+<a heading: one thing a person can do>
+<two or three lines: how, and what they see change>
+
+<three to five of these, in the order of the moments of the video>
+
+<a heading: how to start>
+<the address, and the first step>
+```
+
+**The text that shares it**, above the video in the feed (alone, it is the text of a post with the
+native video):
 
 ```text
 <the news, in one line>
@@ -143,17 +169,25 @@ Plain text, since LinkedIn renders no Markdown, in a code block ready to paste:
 
 ## 6. Publish
 
-The person may post by hand, from the files and the text. Otherwise the skill publishes the post
-through LinkedIn's API, now or at a moment they choose, only on their words naming that post. The
-header of `${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-post.ts` says where every request and limit
-comes from.
+**The article, by hand.** LinkedIn's API cannot create an article: its Posts API makes posts, and
+the "article" it knows is a link to a page elsewhere. The person publishes it from LinkedIn: Write
+article, the video as its cover and the cover image as its thumbnail, the title, the body, then
+publish, where the text that shares it goes above it. For the moment,
+`node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-post.ts --suggest --zone=<zone>` gives the next good
+ones, in the time zone of the people it is for (`Europe/Rome` for an article in Italian to an
+Italian network); the person publishes then.
+
+**A post with the native video**, only when the person asks for one. They may post it by hand,
+from the files and the text; otherwise the skill publishes it through LinkedIn's API, now or at a
+moment they choose, only on their words naming that post. The header of
+`${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-post.ts` says where every request and limit comes from.
 
 1. **The account**: `node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-auth.ts --status`. Never set up:
    point the person to the setup in the README of the plugin ("Publishing on LinkedIn"), which
    they do once, and stop. Expired, or expiring before the post: they sign in again with
    `node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-auth.ts`, which opens LinkedIn in their browser.
    Never ask for their password, the client secret or the token, and never read the Keychain.
-2. **The text**: write the post, exactly as the person saw it in step 5, to a file in the
+2. **The text**: write the text of the post, exactly as the person saw it in step 5, to a file in the
    scratchpad (`post-<lang>.txt`). Plain text: the script escapes the characters LinkedIn
    reserves and turns a `#word` into a hashtag.
 3. **The moment**: `node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-post.ts --suggest --zone=<zone>`,
