@@ -1,6 +1,6 @@
 # v2
 
-Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: where it stands, how to see and test it, and the merges a person approves; and, once it ships, how to tell people about it.
+Vittorio Vittori's design principles for AI agents: a skill and an MCP server that tell an agent which ones apply to what it builds, across UX, design systems and AI, then check the result. Around them, the workflow the work goes through: what it is made of, where it stands, how to see and test it, and the merges a person approves; and, once it ships, how to tell people about it.
 
 v2 is V twice, for Vittorio Vittori. It is also my second version: the one that works inside an agent, with the principles I apply when I design.
 
@@ -23,6 +23,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
+| `/v2:map [planned \| done] [issue, PR, epic or branch]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. |
 | `/v2:status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
 | `/v2:test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
 | `/v2:merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
@@ -38,7 +39,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 - **Before building**, the agent finds the principles that apply to the task, across sections: a form that sends AI-generated text needs both Error Prevention and Design for Uncertainty.
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
 - **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
-- **Around the work**, it says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
+- **Around the work**, it draws what the work is made of, before and after, says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
 - **Once it ships**, it tells people: a video of the live product as the cover of a LinkedIn article, and the text that shares it.
 
 ## Install in Claude Code
@@ -170,7 +171,8 @@ npm test
 
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
-- The files of the workflow are English and ASCII. Every answer of a script is Markdown tables, and its header says where each answer comes from.
+- The files of the workflow are English and ASCII. Every answer of a script is Markdown tables (the map adds its diagram), and its header says where each answer comes from.
+- The map of `/v2:map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
 - The recorder of `/v2:share-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - `claude plugin validate . --strict` checks the manifests.

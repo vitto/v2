@@ -36,6 +36,8 @@ unknown, `--repo=<owner/name>` for a repository other than the folder's.
   is work that can be lost or forgotten: say so.
 - When a preview of the epic exists (a `<epic>-preview` worktree), `/v2:test <epic>` rebuilds it
   and shows what it holds.
+- The tables say where the work stands, not what it is made of: for that, offer `/v2:map` with the
+  same epic or pull request in one line at the end.
 - After builds or tests run in this conversation, add them as a table `What | Result | Detail`
   (the command, passed or failed with the counts, the names of what failed).
 
