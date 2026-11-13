@@ -2,7 +2,7 @@
   "name": "v2",
   "version": "0.1.0",
   "private": true,
-  "description": "The Claude Code plugin of Vittorio: what the work is made of, where it stands, how to test it, the merges a person approves.",
+  "description": "The Claude Code plugin of Vittorio: what the work is made of, the model and the effort it needs, where it stands, how to test it, the merges a person approves.",
   "type": "module",
   "engines": {
     "node": ">=24"

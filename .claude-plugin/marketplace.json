@@ -9,7 +9,7 @@
     {
       "name": "v2",
       "source": "./",
-      "description": "Skills that bring the UX, design system and AI design principles that apply into what an agent builds and audit the result, the workflow around it: /v2:map, /v2:status, /v2:test, /v2:merge; and /v2:share-to-linkedin, a video of a product as the cover of a LinkedIn article, and the text that shares it.",
+      "description": "Skills that bring the UX, design system and AI design principles that apply into what an agent builds and audit the result, the workflow around it: /v2:map, /v2:route, /v2:status, /v2:test, /v2:merge; and /v2:share-to-linkedin, a video of a product as the cover of a LinkedIn article, and the text that shares it.",
       "category": "design",
       "tags": ["design-principles", "ux", "design-systems", "ai-design", "workflow", "governance", "linkedin"]
     }
