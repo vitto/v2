@@ -52,9 +52,11 @@ asks for it: it is the costliest.
 A model, a mode or a service is used only when the person's plan covers it: a flat subscription
 that includes it, within its limits. One that would be billed per use on top of the plan (extra
 usage, pay as you go, API credits, a paid service of the host or of another one) is no by default,
-for every model and every service. Say in one line what it is, why the work needs it and that it
-is billed per use, and use it only on the person's yes naming it; the yes covers that piece of
-work only.
+for every model and every service. Ask the person explicitly whether to turn it on, in their
+language: what it is, why the work needs it, and that its cost is billed per use. No is the
+default: offer it first (as the first option where the host has a question with choices), and
+without a clear yes naming it, it stays off and the work goes on with what the plan covers. The
+yes covers that piece of work only.
 
 - **What the plan covers**: from the host, where it shows it (its model picker, its status or
   usage page); otherwise ask the person once, the first time a model or a service would be used,
