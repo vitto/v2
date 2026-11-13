@@ -1,8 +1,8 @@
 {
   "name": "v2",
   "displayName": "v2",
-  "description": "Vittorio Vittori's way of working for AI agents: the UX, design system and AI design principles that apply to what an agent builds, and the workflow around it - what the work is made of, where it stands, how to see and test it, the merges a person approves - and how to tell people once it ships.",
-  "version": "0.4.0",
+  "description": "Vittorio Vittori's way of working for AI agents: the UX, design system and AI design principles that apply to what an agent builds, and the workflow around it - what the work is made of, the model and the effort it needs, where it stands, how to see and test it, the merges a person approves - and how to tell people once it ships.",
+  "version": "0.5.0",
   "author": {
     "name": "Vittorio Vittori",
     "url": "https://vittoriovittori.com"
@@ -18,6 +18,7 @@
     "accessibility",
     "workflow",
     "diagram",
+    "model-routing",
     "epic",
     "merge",
     "governance",
