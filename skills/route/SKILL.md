@@ -71,19 +71,27 @@ yes covers that piece of work only.
 ## 4. Here or in a subagent
 
 The tier of the session is the tier of the model this conversation runs on, by the table of
-step 5. A model the table does not name: ask the person once which tier it is.
+step 5. A model the table does not name: ask the person once which tier it is. The effort of the
+session is the one the person set when they opened it: from the host, where it shows it (its
+model picker, its session details); otherwise ask the person once and keep the answer for the
+conversation. Never take it for the one step 2 chose: nothing sets it by choosing it.
 
-- **Keep it here** when its tier is the session's and the person fixed nothing; when it is a
-  handful of steps (a brief would cost more than it saves); when it leans on this conversation so
-  much that a brief would have to retell most of it.
+- **Keep it here** when its tier is the session's, the effort of the session is at least the one
+  step 2 chose, and the person fixed nothing; when it is a handful of steps (a brief would cost
+  more than it saves); when it leans on this conversation so much that a brief would have to
+  retell most of it.
 - **Otherwise run it in a subagent** with the model and the effort of steps 2 and 3: lighter work goes
   down, heavier work goes up. This skill is the explicit request a host may want before setting a
   subagent's effort. The brief stands alone: the goal, the files, what is ruled out, what to
   return. Check what comes back before calling it done: a cheaper model's mistakes come back as
   sure of themselves as its findings.
-- **An effort the person fixed** sends the work to a subagent with that effort, even when the
-  model stays the same, unless the person prefers it here: the effort of the session cannot
-  change from inside.
+- **An effort the session does not have** (the person fixed it, or step 2 chose one above the
+  session's) sends the work to a subagent with the model of the session and that effort, unless
+  the person prefers it here: the effort of the session does not change by choosing it. Where
+  the host has a tool that sets the effort of the session, use it only on the person's yes, for
+  that piece of work, and set it back after; otherwise, when the work stays here, say in one
+  line which effort it needs and where the person sets it (in Claude Code, the effort in the
+  model picker).
 - **Never switch the model of the session**, even where the host could. The cache holds for one
   model: the other would read the whole conversation again at full price, and so would the first
   one on the way back. The model of the session is the person's to choose, when they open it.
@@ -94,7 +102,9 @@ step 5. A model the table does not name: ask the person once which tier it is.
   start on the lighter model.
 
 Before the work, one line: `route: <tier> -> <model>, effort <level> (auto | fixed), <here |
-subagent>`.
+subagent>`. The line says the effort the work runs at, not the one chosen: here, the effort of
+the session; in a subagent, the one it is given. When the two differ, the line says both:
+`route: heavy -> opus, effort medium (session; needs high), here`.
 
 ## 5. The hosts
 
