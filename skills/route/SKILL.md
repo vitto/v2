@@ -1,6 +1,6 @@
 ---
 name: route
-description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session, and never use a model or a service billed per use beyond the person''s plan without their yes. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token".'
+description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session, and never use a model or a service billed per use beyond the person''s plan without their yes. Called by the person in the middle of a conversation, it opens a new session under this one with the message that continues the work instead of doing it there. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token", "continua in una nuova sessione".'
 argument-hint: "[auto | minimo | basso | medio | alto | massimo] [model] [the work]"
 ---
 
@@ -9,6 +9,43 @@ argument-hint: "[auto | minimo | basso | medio | alto | massimo] [model] [the wo
 What to route, and what the person fixed: $ARGUMENTS. Nothing given, or `auto`: the model and
 the effort are chosen here. The point is to spend less: the cheaper model does what it does well,
 the stronger one only what needs it.
+
+## 0. Called in the middle of a conversation
+
+When the person calls the skill themselves (`/v2:route`, or "route" in words) and the
+conversation already holds work before that message, the work does not go on here: it goes on
+in a new session that opens on the model and the effort it needs, with this conversation summed
+up in its first message. A new session is the one place where the model can change without
+paying for the whole conversation again (step 4), and it carries only what the work needs.
+
+Not this step: the first message of a conversation; the skill applied by itself before a piece
+of work (the line of step 6, or its description matching); the person saying to keep it here
+("qui", "here"). Then steps 1 to 5, as usual.
+
+1. **Weigh what is left** with steps 1 to 3: its tier, its model, its effort, what the person
+   fixed. Do none of the work here.
+2. **Write the message that continues it**, in the person's language. Its first line calls the
+   skill with what the person fixed, so the new session sets its route before anything else:
+   `/v2:route <effort> <model> <the work in one line>` (only what was fixed; nothing, and the
+   new session chooses). Then the brief, standing alone for someone who has not seen this
+   conversation: the goal; where it stands (what is done, the branches, the pull requests, the
+   issues, the files); what is left; the decisions taken and what is ruled out; what done looks
+   like. Point to what can be read (an issue, a pull request, a spec, a memory) instead of
+   retelling it.
+3. **Open it as a session under this one**, where the host can: a session started from this
+   conversation, linked to it, whose reports come back here (in Claude Code desktop, the tool
+   that starts a session, with the person's call as their request, a fresh context, the message
+   as its brief, and the model and the effort of step 1). Its own worktree when the work ends
+   in a branch or a pull request of its own; this folder otherwise.
+   - The host lets a session started from this one go only to the same model or a cheaper one,
+     at the same effort or a lower one. When the work needs more than this session, do not open
+     it there: give the message ready to paste, and the model and the effort to open the new
+     conversation on (in Claude Code, the model picker).
+4. **No such tool** (the terminal, another host): the message in a code block, ready to paste
+   in a new conversation, with the model and the effort to open it on.
+
+Then one line, and stop: `route: <tier> -> <model>, effort <level> (auto | fixed), new session
+<link to it | to open by hand>`.
 
 ## 1. What the person fixed
 
