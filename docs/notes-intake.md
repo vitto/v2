@@ -16,7 +16,7 @@ Read every attachment the person gives (call notes, a transcript, a brief, a spe
 
 Quote **decisions**, not people: what was decided, not who said what at which moment, and no names, contacts or personal details. An item is a line, not a paragraph.
 
-Notes longer than a few pages are extracted by a subagent on a cheaper model (`route` weighs it: extracting is light work), which returns only the items; the pages never enter the conversation.
+Notes longer than a few pages are extracted by a subagent on a cheaper model (`agent-route` weighs it: extracting is light work), which returns only the items; the pages never enter the conversation.
 
 ## 2. Show the count, then ask
 
