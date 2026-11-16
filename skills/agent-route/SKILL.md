@@ -1,5 +1,5 @@
 ---
-name: route
+name: agent-route
 description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session, and never use a model or a service billed per use beyond the person''s plan without their yes. Called by the person in the middle of a conversation, it opens a new session under this one with the message that continues the work instead of doing it there. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token", "continua in una nuova sessione".'
 argument-hint: "[auto | minimo | basso | medio | alto | massimo] [model] [the work]"
 ---
@@ -12,7 +12,7 @@ the stronger one only what needs it.
 
 ## 0. Called in the middle of a conversation
 
-When the person calls the skill themselves (`/v2:route`, or "route" in words) and the
+When the person calls the skill themselves (`/v2:agent-route`, or "route" in words) and the
 conversation already holds work before that message, the work does not go on here: it goes on
 in a new session that opens on the model and the effort it needs, with this conversation summed
 up in its first message. A new session is the one place where the model can change without
@@ -26,7 +26,7 @@ of work (the line of step 6, or its description matching); the person saying to 
    fixed. Do none of the work here.
 2. **Write the message that continues it**, in the person's language. Its first line calls the
    skill with what the person fixed, so the new session sets its route before anything else:
-   `/v2:route <effort> <model> <the work in one line>` (only what was fixed; nothing, and the
+   `/v2:agent-route <effort> <model> <the work in one line>` (only what was fixed; nothing, and the
    new session chooses). Then the brief, standing alone for someone who has not seen this
    conversation: the goal; where it stands (what is done, the branches, the pull requests, the
    issues, the files); what is left; the decisions taken and what is ruled out; what done looks
@@ -167,10 +167,11 @@ needs.
 The skill acts when it is called or when its description matches the work. For it to weigh every
 piece of work, the global instructions of the host need one line that calls it. The first time it
 runs in a conversation, look for that line: Claude Code reads `~/.claude/CLAUDE.md`, a host that
-reads AGENTS.md its global AGENTS.md. When no line names `route`, offer to add this one:
+reads AGENTS.md its global AGENTS.md. When no line names `agent-route`, offer to add this one; a
+line that still names the old `route` skill is replaced with it, on the same yes:
 
 ```markdown
-Before starting a piece of work or handing it to a subagent, apply the v2 `route` skill: it picks the model and the effort the work needs.
+Before starting a piece of work or handing it to a subagent, apply the v2 `agent-route` skill: it picks the model and the effort the work needs.
 ```
 
 Once the person has said what their plan covers (step 3), offer to add it after that line, in
