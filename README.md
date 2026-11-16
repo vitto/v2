@@ -16,8 +16,10 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `design` | loads by itself | Which UX, design system and AI design principles apply to the UI being built, the rules to follow, the checks to run before handing over. |
-| `/v2:audit <target>` | "audit", "review the UX" | Audits a screen, a component or a change against the principles: every check as pass, fail or not verifiable. |
+| `/v2:design-interview [area]` | "intervista", "come strutturo questa pagina" | Before a new view, section or tool: an interview that writes the object model its screens come from - the goal, the world and words of the person, the entities and their hierarchy, and for each view its focal entity and how much of the others it shows ([docs/object-model.md](docs/object-model.md)). |
+| `design-build` | loads by itself | Which UX, design system and AI design principles apply to the UI being built, the rules to follow, the checks to run before handing over; a new view starts from the object model. |
+| `/v2:design-reframe <request>` | "aggiungi anche", "ripensiamo il flusso" | When a request adds to a flow: places it in the object model first, asks only the new questions, shows which views change and whether each is patched or rebuilt. |
+| `/v2:design-audit <target>` | "audit", "review the UX" | Audits a screen, a component or a change against the principles and the object model: every check as pass, fail or not verifiable. |
 
 ### Workflow
 
@@ -50,7 +52,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 /plugin install v2@v2
 ```
 
-`design` loads by itself when Claude builds or changes a UI. `/v2:audit <target>` reviews a screen, a component or a change. `/v2:route` picks the model and the effort of a piece of work; the first time it runs on a machine, it offers to add one line to your global instructions, so that it weighs every piece of work. To try a local copy for one session without installing it: `claude --plugin-dir /path/to/v2`.
+`design-build` loads by itself when Claude builds or changes a UI; `/v2:design-interview` comes before a new view, `/v2:design-reframe` before adding to one. `/v2:design-audit <target>` reviews a screen, a component or a change. `/v2:route` picks the model and the effort of a piece of work; the first time it runs on a machine, it offers to add one line to your global instructions, so that it weighs every piece of work. To try a local copy for one session without installing it: `claude --plugin-dir /path/to/v2`.
 
 A new version reaches an installed plugin only when `version` in [.claude-plugin/plugin.json](.claude-plugin/plugin.json) changes: bump it with each release.
 
@@ -186,7 +188,7 @@ npm test
 .github/          the workflow that runs the specs
 skills/<name>/    one folder per skill: SKILL.md
 principles/       the principles, one file each, by section of the site
-docs/             the pilot audit
+docs/             the format of the object model, the pilot audit
 scripts/          one script per job of the workflow, and its spec beside it
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
 examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video
@@ -196,7 +198,7 @@ GOVERNANCE.md     the rules of the workflow
 
 ### Adding a skill
 
-A skill is a folder `skills/<name>/SKILL.md` (invoked as `/v2:<name>`): its description says what it does, when to use it, and the Italian words that call it. A script it needs goes in `scripts/` with its spec, reads through `scripts/lib/`, and is called as `node ${CLAUDE_PLUGIN_ROOT}/scripts/<script>.ts`. Next planned: `ui`, the practices of UI and design systems beside `design` and `audit`, with vitto/home as its first project. The MCP server will go in a `.mcp.json` at the root of the plugin.
+A skill is a folder `skills/<name>/SKILL.md` (invoked as `/v2:<name>`): its description says what it does, when to use it, and the Italian words that call it. A script it needs goes in `scripts/` with its spec, reads through `scripts/lib/`, and is called as `node ${CLAUDE_PLUGIN_ROOT}/scripts/<script>.ts`. Skills of one family share a prefix (`design-`), so they read as a group. The MCP server will go in a `.mcp.json` at the root of the plugin.
 
 ## License
 
