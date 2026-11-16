@@ -1,6 +1,6 @@
 ---
 name: design-reframe
-description: When a request adds something to an existing flow or view - a new entity, a field, a state, an action, a step - place it in the object model before touching the UI - ask only the new questions, show how the model changes and which views move, and say for each view whether it is patched or rebuilt. Use when the person asks to add to, extend or change what a page, an editor or a flow does, or when a flow has become hard to follow; in Italian "aggiungi anche", "vorrei che questa parte facesse anche", "ripensiamo il flusso", "reframe", "non capisco più questa vista".
+description: When a request adds something to an existing flow or view - a new entity, a field, a state, an action, a step - place it in the object model before touching the UI - ask only the new questions, show how the model changes and which views move, and say for each view whether it is patched or rebuilt. Notes from a call or attached documents are placed against the model first. Use when the person asks to add to, extend or change what a page, an editor or a flow does, when notes from a call ask for changes to a flow, or when a flow has become hard to follow; in Italian "aggiungi anche", "vorrei che questa parte facesse anche", "ripensiamo il flusso", "reframe", "non capisco più questa vista".
 ---
 
 # Reframe: the model first, then the views
@@ -16,13 +16,15 @@ A flow drifts when each request is bolted onto the screen it lands on: after a f
 
 Read the object model of the area (the format is `../../docs/object-model.md`, from this skill's folder). If there is none, run `design-interview` on the area first: there is nothing to reframe against.
 
+If the person attached notes or documents, read them as `../../docs/notes-intake.md` says, against this model (its step 4): each item covered by the model, or a request to place in step 2. Show the count first.
+
 ## 2. Place the request
 
 Say in a few lines where it belongs: which entity, at which level; whether it is a new entity, a field, a state, an action or a view; which view's goal it serves. When it serves none, say so: it may be a view of its own, or not belong in this tool.
 
 ## 3. Ask only what is new
 
-The questions of `design-interview` for what the request touches, nothing already answered. Propose the answers you can infer, marked as proposed. The entities already defined stay as they are unless the request moves them.
+The questions of `design-interview` for what the request touches, nothing already answered. Propose the answers you can infer, marked as proposed, or from the notes (file, place) to confirm. The entities already defined stay as they are unless the request moves them. A new word, or one that now means two things, goes to `taxonomy` before it reaches the model.
 
 ## 4. Show the change
 
@@ -38,4 +40,4 @@ When in doubt between a patch and a rebuild, propose the rebuild: coherence is w
 
 ## 5. Then build
 
-On the person's yes, update the model file (with the date and what changed), then build the views with `design-build` and check them with `design-audit`.
+On the person's yes, update the model file (with the date and what changed); when there were notes, show their coverage report (covered, contradicted, not addressed and where it went). Then build the views with `design-build` and check them with `design-audit`.
