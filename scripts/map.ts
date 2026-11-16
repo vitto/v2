@@ -1,7 +1,7 @@
 /*
   The map of a piece of work: what it is made of (its entities, methods, concepts, axes, what
   people see), grouped by where each thing lives, colored and shaped by kind, marked by what
-  changes, breaking changes first. The skill /v2:map writes the facts as JSON and shows what this
+  changes, breaking changes first. The skill /v2:work-map writes the facts as JSON and shows what this
   prints, before the work (planned) or after it (done).
 
     node scripts/map.ts <map.json | -> [--plan=<file>] [--html=<file>] [--into=<file>]
@@ -293,7 +293,7 @@ export const extractMap = (content: string): unknown => {
   const trimmed = content.trim();
   if (trimmed.startsWith('{')) return JSON.parse(trimmed);
   const hidden = /<!-- v2:map (\{[\s\S]*?\}) -->/.exec(content);
-  if (!hidden) fail('no map in it: neither JSON nor a body holding a map of /v2:map');
+  if (!hidden) fail('no map in it: neither JSON nor a body holding a map of /v2:work-map');
   return JSON.parse(hidden![1]);
 };
 

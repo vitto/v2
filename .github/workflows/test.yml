@@ -1,4 +1,4 @@
-# The specs of the scripts, on every pull request and on main: the check /v2:merge waits for
+# The specs of the scripts, on every pull request and on main: the check /v2:work-merge waits for
 # (GOVERNANCE.md rule 1: a merge needs its checks green). No dependency to install.
 name: test
 

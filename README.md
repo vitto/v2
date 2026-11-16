@@ -23,17 +23,17 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:map [planned \| done] [issue, PR, epic or branch]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. |
-| `/v2:status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
-| `/v2:test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
-| `/v2:merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
+| `/v2:work-map [planned \| done] [issue, PR, epic or branch]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. |
+| `/v2:work-status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
+| `/v2:work-test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
+| `/v2:work-merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
 | `/v2:route [auto \| minimo \| basso \| medio \| alto \| massimo] [model]` | "che modello usi", "impegno alto", "fallo con haiku" | The model and the effort a piece of work needs, so the cheaper ones do what they can: weighs the work (light, standard, heavy), keeps it in the session when its model fits, else runs it in a subagent with the model and the effort it needs. Without arguments, all automatic. Never switches the model of the session: the cache holds for one model. Never uses a model or a service billed per use beyond the person's plan without their yes. |
 
 ### Sharing the work
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:share-to-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, as the cover of a LinkedIn article: its title, its body and the text that shares it in the feed, which the person publishes by hand. Asks for the description only when the product does not say it. A post with the native video only when asked for one: published through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
+| `/v2:share-linkedin <url> [description]` | "post per linkedin", "video per linkedin", "pubblica su linkedin" | Shares a product on LinkedIn: a short video of the live product (1080x1350, captions, a pointer that really clicks, a closing card), recorded from a scene written for it, as the cover of a LinkedIn article: its title, its body and the text that shares it in the feed, which the person publishes by hand. Asks for the description only when the product does not say it. A post with the native video only when asked for one: published through LinkedIn's API, now or at a suggested moment, only once the person approves that post by naming it. |
 
 ## What it does
 
@@ -126,11 +126,11 @@ The status of an epic matches, table and next action, what `nx run magma:epic.st
 
 ## Sharing the work
 
-`/v2:share-to-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the article the video is the cover of: its title, its body and the text that shares it. The person publishes the article by hand, since LinkedIn's API cannot create one. A post with the native video, when they ask for one, they post by hand, or approve it and the skill publishes it, now or at a moment it suggests.
+`/v2:share-linkedin` reads what the product is from the product itself, looks at it at 1080x1350, writes a scene of three to five moments, checks each step with a probe, records the take, checks it on a contact sheet, and writes the article the video is the cover of: its title, its body and the text that shares it. The person publishes the article by hand, since LinkedIn's API cannot create one. A post with the native video, when they ask for one, they post by hand, or approve it and the skill publishes it, now or at a moment it suggests.
 
 The article is the format because it reached more people: on the author's account, an article with a 4:5 video cover had 1,984 impressions, 27 reactions and 12 comments after two weeks, a post with a native 4:5 video 92 impressions and 5 reactions after 18 hours. In the feed the cover filled its card; the native video played in a landscape frame with bands on its sides.
 
-The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/share-to-linkedin/magma-studio.mjs](examples/share-to-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
+The recording is [scripts/linkedin-video.ts](scripts/linkedin-video.ts): headless Chrome over the DevTools Protocol, real input events, the pointer and the captions drawn in the page, ffmpeg for a 30 fps H.264 video. Its header says how, its `Take` interface is what a scene drives the product with, and [examples/share-linkedin/magma-studio.mjs](examples/share-linkedin/magma-studio.mjs) is a complete scene: the video of Magma Studio.
 
 ```bash
 node scripts/linkedin-video.ts --scene=<scene.mjs> --probe --out=probe
@@ -173,11 +173,11 @@ npm test
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
 - The files of the workflow are English and ASCII. Every answer of a script is Markdown tables (the map adds its diagram), and its header says where each answer comes from.
-- The map of `/v2:map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
-- The recorder of `/v2:share-to-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
+- The map of `/v2:work-map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
+- The recorder of `/v2:share-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - `claude plugin validate . --strict` checks the manifests.
-- The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:merge` waits for.
+- The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:work-merge` waits for.
 
 ### Layout
 

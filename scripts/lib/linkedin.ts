@@ -1,5 +1,5 @@
 /*
-  LinkedIn as the scripts of /v2:share-to-linkedin reach it: the API and its version, the sign-in
+  LinkedIn as the scripts of /v2:share-linkedin reach it: the API and its version, the sign-in
   of the person kept in the macOS Keychain, the clock of the audience. Pure functions, and the
   few calls to the outside (`fetch`, `security`) passed in, so the specs replace them.
 

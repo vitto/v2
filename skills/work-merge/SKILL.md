@@ -1,5 +1,5 @@
 ---
-name: merge
+name: work-merge
 description: 'Carry out the merge of one pull request the person approved by naming it - a part into the branch of its epic with a merge commit, or a pull request into the default branch through its merge queue or with a merge commit - after checking again that nothing holds it (checks, conflicts, review, the branch of the epic behind, a release running). Never --auto, --admin, --squash or --rebase. Use when the person approves a merge or asks for one; in Italian "ok #N", "mergia", "mergiala".'
 argument-hint: "<pull request number>"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *)
@@ -50,8 +50,8 @@ has one). Never run `gh pr merge` yourself, and never pass `--auto`, `--admin`, 
 
 ## 4. After it
 
-Show what the script says GitHub answered, then the new state: `/v2:status <epic>` for a part of
-an epic, `/v2:status` otherwise.
+Show what the script says GitHub answered, then the new state: `/v2:work-status <epic>` for a part of
+an epic, `/v2:work-status` otherwise.
 
 - **A part merged into the branch of its epic**: the open parts sync with that branch (rule 2),
   those the status table marks with the same files first. Say which, and once the person agrees,

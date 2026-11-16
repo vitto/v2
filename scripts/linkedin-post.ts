@@ -1,5 +1,5 @@
 /*
-  Publishes a LinkedIn post with a native video for /v2:share-to-linkedin, now or at a time, only
+  Publishes a LinkedIn post with a native video for /v2:share-linkedin, now or at a time, only
   on the person's words naming that post. The only script of v2 that posts on the person's behalf.
 
     node scripts/linkedin-post.ts --video=<mp4> --cover=<png|jpg> --text=<file> \
