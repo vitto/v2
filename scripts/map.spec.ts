@@ -258,3 +258,60 @@ describe('the words', () => {
     assert.match(legend, /\u26a0 breaking \(thick red border\)/);
   });
 });
+
+describe('a glossary map', () => {
+  const glossary = (): MapSpec =>
+    parseMap({
+      title: 'Taxonomy register',
+      mode: 'glossary',
+      source: 'GLOSSARY.md, Taxonomy register',
+      groups: [{ id: 'world', label: 'the game world' }],
+      nodes: [
+        { id: 'zone', label: 'zone', kind: 'entity', group: 'world' },
+        { id: 'room', label: 'room', kind: 'entity', group: 'world' },
+        { id: 'level', label: 'level', kind: 'entity', group: 'world' },
+        { id: 'kind', label: 'furniture kind', kind: 'concept' },
+      ],
+      edges: [
+        { from: 'zone', to: 'room', relation: 'contains', source: 'data/zones members' },
+        { from: 'level', to: 'zone', relation: 'is-a', source: 'data/zones' },
+        { from: 'room', to: 'kind', relation: 'refers-to' },
+        { from: 'zone', to: 'level', relation: 'contains', source: 'docs', contradicted: 'no zone in data/zones holds a level' },
+      ],
+    });
+
+  it('needs the relation of every edge, and knows only three', () => {
+    assert.throws(() => parseMap({ ...glossary(), edges: [{ from: 'zone', to: 'room' }] }), /relation of every edge/);
+    assert.throws(
+      () => parseMap({ ...glossary(), edges: [{ from: 'zone', to: 'room', relation: 'owns' }] }),
+      /relation must be one of contains, is-a, refers-to/,
+    );
+  });
+
+  it('draws each relation with its own arrow, dashed without a source, red where the data contradicts it', () => {
+    const { diagram } = render(glossary());
+    assert.match(diagram, /n_zone -->\|"contains"\| n_room/);
+    assert.match(diagram, /n_level ==>\|"is a"\| n_zone/);
+    assert.match(diagram, /n_room --o\|"refers to"\| n_kind/);
+    assert.match(diagram, /linkStyle 2 stroke-dasharray:5 4/);
+    assert.match(diagram, /linkStyle 3 stroke:#dc2626,stroke-width:3px/);
+    assert.doesNotMatch(diagram, /linkStyle [01] /);
+  });
+
+  it('says the faults first, in words, and is never compared with a plan', () => {
+    const rendered = render(glossary());
+    assert.equal(rendered.summary, '4 concepts, 4 relations: 1 without a source, 1 contradicted by the data.');
+    assert.deepEqual(rendered.header, ['From', 'Relation', 'To', 'Source', 'Holds']);
+    assert.deepEqual(rendered.rows[0], ['zone', 'contains', 'level', 'docs', '✗ contradicted: no zone in data/zones holds a level']);
+    assert.deepEqual(rendered.rows[1], ['room', 'refers to', 'furniture kind', '-', '? no source']);
+    assert.match(rendered.legend, /thick arrow.*dashed: no source.*red: the data contradicts it/);
+    assert.match(rendered.markdown, /### Map: Taxonomy register \(glossary\)/);
+    assert.match(pageOf(glossary(), rendered), /<th>Relation<\/th>/);
+    assert.throws(() => render(glossary(), plan()), /never compared with a plan/);
+  });
+
+  it('comes back the same from the file it was written into', () => {
+    const spec = glossary();
+    assert.deepEqual(parseMap(extractMap(render(spec).markdown)), spec);
+  });
+});

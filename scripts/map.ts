@@ -12,13 +12,15 @@
                        map, such as the body of the issue it was added to
         --html=<file>  also write a page that draws the diagram, to open in a browser
         --into=<file>  also write the map into a Markdown file (the body of an issue or of a pull
-                       request): in place of the map it holds, else at its end
+                       request, or the map beside a glossary): in place of the map it holds, else
+                       at its end
+        --mmd=<file>   also write the bare Mermaid source, for a tool that draws it to SVG
 
   The map, as JSON:
 
     {
       "title": "Add /v2:map",
-      "mode": "planned" | "done",
+      "mode": "planned" | "done" | "glossary",
       "source": "where the facts come from: the plan of the conversation, issue #12, the diff",
       "direction": "LR" | "TB",                       (optional, LR by default)
       "groups": [{ "id": "scripts", "label": "scripts/", "parent": "..." }],
@@ -33,6 +35,20 @@
       "edges": [{ "from": "map-skill", "to": "map-script", "label": "runs", "dashed": true }]
     }
 
+  A glossary map (mode "glossary") draws the hierarchy of a project's taxonomy register: a node
+  per concept, a group per context, and every edge one of three relations, each with where it
+  was read from:
+
+      "edges": [{
+        "from": "zone", "to": "room",
+        "relation": "contains" | "is-a" | "refers-to",
+        "source": "data/zones zone_types[].members",   (none: drawn dashed, listed first to fix)
+        "contradicted": "what in the data says otherwise"   (drawn red)
+      }]
+
+  It is never compared with a plan; its table lists the relations, contradicted and unsourced
+  first.
+
   Where each answer comes from:
 
   - every thing, group and relation: the JSON given, which the skill writes from the plan or from
@@ -40,18 +56,22 @@
   - the comparison with the plan: by id. A planned thing missing from the map is "not done", a
     changed thing missing from the plan is "not planned", one whose change or breaking differs is
     listed with both; things shown for context (unchanged) are never compared;
+  - a relation of a glossary map, its source and what contradicts it: the JSON given, which the
+    skill writes from the register and checks against the data;
   - the page of --html: Mermaid from jsDelivr, its version pinned below; without a network it
     shows the source of the diagram instead.
 */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { isMain, parseArgs } from './lib/args.ts';
 import { cell, plural, table } from './lib/markdown.ts';
 
 export const KIND_NAMES = ['entity', 'method', 'concept', 'axis', 'surface', 'external'] as const;
 export const CHANGE_NAMES = ['new', 'changed', 'renamed', 'removed', 'unchanged'] as const;
+export const RELATION_NAMES = ['contains', 'is-a', 'refers-to'] as const;
 
 export type Kind = (typeof KIND_NAMES)[number];
 export type Change = (typeof CHANGE_NAMES)[number];
+export type Relation = (typeof RELATION_NAMES)[number];
 
 export interface Group {
   id: string;
@@ -75,11 +95,14 @@ export interface Edge {
   to: string;
   label?: string;
   dashed?: boolean;
+  relation?: Relation;
+  source?: string;
+  contradicted?: string;
 }
 
 export interface MapSpec {
   title: string;
-  mode: 'planned' | 'done';
+  mode: 'planned' | 'done' | 'glossary';
   source?: string;
   direction: 'LR' | 'TB' | 'RL' | 'BT';
   groups: Group[];
@@ -153,6 +176,13 @@ export const KINDS: Record<
   },
 };
 
+/** How each relation of a glossary map looks: an arrow of its own, so it reads without its label. */
+export const RELATIONS: Record<Relation, { arrow: string; word: string; look: string }> = {
+  contains: { arrow: '-->', word: 'contains', look: 'thin arrow' },
+  'is-a': { arrow: '==>', word: 'is a', look: 'thick arrow' },
+  'refers-to': { arrow: '--o', word: 'refers to', look: 'line ending in a circle' },
+};
+
 const INK = '#0f172a';
 const RED = '#dc2626';
 const GHOST = 'fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray:3 3,color:#64748b';
@@ -210,7 +240,7 @@ export const parseMap = (raw: unknown): MapSpec => {
   if (!raw || typeof raw !== 'object') fail('the map must be a JSON object');
   const input = raw as Record<string, unknown>;
   const mode = input.mode;
-  if (mode !== 'planned' && mode !== 'done') fail('mode must be "planned" or "done"');
+  if (mode !== 'planned' && mode !== 'done' && mode !== 'glossary') fail('mode must be "planned", "done" or "glossary"');
   const direction = input.direction ?? 'LR';
   if (!['LR', 'TB', 'RL', 'BT'].includes(direction as string)) fail('direction must be LR, TB, RL or BT');
 
@@ -272,6 +302,15 @@ export const parseMap = (raw: unknown): MapSpec => {
     const label = optional(e?.label, `edges[${i}].label`);
     if (label !== undefined) edge.label = label;
     if (e?.dashed === true) edge.dashed = true;
+    const relation = e?.relation;
+    if (relation !== undefined && !RELATION_NAMES.includes(relation as Relation))
+      fail(`edges[${i}].relation must be one of ${RELATION_NAMES.join(', ')}`);
+    if (relation === undefined && mode === 'glossary') fail(`edges[${i}]: a glossary map needs the relation of every edge`);
+    if (relation !== undefined) edge.relation = relation as Relation;
+    const source = optional(e?.source, `edges[${i}].source`);
+    if (source !== undefined) edge.source = source;
+    const contradicted = optional(e?.contradicted, `edges[${i}].contradicted`);
+    if (contradicted !== undefined) edge.contradicted = contradicted;
     return edge;
   });
 
@@ -480,11 +519,22 @@ export const diagramOf = (spec: Pick<MapSpec, 'direction'>, groups: Group[], nod
   const known = new Set(groups.map((g) => g.id));
   for (const node of nodes) if (node.group === undefined || !known.has(node.group)) nodeLine(node, '  ');
   for (const group of groups) if (group.parent === undefined) groupBlock(group, 1);
-  for (const edge of edges) {
-    const arrow = edge.dashed ? '-.->' : '-->';
-    const label = edge.label ? `|"${escapeLabel(edge.label)}"|` : '';
+  const linkStyles: string[] = [];
+  edges.forEach((edge, index) => {
+    const relation = edge.relation ? RELATIONS[edge.relation] : null;
+    const arrow = relation ? relation.arrow : edge.dashed ? '-.->' : '-->';
+    const text = edge.label ?? relation?.word;
+    const label = text ? `|"${escapeLabel(text)}"|` : '';
     lines.push(`  ${nodeIds.get(edge.from)} ${arrow}${label} ${nodeIds.get(edge.to)}`);
-  }
+    if (!relation) return;
+    // a relation nobody can trace is dashed; one the data contradicts is red
+    const style = [
+      edge.contradicted && `stroke:${RED}`,
+      edge.contradicted && 'stroke-width:3px',
+      !edge.source && 'stroke-dasharray:5 4',
+    ].filter(Boolean);
+    if (style.length) linkStyles.push(`  linkStyle ${index} ${style.join(',')}`);
+  });
 
   const classes = new Map<string, { style: string; ids: string[] }>();
   for (const node of nodes) {
@@ -496,6 +546,7 @@ export const diagramOf = (spec: Pick<MapSpec, 'direction'>, groups: Group[], nod
   for (const [name, { style }] of classes) lines.push(`  classDef ${name} ${style}`);
   for (const [name, { ids }] of classes) lines.push(`  class ${ids.join(',')} ${name}`);
   for (const id of drawn) lines.push(`  style ${groupIds.get(id)} ${GROUP}`);
+  lines.push(...linkStyles);
   return lines.join('\n');
 };
 
@@ -519,6 +570,45 @@ export const summaryOf = (nodes: Shown[]): string => {
   const maybe = shown.filter((n) => n.breaking === 'possible').length;
   const risks = [breaking && `${breaking} breaking`, maybe && `${maybe} maybe breaking`].filter(Boolean);
   return `${plural(shown.length, 'thing')}: ${changes.join(', ')}${risks.length ? `; ${risks.join(', ')}` : ''}.`;
+};
+
+/** `12 concepts, 14 relations: 2 without a source, 1 contradicted by the data.` */
+export const glossarySummaryOf = (nodes: Node[], edges: Edge[]): string => {
+  const unsourced = edges.filter((e) => !e.source).length;
+  const contradicted = edges.filter((e) => e.contradicted).length;
+  const faults = [unsourced && `${unsourced} without a source`, contradicted && `${contradicted} contradicted by the data`].filter(Boolean);
+  return `${plural(nodes.length, 'concept')}, ${plural(edges.length, 'relation')}${faults.length ? `: ${faults.join(', ')}` : ''}.`;
+};
+
+/** The legend of a glossary map: the kinds and the relations it uses, and how a fault looks. */
+export const glossaryLegendOf = (nodes: Node[], edges: Edge[]): string => {
+  const kinds = KIND_NAMES.filter((kind) => nodes.some((n) => n.kind === kind)).map(
+    (kind) => `${KINDS[kind].square} ${kind} (${KINDS[kind].shape})`,
+  );
+  const relations = RELATION_NAMES.filter((r) => edges.some((e) => e.relation === r)).map(
+    (r) => `${RELATIONS[r].word} (${RELATIONS[r].look})`,
+  );
+  const faults = [
+    edges.some((e) => !e.source) && 'dashed: no source in the data or the code',
+    edges.some((e) => e.contradicted) && 'red: the data contradicts it',
+  ].filter((mark): mark is string => !!mark);
+  return `Legend: ${kinds.join(DOT)}. ${[...relations, ...faults].join(DOT)}.`;
+};
+
+/** The relations in words, contradicted first, then those without a source. */
+export const relationRows = (nodes: Node[], edges: Edge[]): string[][] => {
+  const label = new Map(nodes.map((n) => [n.id, n.label]));
+  const rank = (e: Edge) => (e.contradicted ? 0 : !e.source ? 1 : 2);
+  return edges
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => rank(a.e) - rank(b.e) || a.i - b.i)
+    .map(({ e }) => [
+      label.get(e.from)!,
+      e.relation ? RELATIONS[e.relation].word : (e.label ?? ''),
+      label.get(e.to)!,
+      e.source ?? '-',
+      e.contradicted ? `\u2717 contradicted: ${e.contradicted}` : !e.source ? '? no source' : '\u2713',
+    ]);
 };
 
 /** The legend of what the diagram uses, and only that. */
@@ -572,13 +662,22 @@ export interface Rendered {
   diagram: string;
   summary: string;
   against: string | null;
+  header: string[];
   rows: string[][];
   differences: string[][];
   nodes: Shown[];
+  legend: string;
 }
+
+const CHANGE_HEADER = ['What', 'Where', 'Kind', 'Change', 'Note'];
+const RELATION_HEADER = ['From', 'Relation', 'To', 'Source', 'Holds'];
 
 /** The map, compared with its plan when there is one. */
 export const render = (spec: MapSpec, plan?: MapSpec): Rendered => {
+  if (spec.mode === 'glossary') {
+    if (plan) fail('a glossary map is never compared with a plan');
+    return renderGlossary(spec);
+  }
   const compared = plan ? compare(plan, spec) : null;
   const nodes: Shown[] = compared?.nodes ?? spec.nodes;
   const groups = compared?.groups ?? spec.groups;
@@ -590,6 +689,7 @@ export const render = (spec: MapSpec, plan?: MapSpec): Rendered => {
       `, ${compared.counts.notDone} not done, ${compared.counts.notPlanned} not planned.`
     : null;
   const rows = changeRows(groups, nodes);
+  const legend = legendOf(nodes);
   const differences = (compared?.differences ?? []).map((d) => [d.node.label, `${KINDS[d.node.kind].square} ${d.node.kind}`, d.planned, d.done]);
 
   const markdown = [
@@ -602,10 +702,10 @@ export const render = (spec: MapSpec, plan?: MapSpec): Rendered => {
     diagram,
     '```',
     '',
-    legendOf(nodes),
+    legend,
     '',
     ...(rows.length
-      ? table(['What', 'Where', 'Kind', 'Change', 'Note'], rows.map((row) => row.map(textCell)))
+      ? table(CHANGE_HEADER, rows.map((row) => row.map(textCell)))
       : ['Nothing changes: every thing is shown for context.']),
     ...(differences.length
       ? ['', '**Plan against work**', '', ...table(['What', 'Kind', 'Planned', 'Done'], differences.map((row) => row.map(textCell)))]
@@ -614,7 +714,34 @@ export const render = (spec: MapSpec, plan?: MapSpec): Rendered => {
     hiddenOf(spec),
     END,
   ].join('\n');
-  return { markdown, diagram, summary, against, rows, differences, nodes };
+  return { markdown, diagram, summary, against, header: CHANGE_HEADER, rows, differences, nodes, legend };
+};
+
+/** A glossary map: the hierarchy of the register, then its relations in words. */
+const renderGlossary = (spec: MapSpec): Rendered => {
+  const { groups, nodes, edges } = spec;
+  const diagram = diagramOf(spec, groups, nodes, edges);
+  const summary = glossarySummaryOf(nodes, edges);
+  const legend = glossaryLegendOf(nodes, edges);
+  const rows = relationRows(nodes, edges);
+  const markdown = [
+    START,
+    `### Map: ${spec.title} (glossary)`,
+    '',
+    [summary, spec.source ? `From ${spec.source}.` : null].filter(Boolean).join(' '),
+    '',
+    '```mermaid',
+    diagram,
+    '```',
+    '',
+    legend,
+    '',
+    ...(rows.length ? table(RELATION_HEADER, rows.map((row) => row.map(textCell))) : ['No relations: every concept stands alone.']),
+    '',
+    hiddenOf(spec),
+    END,
+  ].join('\n');
+  return { markdown, diagram, summary, against: null, header: RELATION_HEADER, rows, differences: [], nodes, legend };
 };
 
 /** A Markdown body with the map in it: in place of the one it holds, else at its end. */
@@ -675,8 +802,8 @@ export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
   <p>${html([rendered.summary, rendered.against, spec.source ? `From ${spec.source}.` : null].filter(Boolean).join(' '))}</p>
   <div id="diagram" role="img" aria-label="${html(`Diagram of ${spec.title}; the table below says the same in words.`)}"><p class="muted">Drawing the diagram...</p></div>
   <ul class="legend">${legend}</ul>
-  <p class="muted">${html(legendOf(rendered.nodes).replace(/^Legend: [^.]*\. /, ''))}</p>
-  ${rendered.rows.length ? htmlTable(['What', 'Where', 'Kind', 'Change', 'Note'], rendered.rows) : '<p>Nothing changes.</p>'}
+  <p class="muted">${html(rendered.legend.replace(/^Legend: [^.]*\. /, ''))}</p>
+  ${rendered.rows.length ? htmlTable(rendered.header, rendered.rows) : `<p>${spec.mode === 'glossary' ? 'No relations.' : 'Nothing changes.'}</p>`}
   ${rendered.differences.length ? `<h2>Plan against work</h2>${htmlTable(['What', 'Kind', 'Planned', 'Done'], rendered.differences)}` : ''}
 </main>
 <script type="module">
@@ -714,7 +841,9 @@ const main = () => {
   const htmlFile = args.value('html');
   if (htmlFile) writeFileSync(htmlFile, pageOf(spec, rendered));
   const intoFile = args.value('into');
-  if (intoFile) writeFileSync(intoFile, into(readFileSync(intoFile, 'utf8'), rendered.markdown));
+  if (intoFile) writeFileSync(intoFile, into(existsSync(intoFile) ? readFileSync(intoFile, 'utf8') : '', rendered.markdown));
+  const mmdFile = args.value('mmd');
+  if (mmdFile) writeFileSync(mmdFile, `${rendered.diagram}\n`);
   console.info(rendered.markdown);
 };
 
