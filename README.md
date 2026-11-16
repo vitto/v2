@@ -16,18 +16,21 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `design` | loads by itself | Which UX, design system and AI design principles apply to the UI being built, the rules to follow, the checks to run before handing over. |
-| `/v2:audit <target>` | "audit", "review the UX" | Audits a screen, a component or a change against the principles: every check as pass, fail or not verifiable. |
+| `/v2:design-interview [area]` | "intervista", "come strutturo questa pagina" | Before a new view, section or tool: an interview that writes the object model its screens come from - the goal, the world and words of the person, the entities and their hierarchy, and for each view its focal entity and how much of the others it shows ([docs/object-model.md](docs/object-model.md)). Attached call notes are read first: their items are counted, confirmed, and reported as covered, contradicted or not addressed ([docs/notes-intake.md](docs/notes-intake.md)). |
+| `design-build` | loads by itself | Which UX, design system and AI design principles apply to the UI being built, the rules to follow, the checks to run before handing over; a new view starts from the object model. |
+| `/v2:design-reframe <request>` | "aggiungi anche", "ripensiamo il flusso" | When a request adds to a flow: places it in the object model first, asks only the new questions, shows which views change and whether each is patched or rebuilt; attached notes are placed against the model first. |
+| `/v2:taxonomy [area or word]` | "tassonomia", "come lo chiamiamo" | The words of a project as a register in its glossary: an English ID that never changes, a name per language, what each concept is and is not, where it sits, what names it in code and data. Finds two meanings under one name where they meet, resolves each with the lightest of five moves (declared homonym, qualify, rename, alias, split), and repairs the hierarchy edge by edge against the data ([docs/taxonomy.md](docs/taxonomy.md)). |
+| `/v2:design-audit <target>` | "audit", "review the UX" | Audits a screen, a component or a change against the principles and the object model: every check as pass, fail or not verifiable. |
 
 ### Workflow
 
 | Skill | Say | What it does |
 |-------|-----|--------------|
-| `/v2:work-map [planned \| done] [issue, PR, epic or branch]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. |
+| `/v2:work-map [planned \| done \| glossary] [issue, PR, epic, branch or glossary]` | "mappa", "fammi vedere cosa cambia" | What the work is made of, before it or once done: a line that sums it up, then a Mermaid diagram of its entities, methods, concepts, axes and what people see, grouped by where they live, colored and shaped by kind, marked new, changed or removed, red where it breaks; then the same in words, and a page that draws it. A done map is compared with its plan: what was not done, what was not planned. Only reads; it goes into an issue or a pull request only on the person's yes. In glossary mode, the hierarchy of the taxonomy register beside the glossary - contains, is a, refers to - every edge with its source, dashed without one, red where the data contradicts it, split by context. |
 | `/v2:work-status [epic]` | "stato", "a che punto siamo" | Where the work stands, as tables: an epic in the order its work lands, or the repository (open epics, open pull requests, local worktrees with work GitHub has not seen), then the next action. Only reads. |
 | `/v2:work-test [epic or PR]` | "testa", "fammi vedere" | Shows the work: the local preview of an epic (its open parts merged together, never pushed) or the worktree of a branch; installs, builds and serves it with the project's commands; lists the pages to test (Title, What to test, URL). |
 | `/v2:work-merge <PR>` | "ok #N", "mergia" | Carries out the merge of one pull request the person approved by naming it, after checking again that nothing holds it. Never `--auto`, `--admin`, `--squash` or `--rebase`. |
-| `/v2:route [auto \| minimo \| basso \| medio \| alto \| massimo] [model]` | "che modello usi", "impegno alto", "fallo con haiku" | The model and the effort a piece of work needs, so the cheaper ones do what they can: weighs the work (light, standard, heavy), keeps it in the session when its model fits, else runs it in a subagent with the model and the effort it needs. Without arguments, all automatic. Never switches the model of the session: the cache holds for one model. Never uses a model or a service billed per use beyond the person's plan without their yes. |
+| `/v2:route [auto \| minimo \| basso \| medio \| alto \| massimo] [model]` | "che modello usi", "impegno alto", "fallo con haiku" | The model and the effort a piece of work needs, so the cheaper ones do what they can: weighs the work (light, standard, heavy), keeps it in the session when its model fits, else runs it in a subagent with the model and the effort it needs. Called in the middle of a conversation, it opens a new session under this one, on the model and the effort the work needs, with the message that continues it. Without arguments, all automatic. Never switches the model of the session: the cache holds for one model. Never uses a model or a service billed per use beyond the person's plan without their yes. |
 
 ### Sharing the work
 
@@ -50,7 +53,7 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 /plugin install v2@v2
 ```
 
-`design` loads by itself when Claude builds or changes a UI. `/v2:audit <target>` reviews a screen, a component or a change. `/v2:route` picks the model and the effort of a piece of work; the first time it runs on a machine, it offers to add one line to your global instructions, so that it weighs every piece of work. To try a local copy for one session without installing it: `claude --plugin-dir /path/to/v2`.
+`design-build` loads by itself when Claude builds or changes a UI; `/v2:design-interview` comes before a new view, `/v2:design-reframe` before adding to one. `/v2:design-audit <target>` reviews a screen, a component or a change. `/v2:route` picks the model and the effort of a piece of work; the first time it runs on a machine, it offers to add one line to your global instructions, so that it weighs every piece of work. To try a local copy for one session without installing it: `claude --plugin-dir /path/to/v2`.
 
 A new version reaches an installed plugin only when `version` in [.claude-plugin/plugin.json](.claude-plugin/plugin.json) changes: bump it with each release.
 
@@ -173,7 +176,7 @@ npm test
 - `node:test`, no dependency. The preview, the worktrees and the configuration are tested on real git repositories in a temporary folder (with a bare repository as origin); the merge end to end with a `gh` of the specs first on the `PATH`, which records what it is asked to run.
 - Only erasable TypeScript (Node strips the types): no `enum`, no `namespace`, imports with their `.ts` extension and `import type` for types. [tsconfig.json](tsconfig.json) serves the editor and a type check (`tsc -p .` with `@types/node`).
 - The files of the workflow are English and ASCII. Every answer of a script is Markdown tables (the map adds its diagram), and its header says where each answer comes from.
-- The map of `/v2:work-map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
+- The map of `/v2:work-map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the relations of a glossary map, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
 - The recorder of `/v2:share-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - `claude plugin validate . --strict` checks the manifests.
@@ -186,7 +189,7 @@ npm test
 .github/          the workflow that runs the specs
 skills/<name>/    one folder per skill: SKILL.md
 principles/       the principles, one file each, by section of the site
-docs/             the pilot audit
+docs/             the formats of the object model and the taxonomy register, reading notes, the pilot audit
 scripts/          one script per job of the workflow, and its spec beside it
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
 examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video
@@ -196,7 +199,7 @@ GOVERNANCE.md     the rules of the workflow
 
 ### Adding a skill
 
-A skill is a folder `skills/<name>/SKILL.md` (invoked as `/v2:<name>`): its description says what it does, when to use it, and the Italian words that call it. A script it needs goes in `scripts/` with its spec, reads through `scripts/lib/`, and is called as `node ${CLAUDE_PLUGIN_ROOT}/scripts/<script>.ts`. Next planned: `ui`, the practices of UI and design systems beside `design` and `audit`, with vitto/home as its first project. The MCP server will go in a `.mcp.json` at the root of the plugin.
+A skill is a folder `skills/<name>/SKILL.md` (invoked as `/v2:<name>`): its description says what it does, when to use it, and the Italian words that call it. A script it needs goes in `scripts/` with its spec, reads through `scripts/lib/`, and is called as `node ${CLAUDE_PLUGIN_ROOT}/scripts/<script>.ts`. Skills of one family share a prefix (`design-`), so they read as a group. The MCP server will go in a `.mcp.json` at the root of the plugin.
 
 ## License
 

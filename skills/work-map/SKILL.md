@@ -1,7 +1,7 @@
 ---
 name: work-map
-description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. Use to see what a plan, an issue, an epic, a branch or a pull request touches, before starting or once done; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto".'
-argument-hint: "[planned | done] [issue, pull request, epic or branch]"
+description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
+argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch or glossary]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts *)
 ---
 
@@ -23,6 +23,8 @@ Before each step, say in one line what it does.
   title,body,baseRefName,headRefName,closingIssuesReferences`, then `gh pr diff <n>`), a branch
   (`git diff --stat <base>...<branch>`, then the diff), or the current folder (its commits since
   the default branch, and what is uncommitted).
+- **glossary**: the hierarchy of the project's taxonomy register, not a piece of work: see
+  "Glossary mode" below; steps 2 to 4 do not apply to it.
 - Without the word: done when there is work (a diff, a branch ahead), planned otherwise. With
   nothing given: the work of this conversation.
 - **The plan of a done map**: the map in the body of the issue the work closes (`gh issue view <n>
@@ -95,3 +97,51 @@ adds it at the end, and leaves the rest of the body as it is.
 
 The map only describes the work: it never changes code, opens an issue or decides a merge
 (`${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`, rule 1).
+
+## Glossary mode
+
+The hierarchy of the project's taxonomy register (`${CLAUDE_PLUGIN_ROOT}/docs/taxonomy.md`),
+drawn to be checked against the data, not to describe a piece of work.
+
+1. **The register.** Find it in the project's glossary (`GLOSSARY.md` or its equivalent). If there
+   is none, or it has no "Contained in" and "Refers to" columns, run `taxonomy` first and come back.
+2. **The facts**, as JSON in `$TMPDIR`, with `"mode": "glossary"`:
+   - a node per concept: `id` is the register's ID, `label` its name in the person's language,
+     `kind` as in step 2 above (a concept that holds data is `entity`, a rule or an idea
+     `concept`, a dimension `axis`), `change` left out;
+   - a group per **context** (where the concepts meet: the game world, the art direction, the
+     lab), two levels at most;
+   - an edge per "Contained in", "Is a" and "Refers to" cell: `relation` is `contains`, `is-a` or
+     `refers-to`, read as a sentence: `contains` from the parent to the child, `is-a` from the kind
+     to the concept it is a kind of, `refers-to` from the one that refers; `source` is the data
+     field or the code the register names. No source: leave it out, the edge is drawn dashed.
+   - **Check every edge against the data** before drawing: open the source and look for a real
+     instance that breaks it (a child under two parents, one that outlives its parent, a field
+     that points elsewhere). When the data says otherwise, write what it says in `contradicted`:
+     the edge is drawn red. Never drop an edge to make the map clean.
+3. **Split by context before zooming.** Up to about 20 concepts, one map. Beyond that, an
+   overview (a node per context, `kind` `concept`, its edges the relations that cross contexts,
+   each with the source of one edge it stands for) plus one map per context. Never shrink a
+   large map to fit.
+4. **Draw it** beside the glossary, in a file of its own (`GLOSSARY.map.md`; with contexts,
+   `GLOSSARY.map.md` for the overview and `GLOSSARY.map.<context>.md` for each):
+
+   ```bash
+   node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts <glossary.json> --into=GLOSSARY.map.md --html=<map.html> --mmd=<context.mmd>
+   ```
+
+   `--into` replaces the map the file holds, so running it again updates it. The colors, shapes
+   and spacing are the script's, the same as every other map; never write the diagram by hand.
+5. **An SVG when a context is still large**, drawn from the same Mermaid source the script wrote
+   with `--mmd`, never edited by hand (it is regenerated, so an edit is lost):
+
+   ```bash
+   npx -y @mermaid-js/mermaid-cli@11.4.2 -i <context.mmd> -o GLOSSARY.map.<context>.svg
+   ```
+
+   The first run downloads the tool and a headless browser: say so before running it. Link the
+   SVG from the context's Markdown file.
+6. **Show** what the script printed and open the page, as in step 3 above. Then name the faults
+   first: every red edge (what the data says), every dashed one (no source), every concept with
+   two parents or none. Each is a question for `taxonomy` (step 4, repairing the hierarchy), and
+   the person decides the fix; the map only shows it.
