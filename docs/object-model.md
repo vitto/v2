@@ -53,9 +53,33 @@ Nesting is the failure this section prevents: an entity that needs its own depth
 
 The software under the views: the steps, the models, the queues, the services. For each, which entity and which state it moves. It is shown only as that state (a spinner on the object being drawn, "1 waiting" in a corner), never as a page to work in, unless watching it is the person's work.
 
-### 7. Open questions
+### 7. The design system
 
-What the interview left undecided, with the proposal on the table. `design-reframe` comes back here first.
+The object model says *what* each view is for and *which* entities it holds; the design system says *how* it is built. A design system that works in layers, such as Magma's, has three of them, each read from its own tools (Magma: `get_pattern`, `get_guide`):
+
+- **design language**: the rules of composition every page stands on (Magma: rhythm, density, actions, titles, surfaces, widths);
+- **building blocks**: the sections of a page that come back in the same arrangement (Magma: app-shell, page-header, item-list, labels-and-values);
+- **patterns**: the solution to a task that spans components and time (Magma: record-detail, list-with-filters, empty-state, loading, confirm-action, message-placement, concurrent-editing...).
+
+For each view, write which patterns and blocks realize it and which domains of the design language decide its composition, by their ids: the page of one focal entity with its related items is a record-detail; its children as a list are an item-list; what the machinery is doing is loading; a side panel that edits a related entity follows the design system's rule for it. Where the design system has nothing for what the view needs, say so: it is a gap, not a license to invent.
+
+### 8. Conflicts
+
+Where the method of this model and the design system disagree, or the model needs what the design system forbids or lacks, the conflict is written down, never settled silently. One entry each:
+
+- **The model says**: the rule of this method or this model (one focal entity per view; deeper detail beside the view, never nested; help under a field always visible).
+- **The design system says**: its rule, with where it is (the pattern, block or domain id, the guide and section, the component and its behavior).
+- **Effect**: what goes wrong for the person if nothing changes.
+- **Resolution, proposed**: one of
+  - **the method adapts**: the design system is right, and the model or the method changes;
+  - **the design system changes**: an issue on its repository, opened only on the person's yes;
+  - **the product decides**: a choice the design system leaves open, fixed in the product's own layer (Magma: `/magma:pattern-layer`), not in the code.
+
+Until a conflict is resolved, the build follows the design system and the entry stays open. A conflict found while building or auditing is added here.
+
+### 9. Open questions
+
+What the interview left undecided, with the proposal on the table. `design-reframe` comes back here first, and to the open conflicts.
 
 ## How the answers are marked
 

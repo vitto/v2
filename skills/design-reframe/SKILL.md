@@ -34,6 +34,8 @@ The questions of `design-interview` for what the request touches, nothing alread
 
 When in doubt between a patch and a rebuild, propose the rebuild: coherence is worth more than speed.
 
+- **The design system**: for each view that changes, whether its patterns, blocks and domains still fit, asked again through the design system's tools; and any new conflict between the model and the design system, in the format of the model's Conflicts section, with a proposed resolution. Reread the open conflicts too: the change may settle one or make one worse.
+
 ## 5. Then build
 
 On the person's yes, update the model file (with the date and what changed), then build the views with `design-build` and check them with `design-audit`.

@@ -9,7 +9,7 @@ The principles say what must be true for the people using the interface. They ne
 
 ## Before building
 
-0. Find the object model of the area (`../../docs/object-model.md`, from this skill's folder, says what it is). A new view, section or tool with no model: run `design-interview` first. A request that adds an entity, a field, a state or an action to a view: run `design-reframe` first. Build each view around its focal entity, with the entities around it at the granularity the model sets.
+0. Find the object model of the area (`../../docs/object-model.md`, from this skill's folder, says what it is). A new view, section or tool with no model: run `design-interview` first. A request that adds an entity, a field, a state or an action to a view: run `design-reframe` first. Build each view around its focal entity, with the entities around it at the granularity the model sets, with the patterns and blocks the model names for it. A conflict between the model and the design system found while building is added to the model's Conflicts section and told to the person; until it is resolved, follow the design system.
 1. Read the index in `../../principles/README.md`, from this skill's folder, and load every principle whose row matches the task, across all sections. Then check `applies_when` in each file: it is more precise than the row. A form that sends AI-generated text loads Error Prevention and Design for Uncertainty.
 2. Say in one line which principles you loaded, before writing code.
 

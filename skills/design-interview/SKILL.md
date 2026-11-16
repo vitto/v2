@@ -26,7 +26,8 @@ One topic per message, a few questions at a time. The interview may be long: the
 4. **Entities**: the things of that world, which contains which, which relate.
 5. **Each entity**: its purpose at its own level; what it holds that belongs to that level only, and where each piece ends up (a prompt, a file, a record); its children and how they appear; its actions; its states and what complete means; what must always be visible about it.
 6. **Each view**: its focal entity and the goal of the work done there; the entities around it, and for each how much is shown and editable there (inline, in a side panel or a menu without leaving, or on its own page); what never appears there; where the person comes from and goes next.
-7. **The machinery, last**: the software steps, the models, the queues, and which entity and state each one moves. It stays under the views, shown as state.
+7. **The machinery**: the software steps, the models, the queues, and which entity and state each one moves. It stays under the views, shown as state.
+8. **The design system, last**: for each view, ask the project's design system which patterns and building blocks realize it and which domains of its design language decide its composition, through its tools for agents (Magma: `get_pattern` with the view's need in words, then `get_guide` for a domain). Record them by id. Then hold the model against them: every rule of the model that the design system contradicts, forbids or lacks is a conflict, written in the format of the model's Conflicts section, with a proposed resolution. Ask the person to decide each one; never settle it silently.
 
 ## 3. Write the model
 
@@ -34,6 +35,6 @@ Write it in the project, where it keeps its design docs (ask once if unclear), i
 
 ## Don't
 
-- Don't design screens or name components during the interview: the model first, the design system later.
+- Don't design screens or name components during the interview: the model first, then the patterns and blocks of the design system that realize it, the components last (`design-build`).
 - Don't ask what the conversation or the project already answers: propose it.
 - Don't let the software's words (job, task, queue, record) name the person's things.

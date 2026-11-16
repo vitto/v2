@@ -28,6 +28,9 @@ When the area has an object model (`../../docs/object-model.md`, from this skill
 - OM4 (must, runtime): the state of the focal entity, and what is running on it, is always visible.
 - OM5 (should, code): the screen names things with the model's words; no word of the software (job, task, queue, record) names one of the person's things.
 - OM6 (should, code): the view holds only the metadata of its own level.
+- OM7 (must, code): the view is built with the patterns and blocks the model names for it, and composed by the domains of the design language it names; where it is not, the difference is either a defect or an open conflict in the model.
+
+A rule of the model that the built screen breaks because the design system makes it break (a component that clears a help line on blur, a nested component that hides its parent's panels) is not a fail of the screen: report it as a conflict for the model's Conflicts section, with where the design system says it.
 
 A screen that needs something the model does not have is an open question for `design-reframe`, not a fail.
 
