@@ -1,5 +1,5 @@
 ---
-name: map
+name: work-map
 description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
 argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch or glossary]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts *)
@@ -83,7 +83,7 @@ the person: in the browser of the session when it has one, else `open <map.html>
 ## 4. On GitHub, if the person wants it
 
 A planned map can go into the body of its issue, a done map into the body of its pull request:
-reviewers see it, and a later `/v2:map done` finds the plan by itself. It changes what others
+reviewers see it, and a later `/v2:work-map done` finds the plan by itself. It changes what others
 read, so ask first, naming the issue or the pull request, and do it only on the person's yes:
 
 ```bash

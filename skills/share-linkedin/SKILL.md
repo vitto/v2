@@ -1,5 +1,5 @@
 ---
-name: share-to-linkedin
+name: share-linkedin
 description: 'Share a product on LinkedIn: a short video of the live product (1080x1350, captions in the frame, a pointer that clicks, drags and types for real, a closing card) recorded from a scene written for it, and the LinkedIn article it is the cover of (its title, its body and the text that shares it in the feed), which the person publishes by hand; a post with the native video only when asked for one, published through LinkedIn''s API, now or at a suggested moment, once the person approves that post by naming it. Use when asked for a LinkedIn post, video or article about a product, a site, a release or a feature, or to publish or schedule one; in Italian "post per linkedin", "video per linkedin", "annuncio su linkedin", "articolo per linkedin", "pubblica su linkedin", "programma il post".'
 argument-hint: "<url> [description]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-video.ts *), Bash(ffmpeg *), Bash(ffprobe *)
@@ -64,7 +64,7 @@ closing card with its name, one line and its address.
 3. **Write the scene** in the scratchpad of the session, not in the product's repository unless
    the person asks: a module whose default export is `async (t) => {}`, captions per language in
    it (`t.lang`). The complete example is
-   `${CLAUDE_PLUGIN_ROOT}/examples/share-to-linkedin/magma-studio.mjs`.
+   `${CLAUDE_PLUGIN_ROOT}/examples/share-linkedin/magma-studio.mjs`.
 
 What the scene must get right (each one cost a take):
 

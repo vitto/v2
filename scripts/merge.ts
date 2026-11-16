@@ -1,6 +1,6 @@
 /*
   The merge of one pull request a person approved: what holds it, as a table, and, with the
-  approval, the merge itself. The only script of v2 that changes GitHub. The skill /v2:merge
+  approval, the merge itself. The only script of v2 that changes GitHub. The skill /v2:work-merge
   runs it.
 
     node scripts/merge.ts <pull request> [--repo=<owner/name>] [--config=<file>]

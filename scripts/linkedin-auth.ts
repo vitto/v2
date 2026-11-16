@@ -1,5 +1,5 @@
 /*
-  Signs the person in to LinkedIn for /v2:share-to-linkedin, once every 60 days: the OAuth 2.0
+  Signs the person in to LinkedIn for /v2:share-linkedin, once every 60 days: the OAuth 2.0
   authorization code flow of their own developer app, in their own browser, back to this machine.
   The token goes to the macOS Keychain and is never printed.
 

@@ -1,6 +1,6 @@
 /*
   The pages to open to test what a branch changes, as a table: title, what changed, URL. The
-  skill /v2:test turns it into the table the person tests with (Title, What to test, URL),
+  skill /v2:work-test turns it into the table the person tests with (Title, What to test, URL),
   writing what to test from the commits and the diff, and keeps the addresses as printed here.
 
     node scripts/pages.ts [--base=<ref>] [--head=<ref>] [--<server>=<url>] [--config=<file>]
