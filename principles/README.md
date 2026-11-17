@@ -13,6 +13,7 @@ The skills read this table to decide which files to load, so every new principle
 | [Error Prevention](user-centered-design/error-prevention.md) | User-Centered Design | forms and inputs, actions that delete, overwrite, send, pay or publish, multi-step flows, defaults |
 | [Consistency Over Uniformity](design-systems/consistency-over-uniformity.md) | Design Systems | a new component or variant, an element that looks or behaves like one already in the product, a visual change to a shared pattern |
 | [Design for Uncertainty](human-centered-ai-design/design-for-uncertainty.md) | Human-Centered AI Design | any output produced by a model: answers, classifications, summaries, suggestions, extracted data |
+| [Visual Composition](user-centered-design/visual-composition.md) (draft, #23) | User-Centered Design | placing the elements of a view, section, card, dialog or form; several groups of content, fields or actions; choosing the main action and where actions sit; hiding content behind a menu, tab or accordion; a layout that must hold from narrow to wide and with long data |
 
 ## Format
 
