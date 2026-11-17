@@ -26,6 +26,8 @@ Say in a few lines where it belongs: which entity, at which level; whether it is
 
 The questions of `design-interview` for what the request touches, asked as it asks them (open, about the real work, nothing leading), nothing already answered. Propose the answers you can infer, marked as proposed, or from the notes (file, place) to confirm. The entities already defined stay as they are unless the request moves them. A new word, or one that now means two things, goes to `taxonomy` before it reaches the model.
 
+Whatever the request, ask the same two questions every time: is the goal in the model still the goal, and where does the work slow down today? Their answers are kept with the date of the reframe, so a drift shows from one round to the next.
+
 ## 4. Show the change
 
 - **The model**: what is added, changed or removed, entity by entity.

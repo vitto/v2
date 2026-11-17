@@ -16,7 +16,7 @@ The screens come from the work of the person, not from the software underneath. 
 
 If the person attached notes (of a call, written by an agent or by them) or documents, read them first, as `../../docs/notes-intake.md` says: extract the decisions, requests, ideas, open questions and terms, and show their count before the first question.
 
-Read the conversation, the project's docs and glossary, its data, and the code of the area. Draft an answer to every question you can, and mark each as from the person, from the project (which file), from the notes (file, place) or proposed. Ask only what is missing; show the proposals and the answers from the notes to confirm instead of asking them again.
+Read the conversation, the project's docs and glossary, its data, the code of the area, and what people already said about it (support messages, reviews, earlier research). Draft an answer to every question you can, and mark each as from the person, from the project (which file), from the notes (file, place) or proposed. Ask only what is missing; show the proposals and the answers from the notes to confirm instead of asking them again.
 
 The words come from the project's taxonomy register (`../../docs/taxonomy.md`). If there is none, or the interview finds a word with two meanings or a thing with two words, it goes to `taxonomy`: the model uses the register's names.
 
@@ -31,9 +31,10 @@ The topics are a guide, not a script. How to ask:
 - **Their answer first** for what only they know (the goal, what they judge, the words of their world): there an inferred proposal waits for their answer. What the project or the notes say is still shown to confirm.
 - **Follow what they say**: a word you did not expect, a "usually" or an "except when", a step they skipped is the next question. An answer that belongs to a later topic is recorded there; then back to the order.
 - **Restate** what you understood of a topic, in a line or two and in their words, at the top of the next message, for them to correct.
+- **The solution last**: a sketch, a screen or a feature the person brings is read with the rest, but talked about after the goal and the people; put first, it narrows the talk to itself.
 
-1. **Goal**: what exists at the end when this works? What is done, for one item and for the whole?
-2. **People**: who works here, by role, what do they bring, what do they decide and judge? For each, the path to the end of the work, step by step as it went the last time, and where it slowed or went wrong.
+1. **Goal**: what exists at the end when this works? What is done, for one item and for the whole? What will people do differently once it works, and why now: what is there today, and what changed so it no longer serves? When the request is a list of features, ask what it is for before going through it.
+2. **People**: who works here, by role, what do they bring, what do they decide and judge? For each, the path to the end of the work, step by step as it went the last time, and where it slowed or went wrong; what they want out of it, as a need rather than a feature, and how they want to feel doing it (sure, quick, in control). Does the person do this work, or speak for those who do? What they say of a role they do not hold is an assumption until someone in that role confirms it.
 3. **Metaphor**: which world do they think in, with which words? Take them from the project (its glossary, its data), never from the software. And what do they use for this work today (a sheet, folders of files, another tool)? What they already know how to do there is what they will expect here: ask what they would keep and what they would leave behind.
 4. **Entities**: the things of that world, which contains which, which relate. List the things they named so far, in their words, and ask them to group them as they see them, name each group and say why; propose a hierarchy only after. A thing they hesitate over, or put in two groups, is an open question, or a word for `taxonomy`.
 5. **Each entity**: its purpose at its own level; what it holds that belongs to that level only, and where each piece ends up (a prompt, a file, a record); its children and how they appear; its actions; its states and what complete means; what must always be visible about it.

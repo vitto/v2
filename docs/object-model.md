@@ -16,9 +16,15 @@ Plain Markdown with these sections, in this order.
 
 What exists at the end when the tool works, in one or two sentences, and what **done** means: for one item, and for the whole. Example: "a catalogue of 3D props the game loads, every room's furniture with two to four variants each, every model traceable to the words it came from."
 
+Then the change it makes: what people do differently once it works, each a behaviour with a verb (start, stop, do more or less of), and why now: what was there before and what changed. No feature goes here: a feature in the goal is a question about what it is for.
+
 ### 2. People
 
-Who works here, by role, never by name: one entry per role, for everyone who does that work. What each brings (sources, words, decisions), what they judge, and their path to the end of the work: the steps as they go today, in order, and where it slows or goes wrong. What the machine does on its own is not a person's work and goes in section 6.
+Who works here, by role, never by name: one entry per role, for everyone who does that work. What each brings (sources, words, decisions), what they judge, and their path to the end of the work: the steps as they go today, in order, and where it slows or goes wrong. What each wants out of it, as a need and not a feature, and how they want to feel doing it (sure, quick, in control): that feeling decides what is always visible (section 4). Only the facts that change how they work here (the device, how often, what they already know), no other detail.
+
+A role the person interviewed does not hold is their assumption until someone in it confirms it: its entry says so, and who could confirm it goes to Open questions. So does the gap when the one who asks and the one who does the work want different things: both are written.
+
+What the machine does on its own is not a person's work and goes in section 6.
 
 ### 3. Metaphor and vocabulary
 
