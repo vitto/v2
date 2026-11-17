@@ -18,15 +18,17 @@ What exists at the end when the tool works, in one or two sentences, and what **
 
 ### 2. People
 
-Who works here, what they bring (sources, words, decisions) and what they judge. What the machine does on its own is not a person's work and goes in section 6.
+Who works here, by role, never by name: one entry per role, for everyone who does that work. What each brings (sources, words, decisions), what they judge, and their path to the end of the work: the steps as they go today, in order, and where it slows or goes wrong. What the machine does on its own is not a person's work and goes in section 6.
 
 ### 3. Metaphor and vocabulary
 
 The world the person thinks in, and its words, taken from the project's own vocabulary (its glossary, its data): "levels, zones, rooms, objects", not "jobs, tasks, records". The UI uses these words and no others for these things. The words are the names of the project's taxonomy register (`taxonomy.md`), cited by ID; a word the register lacks, or one that means two things, goes to `taxonomy` first.
 
+Beside the words, what the person uses for this work today (a sheet, folders of files, another tool): what they already know how to do there is what they will expect here, with what to keep and what to leave behind.
+
 ### 4. Entities
 
-The things of that world, as a hierarchy (which contains which) and a list of other relations. Then one block per entity:
+The things of that world, as a hierarchy (which contains which) and a list of other relations. The hierarchy and the names follow how the person grouped and named the things, not how the data is stored. Then one block per entity:
 
 - **Purpose**: what it is for at its own level, in relation to the goal.
 - **Holds**: what belongs to it and to no other level, and where each piece ends up (a prompt, a file, a record the game reads). A zone holds what the zone's prompt needs, never the furniture of its rooms.
@@ -45,7 +47,7 @@ One block per view (a page, a panel):
   - in a side panel, a menu or a dialog, when it needs more detail but the person must not leave (and lose what they are typing);
   - on its own page, linked, when the detail is its own work.
 - **Never here**: what this view does not show, so that it stays about its goal.
-- **Way in and way out**: where the person comes from, and where they go next.
+- **Way in and way out**: where the person comes from, and where they go next, on the paths of section 2.
 
 Nesting is the failure this section prevents: an entity that needs its own depth opens beside the view or on its own page, never as a box inside a box inside a box.
 
