@@ -7,6 +7,8 @@ description: Before building a new view, page, section, tool or editor, intervie
 
 The screens come from the work of the person, not from the software underneath. Before building, find out that work and write it down as an object model, in the format of `../../docs/object-model.md` (from this skill's folder). Arguments, if any: $ARGUMENTS.
 
+The arguments may name the area and the language of the interview (`italiano`, `english`, or any other). Without a language, ask in the one the person writes in. The questions of `questions.md` are written in English: ask them in the language of the interview, in natural words, never word by word.
+
 ## When
 
 - A new page, section, tool or editor; an area with no object model yet.
@@ -20,9 +22,11 @@ Read the conversation, the project's docs and glossary, its data, the code of th
 
 The words come from the project's taxonomy register (`../../docs/taxonomy.md`). If there is none, or the interview finds a word with two meanings or a thing with two words, it goes to `taxonomy`: the model uses the register's names.
 
+Then choose the parts of `questions.md` (this skill's folder) the project needs: the context a design must fit, for UX, UI and visual design, in thirteen parts, each with when it can be skipped as a whole. What you read already decides most of them (no pictures, no forms, a single screen, nobody but the person deciding).
+
 ## 2. Ask, in this order
 
-Open with one line: the area, what the interview is for (the model its views will come from) and the topics below, so the person knows where it goes. Then one topic per message, a few questions at a time. The interview may be long: the quality of the model is the point, and the person prefers a slow, precise start to a fast one that ends in a flow nobody can follow.
+Open with one line: the area, what the interview is for (the model its views will come from), the topics below, and the parts of `questions.md` you skip, each with why in a few words, so the person knows where it goes and can bring a part back. Then one topic per message, a few questions at a time. The interview may be long: the quality of the model is the point, and the person prefers a slow, precise start to a fast one that ends in a flow nobody can follow.
 
 The topics are a guide, not a script. How to ask:
 
@@ -33,14 +37,15 @@ The topics are a guide, not a script. How to ask:
 - **Restate** what you understood of a topic, in a line or two and in their words, at the top of the next message, for them to correct.
 - **The solution last**: a sketch, a screen or a feature the person brings is read with the rest, but talked about after the goal and the people; put first, it narrows the talk to itself.
 
-1. **Goal**: what exists at the end when this works? What is done, for one item and for the whole? What will people do differently once it works, and why now: what is there today, and what changed so it no longer serves? When the request is a list of features, ask what it is for before going through it.
-2. **People**: who works here, by role, what do they bring, what do they decide and judge? For each, the path to the end of the work, step by step as it went the last time, and where it slowed or went wrong; what they want out of it, as a need rather than a feature, and how they want to feel doing it (sure, quick, in control). Does the person do this work, or speak for those who do? What they say of a role they do not hold is an assumption until someone in that role confirms it.
+1. **Goal**: what exists at the end when this works? What is done, for one item and for the whole? What will people do differently once it works, and why now: what is there today, and what changed so it no longer serves? When the request is a list of features, ask what it is for before going through it. Then what the part Goal and success of `questions.md` adds.
+2. **People**: who works here, by role, what do they bring, what do they decide and judge? For each, the path to the end of the work, step by step as it went the last time, and where it slowed or went wrong; what they want out of it, as a need rather than a feature, and how they want to feel doing it (sure, quick, in control). Does the person do this work, or speak for those who do? What they say of a role they do not hold is an assumption until someone in that role confirms it. Then what the part People and their world adds.
 3. **Metaphor**: which world do they think in, with which words? Take them from the project (its glossary, its data), never from the software. And what do they use for this work today (a sheet, folders of files, another tool)? What they already know how to do there is what they will expect here: ask what they would keep and what they would leave behind.
-4. **Entities**: the things of that world, which contains which, which relate. List the things they named so far, in their words, and ask them to group them as they see them, name each group and say why; propose a hierarchy only after. A thing they hesitate over, or put in two groups, is an open question, or a word for `taxonomy`.
-5. **Each entity**: its purpose at its own level; what it holds that belongs to that level only, and where each piece ends up (a prompt, a file, a record); its children and how they appear; its actions; its states and what complete means; what must always be visible about it.
-6. **Each view**: its focal entity and the goal of the work done there; the entities around it, and for each how much is shown and editable there (inline, in a side panel or a menu without leaving, or on its own page); what never appears there; where the person comes from and goes next, on the paths of People.
-7. **The machinery**: the software steps, the models, the queues, and which entity and state each one moves. It stays under the views, shown as state.
-8. **The design system, last**: for each view, ask the project's design system which patterns and building blocks realize it and which domains of its design language decide its composition, through its tools for agents (Magma: `get_pattern` with the view's need in words, then `get_guide` for a domain). Record them by id. Then hold the model against them: every rule of the model that the design system contradicts, forbids or lacks is a conflict, written in the format of the model's Conflicts section, with a proposed resolution. Ask the person to decide each one; never settle it silently.
+4. **Context**: the other parts of `questions.md` you kept, one part per message, in their order. An answer about an entity or a view is recorded there; the rest goes to the model's Context section.
+5. **Entities**: the things of that world, which contains which, which relate. List the things they named so far, in their words, and ask them to group them as they see them, name each group and say why; propose a hierarchy only after. A thing they hesitate over, or put in two groups, is an open question, or a word for `taxonomy`.
+6. **Each entity**: its purpose at its own level; what it holds that belongs to that level only, and where each piece ends up (a prompt, a file, a record); its children and how they appear; its actions; its states and what complete means; what must always be visible about it.
+7. **Each view**: its focal entity and the goal of the work done there; the entities around it, and for each how much is shown and editable there (inline, in a side panel or a menu without leaving, or on its own page); what never appears there; where the person comes from and goes next, on the paths of People.
+8. **The machinery**: the software steps, the models, the queues, and which entity and state each one moves. It stays under the views, shown as state.
+9. **The design system, last**: for each view, ask the project's design system which patterns and building blocks realize it and which domains of its design language decide its composition, through its tools for agents (Magma: `get_pattern` with the view's need in words, then `get_guide` for a domain). Record them by id. Then hold the model against them: every rule of the model that the design system contradicts, forbids or lacks is a conflict, written in the format of the model's Conflicts section, with a proposed resolution. Ask the person to decide each one; never settle it silently.
 
 ## 3. Write the model
 

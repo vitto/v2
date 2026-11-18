@@ -85,7 +85,11 @@ Where the method of this model and the design system disagree, or the model need
 
 Until a conflict is resolved, the build follows the design system and the entry stays open. A conflict found while building or auditing is added here.
 
-### 9. Open questions
+### 9. Context
+
+What the views must fit beyond the work itself, from the parts of the interview's questions (`skills/design-interview/questions.md`) the project needs: the people around the project (who commissions and decides, inside or outside the person's company, who builds it, who must be kept informed), what is already known and what already exists, where and how it is seen or used, the content and how it is read, the data, the brand and its tone, the images, the pieces and media it spans, how its text is written and reviewed. One line per answer, marked like every other; a part skipped is named, with why. An answer about one entity or one view goes there instead.
+
+### 10. Open questions
 
 What the interview left undecided, with the proposal on the table. `design-reframe` comes back here first, and to the open conflicts.
 
