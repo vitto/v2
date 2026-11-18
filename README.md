@@ -12,6 +12,24 @@ The workflow skills generalize the epic workflow of [magma-design-system/magma#1
 
 ## Skills
 
+### At a glance
+
+Every skill: what it is for, the words that call it without the command, and what it takes (`<required>`, `[optional]`, the rest said in words). The tables after this one say more about each.
+
+| Skill | For | Say | Options |
+|-------|-----|-----|---------|
+| `/v2:design-interview [area]` | Before a new view, page, section, tool or editor: an interview that writes the object model its screens come from. | "intervista", "modello degli oggetti", "come strutturo questa pagina", "prima di costruire la UI", "da dove parto con la UI" | `area`: what is being built, in words.<br>Call notes or documents attached to the message are read first. |
+| `/v2:design-build` | While building or changing UI: the principles that apply, their rules, the checks before handing over. | none: it loads by itself when Claude builds or changes a UI | None. Text after the command is read with the task. |
+| `/v2:design-reframe <request>` | When a request adds to an existing flow or view: places it in the object model first, then says which views are patched or rebuilt. | "aggiungi anche", "vorrei che questa parte facesse anche", "ripensiamo il flusso", "reframe", "non capisco più questa vista" | `request`: what to add or change, in words.<br>Attached notes are placed against the model first. |
+| `/v2:taxonomy [area, word or conflict]` | Keeps a project's words consistent: a register in its glossary, each conflict resolved with the lightest move, the hierarchy checked against the data. | "tassonomia", "glossario", "registro dei termini", "come lo chiamiamo", "due parole per la stessa cosa", "questa parola vuol dire due cose", "rinomina" | One, in words: the area, the word or the conflict to start from. |
+| `/v2:design-audit <target>` | Audits something already built against the principles and the object model: every check pass, fail or not verifiable. | none in Italian: it loads when asked to review, audit or check the UX or UI of something built | `target`: a page, a component, a folder or the current diff; asked for when missing. |
+| `/v2:work-map [mode] [target]` | What a piece of work is made of, before or after it: a diagram, then the same in words. | "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti" | `planned`: work still to do, from the plan, an issue or the parts of an epic.<br>`done`: work that exists, from its diff, compared with its plan.<br>`glossary`: the hierarchy of the project's taxonomy register, checked against the data.<br>No mode: `done` when there is work, `planned` otherwise.<br>`target`: an issue, a pull request, an epic, a branch or the glossary; none: the work of this conversation. |
+| `/v2:work-status [epic]` | Where the work stands, as tables, and the next action. Only reads. | "stato", "a che punto siamo", "come siamo messi" | `epic`: an epic number, for its parts in the order they land.<br>None: the repository (open epics, open pull requests, local worktrees). |
+| `/v2:work-test [epic or PR]` | Shows the work to test: installs, builds and serves it, then lists the pages to open. | "testa", "fammi vedere", "fammelo provare" | `epic`: a local preview with its open parts merged, never pushed.<br>`PR` or a branch: its worktree; asks before creating one.<br>None: the current folder against the default branch. |
+| `/v2:work-merge <PR>` | Merges one pull request you approved by naming it, after checking again that nothing holds it. | "ok #N", "mergia", "mergiala" | `PR`: the pull request number; without it, shows the status and asks which. |
+| `/v2:agent-route [effort] [model] [work]` | The model and the effort a piece of work needs, so the cheaper ones do what they can. Called in the middle of a conversation, it continues the work in a new session. | "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token", "continua in una nuova sessione" | Effort: `minimo` minimal (low in Claude Code), `basso` low, `medio` medium, `alto` high, `massimo` max, the costliest; the English names work too.<br>`auto`, or nothing: chosen by weighing the work.<br>Model: `haiku`, `sonnet`, `opus`, `fable`, or a model of another host; one your plan does not cover needs your yes.<br>`work`: the work, in one line.<br>"qui", "here": called in the middle of a conversation, the work stays in this session. |
+| `/v2:share-linkedin <url> [description]` | A short video of a live product as the cover of a LinkedIn article, with its title, its body and the text that shares it; you publish it by hand. | "post per linkedin", "video per linkedin", "annuncio su linkedin", "articolo per linkedin", "pubblica su linkedin", "programma il post" | `url`: the address of the live product.<br>`description`: what the product is, when the product does not say it.<br>In words: the language; a post with the native video instead of the article, published now or at a suggested moment once you approve it by its id. |
+
 ### Design principles
 
 | Skill | Say | What it does |
@@ -179,7 +197,8 @@ npm test
 - The map of `/v2:work-map` is specified on its parts (the checks of the JSON, the marks and styles, the Mermaid it writes, the comparison with a plan, the relations of a glossary map, the map hidden in a body and read back); how Mermaid draws it is checked by opening its page.
 - The recorder of `/v2:share-linkedin` is specified on its pure parts (the frames of a take and its cuts, the easing of a move); the take itself needs Chrome and ffmpeg, so it is checked by recording the example scene.
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
-- `claude plugin validate . --strict` checks the manifests.
+- The plugin itself is specified as it ships, in [scripts/plugin.spec.ts](scripts/plugin.spec.ts): every skill's frontmatter parses (a SKILL.md whose YAML does not parse loads with empty metadata, and nothing says so), its `name` is its folder, it has a `description`; the manifests are JSON, and the marketplace lists this plugin. The frontmatter is read with no package ([scripts/lib/frontmatter.ts](scripts/lib/frontmatter.ts)), so it keeps to the YAML the skills use: one `key: value` per line, the value plain, quoted or a block; a list or a map is refused until that reader learns it.
+- `claude plugin validate . --strict` (`npm run validate` without `--strict`) checks more, by hand: CI does not install the Claude Code CLI.
 - The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:work-merge` waits for.
 
 ### Layout
@@ -190,7 +209,7 @@ npm test
 skills/<name>/    one folder per skill: SKILL.md
 principles/       the principles, one file each, by section of the site
 docs/             the formats of the object model and the taxonomy register, reading notes, the pilot audit
-scripts/          one script per job of the workflow, and its spec beside it
+scripts/          one script per job of the workflow, and its spec beside it; plugin.spec.ts, the plugin itself
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
 examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video
 schema/           the JSON Schema of .claude/v2.json

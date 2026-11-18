@@ -16,17 +16,25 @@ Plain Markdown with these sections, in this order.
 
 What exists at the end when the tool works, in one or two sentences, and what **done** means: for one item, and for the whole. Example: "a catalogue of 3D props the game loads, every room's furniture with two to four variants each, every model traceable to the words it came from."
 
+Then the change it makes: what people do differently once it works, each a behaviour with a verb (start, stop, do more or less of), and why now: what was there before and what changed. No feature goes here: a feature in the goal is a question about what it is for.
+
 ### 2. People
 
-Who works here, what they bring (sources, words, decisions) and what they judge. What the machine does on its own is not a person's work and goes in section 6.
+Who works here, by role, never by name: one entry per role, for everyone who does that work. What each brings (sources, words, decisions), what they judge, and their path to the end of the work: the steps as they go today, in order, and where it slows or goes wrong. What each wants out of it, as a need and not a feature, and how they want to feel doing it (sure, quick, in control): that feeling decides what is always visible (section 4). Only the facts that change how they work here (the device, how often, what they already know), no other detail.
+
+A role the person interviewed does not hold is their assumption until someone in it confirms it: its entry says so, and who could confirm it goes to Open questions. So does the gap when the one who asks and the one who does the work want different things: both are written.
+
+What the machine does on its own is not a person's work and goes in section 6.
 
 ### 3. Metaphor and vocabulary
 
 The world the person thinks in, and its words, taken from the project's own vocabulary (its glossary, its data): "levels, zones, rooms, objects", not "jobs, tasks, records". The UI uses these words and no others for these things. The words are the names of the project's taxonomy register (`taxonomy.md`), cited by ID; a word the register lacks, or one that means two things, goes to `taxonomy` first.
 
+Beside the words, what the person uses for this work today (a sheet, folders of files, another tool): what they already know how to do there is what they will expect here, with what to keep and what to leave behind.
+
 ### 4. Entities
 
-The things of that world, as a hierarchy (which contains which) and a list of other relations. Then one block per entity:
+The things of that world, as a hierarchy (which contains which) and a list of other relations. The hierarchy and the names follow how the person grouped and named the things, not how the data is stored. Then one block per entity:
 
 - **Purpose**: what it is for at its own level, in relation to the goal.
 - **Holds**: what belongs to it and to no other level, and where each piece ends up (a prompt, a file, a record the game reads). A zone holds what the zone's prompt needs, never the furniture of its rooms.
@@ -45,7 +53,7 @@ One block per view (a page, a panel):
   - in a side panel, a menu or a dialog, when it needs more detail but the person must not leave (and lose what they are typing);
   - on its own page, linked, when the detail is its own work.
 - **Never here**: what this view does not show, so that it stays about its goal.
-- **Way in and way out**: where the person comes from, and where they go next.
+- **Way in and way out**: where the person comes from, and where they go next, on the paths of section 2.
 
 Nesting is the failure this section prevents: an entity that needs its own depth opens beside the view or on its own page, never as a box inside a box inside a box.
 

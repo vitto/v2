@@ -22,11 +22,13 @@ Notes longer than a few pages are extracted by a subagent on a cheaper model (`a
 
 Before the first question, one line: "From the notes (2 files): 6 decisions, 4 requests, 3 ideas, 5 open questions, 7 terms." Then the items that answer a question of the interview are drafted into it, and only what is missing is asked.
 
+Requests and ideas that answer no question are grouped with their kin, each group named in the notes' words: a group is an entity or a view to ask about, or a sign it belongs to another tool. The groups are a first reading and may change. An item that joins no group stays on its own in the backlog: neither built nor dropped, since a later call may give it company.
+
 ## 3. The fourth mark
 
 The object model marks each answer as from **the person**, from **the project** (which file) or **proposed**. Notes add a fourth: **from the notes (file, place)**. It weighs less than the person: a note is someone's summary of a conversation, and it may be wrong, stale or out of context. So every answer marked from the notes is shown to the person and confirmed; once confirmed, it becomes **the person**. A model with unconfirmed note answers is a draft.
 
-When the notes and the person disagree, the person wins, and the item is reported as contradicted.
+When the notes and the person disagree, the person wins, and the item is reported as contradicted. When the notes and the project disagree (a decision the code does not hold, a word the data spells otherwise), both are shown to the person; neither wins silently.
 
 ## 4. Against an existing model (reframe)
 
