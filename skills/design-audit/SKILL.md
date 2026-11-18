@@ -16,7 +16,7 @@ Say which mode you picked and why.
 
 ## 2. The principles
 
-Read the index in `../../principles/README.md`, from this skill's folder, and load every principle whose triggers match the target, across all sections.
+Read the index in `../../principles/README.md`, from this skill's folder, and load every principle whose triggers match the target, across all sections. A principle with `status: draft` loads too: its rules are proposals that real work has not confirmed yet, so its checks ask instead of failing (section 3).
 
 ## 2b. The object model
 
@@ -39,9 +39,10 @@ A screen that needs something the model does not have is an open question for `d
 - `code` checks by reading the code. `runtime` checks on the running page when you can open it: element sizes, keyboard, focus, the accessibility tree. A runtime check you could not run is not verifiable, never a pass.
 - Read "Don't overdo it" before reporting a fail: it is there to stop false positives.
 - When a check needs a stance the files do not take, report it as an open question, not as a fail.
+- A check of a draft principle that fails is never a fail: it is a question for the person, defect or their choice, with what the rule asks and what the target does. Ask them all at the end, together. A defect becomes a Fail; a choice becomes a pass by choice, with their reason in one line.
 
 ## 4. The report
 
-A table with #, checks, where and result. One row per problem, with every check id that caught it: a problem two principles catch is one row, not two. Results are **Fail** (with what to change), **Pass**, **Not verifiable** (with what would make it verifiable) or **Open question**. Defects first, passes last. For each fail, link the rule's example on the site: the file's `site` plus `#` and the rule title as a slug.
+A table with #, checks, where and result. One row per problem, with every check id that caught it: a problem two principles catch is one row, not two. Results are **Fail** (with what to change), **Pass**, **Not verifiable** (with what would make it verifiable), **Open question** or, for a draft principle, **Draft: defect or choice?** until the person answers, then **Fail** or **Pass by choice** (with their reason). Defects first, passes last. For each fail, link the rule's example on the site: the file's `site` plus `#` and the rule title as a slug, when the file has a `site`.
 
 Change nothing unless asked: the audit reports. `docs/pilot-audit.md`, at the root of this plugin, is an example of the report.
