@@ -10,6 +10,7 @@
   "homepage": "https://github.com/vitto/v2",
   "repository": "https://github.com/vitto/v2",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": [
     "design-principles",
     "ux",
