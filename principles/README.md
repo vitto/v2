@@ -2,7 +2,7 @@
 
 The principles of vittoriovittori.com, written so an agent can apply them while it builds or reviews a UI. One Markdown file per principle, in a folder per section, named after its id on the site.
 
-Status: pilot, one principle per section. The rules come from the do and don't lists of the site's use cases; the checks, the "Don't overdo it" notes and the design system notes are proposals to review. The other principles follow as they are rewritten on the site.
+Status: pilot, one principle per section, and two drafts. The rules come from the do and don't lists of the site's use cases; the checks, the "Don't overdo it" notes and the design system notes are proposals to review. The other principles follow as they are rewritten on the site.
 
 ## Index
 
@@ -13,6 +13,7 @@ The skills read this table to decide which files to load, so every new principle
 | [Error Prevention](user-centered-design/error-prevention.md) | User-Centered Design | forms and inputs, actions that delete, overwrite, send, pay or publish, multi-step flows, defaults |
 | [Consistency Over Uniformity](design-systems/consistency-over-uniformity.md) | Design Systems | a new component or variant, an element that looks or behaves like one already in the product, a visual change to a shared pattern |
 | [Design for Uncertainty](human-centered-ai-design/design-for-uncertainty.md) | Human-Centered AI Design | any output produced by a model: answers, classifications, summaries, suggestions, extracted data |
+| [Accessibility as a Baseline](design-systems/accessibility-as-a-baseline.md) (draft, #38) | Design Systems | a component of a design system, its colour roles or its states; anything shown with colour (a status, a selection, a category, a chart series); text on a coloured or tinted background, themes and dark mode; icon-only buttons, small controls, touch targets; images, and messages that appear after an action; animations |
 | [Visual Composition](user-centered-design/visual-composition.md) (draft, #23) | User-Centered Design | placing the elements of a view, section, card, dialog or form; several groups of content, fields or actions; choosing the main action and where actions sit; hiding content behind a menu, tab or accordion; a layout that must hold from narrow to wide and with long data; an icon, a glyph or a logo alone in a frame (a button, a tile, an app icon) |
 
 ## Format

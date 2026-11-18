@@ -6,7 +6,7 @@ v2 is V twice, for Vittorio Vittori. It is also my second version: the one that 
 
 ## Status
 
-Pilot. Three of the principles on [vittoriovittori.com](https://vittoriovittori.com), one per section, and the draft of a fourth, Visual Composition, whose checks ask instead of failing until the decisions taken in real work confirm its rules; the others follow as I rewrite them on the site. The skills are here; the MCP server comes once the format has been tested on real builds.
+Pilot. Three of the principles on [vittoriovittori.com](https://vittoriovittori.com), one per section, and the drafts of two more, Visual Composition and Accessibility as a Baseline, whose checks ask instead of failing until the decisions taken in real work confirm their rules; the others follow as I rewrite them on the site. The skills are here; the MCP server comes once the format has been tested on real builds.
 
 The workflow skills generalize the epic workflow of [magma-design-system/magma#1320](https://github.com/magma-design-system/magma/pull/1320) to any GitHub repository; their first project is the site itself, [vitto/home](https://github.com/vitto/home).
 
