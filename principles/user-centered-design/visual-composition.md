@@ -3,6 +3,7 @@ id: visual-composition
 title: Visual Composition
 section: user-centered-design   # open: which section of the site, or a new one
 category: Layout
+status: draft
 site:                           # open: the site has no page for it yet
 inspired_by:                    # draft only: the site keeps the sources once the page exists
   - Practical UI, Adham Dannaway
@@ -22,7 +23,7 @@ related:
   - user-centered-design/error-prevention
 ---
 
-> Draft (#23). The rules and checks are proposals until the cases of #23 confirm or correct them; the section and the page on the site are open, so no rule links to an example yet. The parameters these rules take (how much the spacing grows, how dense a view is) come from a visual profile (#24).
+> Draft (#23). The rules and checks are proposals until the decisions taken in real work confirm or correct them (#35): a check that fails asks the person whether it is a defect or their choice, and never reports a Fail. The section and the page on the site are open, so no rule links to an example yet. The parameters these rules take (how much the spacing grows, how dense a view is) come from a visual profile (#24).
 
 ## Intent
 

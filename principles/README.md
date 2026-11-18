@@ -6,7 +6,7 @@ Status: pilot, one principle per section. The rules come from the do and don't l
 
 ## Index
 
-The skills read this table to decide which files to load, so every new principle adds a row.
+The skills read this table to decide which files to load, so every new principle adds a row. A row marked draft loads like the others, but its checks ask instead of failing (see `status` below).
 
 | Principle | Section | Load it when the work involves |
 | --- | --- | --- |
@@ -20,7 +20,8 @@ The skills read this table to decide which files to load, so every new principle
 Frontmatter:
 
 - `id`, `title`, `section`, `category`: the same values as the site's data (`src/data/<section>.json` in the site's repository), so the two join by id. Description and sources stay on the site.
-- `site`: the principle's page on the site. Each rule in the body has the same title as one of the page's use cases, so `<site>#<rule title as a slug>` (lowercase, every run of other characters turned into `-`) opens its interactive example, with the Do and the Don't.
+- `status` (optional): `draft` while the rules are proposals that real work has not confirmed yet. Without it, the principle is in force. A draft is followed while building like any principle, but a check of it that fails is never a Fail: it is a question for the person, defect or their choice, asked at the end with the others, and the answer is the evidence that confirms or corrects the rule. A rule loses the draft mark once real work has confirmed it enough.
+- `site`: the principle's page on the site. Each rule in the body has the same title as one of the page's use cases, so `<site>#<rule title as a slug>` (lowercase, every run of other characters turned into `-`) opens its interactive example, with the Do and the Don't. A draft may have none yet: then no rule links to an example.
 - `applies_when`: concrete situations an agent can recognize in a task or in code. This is what decides whether the file gets loaded.
 - `related`: principles from any section that usually apply together, as `section/id`, which is also their path in this folder. One without a file yet can still be read on the site.
 - `inspired_by` (drafts only, until the site keeps the sources): the books, authors and laws the rules draw on, cited as inspiration. A rule with no bibliographic source is Vittorio Vittori's own practice: it says so in this list and in a `Source` line under its title, until a source is found.
@@ -30,7 +31,7 @@ Body:
 - **Intent**: what must be true for the person using the UI, and why. The why is what lets the agent decide the cases the rules do not cover.
 - **Rules**: one block per use case on the site, same titles, with Do and Avoid lines and the checks that verify them.
 - **Checks**: a question with a yes or no answer, an id (`EP1`), a level and how to verify it.
-  - `must`: a fail is a defect. `should`: a fail needs a reason.
+  - `must`: a fail is a defect. `should`: a fail needs a reason. In a draft, either kind of fail is a question for the person instead.
   - `code`: answerable by reading the code. `runtime`: needs the rendered page or an interaction.
 - **Don't overdo it**: where applying the rule literally makes the UI worse. Agents tend to over-apply, so this section matters as much as the rules.
 - **With a design system**: what to ask the design system for. It never names a component, so the principles work with any design system and do not compete with its own guidance.
