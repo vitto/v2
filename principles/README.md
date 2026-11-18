@@ -13,7 +13,7 @@ The skills read this table to decide which files to load, so every new principle
 | [Error Prevention](user-centered-design/error-prevention.md) | User-Centered Design | forms and inputs, actions that delete, overwrite, send, pay or publish, multi-step flows, defaults |
 | [Consistency Over Uniformity](design-systems/consistency-over-uniformity.md) | Design Systems | a new component or variant, an element that looks or behaves like one already in the product, a visual change to a shared pattern |
 | [Design for Uncertainty](human-centered-ai-design/design-for-uncertainty.md) | Human-Centered AI Design | any output produced by a model: answers, classifications, summaries, suggestions, extracted data |
-| [Visual Composition](user-centered-design/visual-composition.md) (draft, #23) | User-Centered Design | placing the elements of a view, section, card, dialog or form; several groups of content, fields or actions; choosing the main action and where actions sit; hiding content behind a menu, tab or accordion; a layout that must hold from narrow to wide and with long data |
+| [Visual Composition](user-centered-design/visual-composition.md) (draft, #23) | User-Centered Design | placing the elements of a view, section, card, dialog or form; several groups of content, fields or actions; choosing the main action and where actions sit; hiding content behind a menu, tab or accordion; a layout that must hold from narrow to wide and with long data; an icon, a glyph or a logo alone in a frame (a button, a tile, an app icon) |
 
 ## Format
 
@@ -23,6 +23,7 @@ Frontmatter:
 - `site`: the principle's page on the site. Each rule in the body has the same title as one of the page's use cases, so `<site>#<rule title as a slug>` (lowercase, every run of other characters turned into `-`) opens its interactive example, with the Do and the Don't.
 - `applies_when`: concrete situations an agent can recognize in a task or in code. This is what decides whether the file gets loaded.
 - `related`: principles from any section that usually apply together, as `section/id`, which is also their path in this folder. One without a file yet can still be read on the site.
+- `inspired_by` (drafts only, until the site keeps the sources): the books, authors and laws the rules draw on, cited as inspiration. A rule with no bibliographic source is Vittorio Vittori's own practice: it says so in this list and in a `Source` line under its title, until a source is found.
 
 Body:
 
