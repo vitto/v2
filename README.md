@@ -6,7 +6,7 @@ v2 is V twice, for Vittorio Vittori. It is also my second version: the one that 
 
 ## Status
 
-Pilot. Three of the principles on [vittoriovittori.com](https://vittoriovittori.com), one per section; the others follow as I rewrite them on the site. The skills are here; the MCP server comes once the format has been tested on real builds.
+Pilot. Three of the principles on [vittoriovittori.com](https://vittoriovittori.com), one per section, and the draft of a fourth, Visual Composition, whose checks ask instead of failing until the decisions taken in real work confirm its rules; the others follow as I rewrite them on the site. The skills are here; the MCP server comes once the format has been tested on real builds.
 
 The workflow skills generalize the epic workflow of [magma-design-system/magma#1320](https://github.com/magma-design-system/magma/pull/1320) to any GitHub repository; their first project is the site itself, [vitto/home](https://github.com/vitto/home).
 
@@ -60,7 +60,7 @@ Every skill: what it is for, the words that call it without the command, and wha
 
 - **Before building**, the agent finds the principles that apply to the task, across sections: a form that sends AI-generated text needs both Error Prevention and Design for Uncertainty.
 - **While building**, it follows their rules and asks the project's design system for the patterns, instead of inventing them.
-- **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable.
+- **Before handing over**, it runs their checks and reports each one as pass, fail or not verifiable. A check of a draft principle that fails asks the person instead: a defect, or their choice.
 - **Around the work**, it draws what the work is made of, before and after, says where an epic or a repository stands, builds a preview to test the parts together, lists the pages to open, and merges only what the person approved, by the rules of [GOVERNANCE.md](GOVERNANCE.md).
 - **Once it ships**, it tells people: a video of the live product as the cover of a LinkedIn article, and the text that shares it.
 
@@ -81,7 +81,7 @@ The principles say what must be true for the people using the interface and neve
 
 ## Where the principles come from
 
-Each principle has a page on the site with its description, its sources and an interactive example for each rule. The files in [`principles/`](principles/) hold what an agent needs: when the principle applies, its rules and its checks. They join the site by id, and each rule links to its example. The format is described in [`principles/README.md`](principles/README.md); [`docs/pilot-audit.md`](docs/pilot-audit.md) is the first audit made with it.
+Each principle has a page on the site with its description, its sources and an interactive example for each rule. The files in [`principles/`](principles/) hold what an agent needs: when the principle applies, its rules and its checks. They join the site by id, and each rule links to its example. A draft has no page yet: it names the sources it is inspired by, and its rules grow from the decisions taken in real work. The format is described in [`principles/README.md`](principles/README.md); [`docs/pilot-audit.md`](docs/pilot-audit.md) is the first audit made with it.
 
 ## The workflow
 
