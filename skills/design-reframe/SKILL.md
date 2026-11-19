@@ -24,9 +24,11 @@ Say in a few lines where it belongs: which entity, at which level; whether it is
 
 ## 3. Ask only what is new
 
-The questions of `design-interview` for what the request touches, asked as it asks them (open, about the real work, nothing leading), nothing already answered. Propose the answers you can infer, marked as proposed, or from the notes (file, place) to confirm. The entities already defined stay as they are unless the request moves them. A new word, or one that now means two things, goes to `taxonomy` before it reaches the model.
+The questions of `design-interview` for what the request touches, asked as it asks them (its step 3: open, about the real work, nothing leading; in the question dialog, the options are the proposals with their source, none marked recommended, and one leaves the question to someone else), nothing already answered. Propose the answers you can infer, marked as proposed, or from the notes (file, place) to confirm. The entities already defined stay as they are unless the request moves them. A new word, or one that now means two things, goes to `taxonomy` before it reaches the model.
 
 Whatever the request, ask the same two questions every time: is the goal in the model still the goal, and where does the work slow down today? Their answers are kept with the date of the reframe, so a drift shows from one round to the next.
+
+When the new questions, these two with them, fit one dialog, ask them there. When they are more, or others should answer them, first ask the format, as `design-interview` does (its step 2, and `../design-interview/formats.md`); answers read back from a file are marked as it says, a respondent's an assumption until the person confirms it.
 
 ## 4. Show the change
 

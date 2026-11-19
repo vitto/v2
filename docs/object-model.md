@@ -96,3 +96,5 @@ What the interview left undecided, with the proposal on the table. `design-refra
 ## How the answers are marked
 
 Each answer says where it comes from: **the person** (what they said), **the project** (with the file it was read from), **the notes** (the file and the place, from attached call notes or documents: `notes-intake.md`) or **proposed** (an inference, to confirm). An answer from the notes weighs less than the person's and is confirmed before it counts; confirmed, it becomes the person's. A model made of proposals or unconfirmed notes is a draft, not a model.
+
+When the questions went out as a file others answered (a Sheet, a Form: `skills/design-interview/formats.md`), an answer is marked as that **respondent**'s, by role, never by name. Like a role the person does not hold (section 2), it is an assumption until the person confirms it; about the respondent's own work, it is also what confirms what the person assumed of that role.
