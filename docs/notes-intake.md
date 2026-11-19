@@ -6,7 +6,7 @@ A design interview often follows a call, and the call left notes: written by an 
 
 ## 1. Extract
 
-Read every attachment the person gives (call notes, a transcript, a brief, a spec) and turn it into items, each with **where it is** (the file, and the heading or line):
+Read every attachment the person gives (call notes, a transcript, a brief, a spec, the Google Doc of an interview answered in a call) and turn it into items, each with **where it is** (the file, and the heading or line):
 
 - **decision**: something settled, with **who** settled it, by role ("the art director", "the maintainer"), never by name;
 - **request**: something someone wants the tool to do or have;
