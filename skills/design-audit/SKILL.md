@@ -1,6 +1,6 @@
 ---
 name: design-audit
-description: Audit an existing screen, component or change against Vittorio Vittori's design principles (UX, design systems, AI design) and the area's object model, and report every check as pass, fail or not verifiable, merged by place. Use when asked to review, audit or check the UX or UI quality of something already built.
+description: Audit an existing screen, component or change against Vittorio Vittori's design principles (UX, design systems, AI design) and the area's object model, and report every check as pass, fail or not verifiable, merged by place, closing with a summary of where to start and whether the view does its job. Use when asked to review, audit or check the UX or UI quality of something already built.
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *)
 ---
 
@@ -47,7 +47,19 @@ A screen that needs something the model does not have is an open question for `d
 
 A table with #, checks, where and result. One row per problem, with every check id that caught it: a problem two principles catch is one row, not two. Results are **Fail** (with what to change), **Pass**, **Not verifiable** (with what would make it verifiable), **Open question** or, for a draft principle, **Draft: defect or choice?** until the person answers, then **Fail** or **Pass by choice** (with their reason). Defects first, passes last. For each fail, link the rule's example on the site: the file's `site` plus `#` and the rule title as a slug, when the file has a `site`.
 
-Change nothing unless asked: the audit reports. `docs/pilot-audit.md`, at the root of this plugin, is an example of the report.
+### The Summary
+
+The report ends with a **Summary**, apart from the table: the conclusions the table supports, for the person who will not read every row.
+
+1. **Where to start.** The three defects that weigh most on the goal of the focal entity, by their row number (`#3`), each with why in a few words. Fewer when fewer fail; none when nothing fails.
+2. **The goal.** Does the view do what it exists for, as the object model states it? One answer: **yes**; **yes, after the fixes**, naming the rows; **no, to rethink**, which hands over to `design-reframe`. When the area has no object model, the goal cannot be checked: say so, and point to `design-interview` to write it.
+3. **What the checks do not cover.** Visual hierarchy, rhythm, coherence with the design language: what you saw that no check asks about. Each line is labelled **opinion**, never a Fail, never a Pass.
+
+Every sentence of the Summary cites a row of the table (`#3`) or a section of the object model. A sentence that cites neither carries the label **opinion**. A summary that could be written without running the audit ("good overall, a few issues") is not one.
+
+When the audit runs as the check at the end of `design-build` or `design-reframe`, the person has just seen the work: the Summary can be the goal line alone.
+
+Change nothing unless asked: the audit reports. `docs/pilot-audit.md`, at the root of this plugin, is an example of the report, Summary included.
 
 ## 5. The decisions
 
