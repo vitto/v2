@@ -31,7 +31,7 @@ What people learn in one place should hold everywhere: the same meaning gets the
 - Avoid: composition turning into arbitrary assembly; breaking a system rule for local visual balance.
 
 **CU1** · must · code. Do spacing, sizes, colors, radii and type in the new code come from the design tokens or the system's scale?
-Verify: look for raw px, hex or rgb values and arbitrary values (such as Tailwind `[13px]`).
+Verify: look for raw px, hex or rgb values and arbitrary values (such as Tailwind `[13px]`). When the page can be opened, the rendered checks (`../../docs/rendered.md`) list every value the page draws that matches no token, wherever it comes from.
 
 **CU2** · must · runtime. After composing, does the focus order follow the visual order, and does every focusable part show its focus state?
 
