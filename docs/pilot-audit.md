@@ -23,6 +23,21 @@ Findings in the same place are merged, with every check id that caught them.
 | 9 | CU9 | Regenerate in `AIResponseFooterActions` and `AIGeneratedArticleSummary` | **Pass.** `tone="text"` in one, `tone="weak"` in the other: same icon, same meaning, different emphasis for the context. A literal reading of CU9 would flag it; the "Don't overdo it" section is what stops it. |
 | 10 | DU1, DU3, DU10, EP9 | `AIFilePreview`, `AIGeneratedArticleSummary` | **Pass.** Confidence sits next to the file with a written label as well as the color; the summary can be edited, regenerated or deleted; Delete uses the danger style. |
 
+## Summary
+
+Written on 2026-11-19 from the table above, when the report gained its Summary.
+
+1. **Where to start.** With no object model (point 2), the weight of each defect is judged against what these components are for in a product: letting a person judge an AI output before acting on it. That yardstick is an assumption until a model states it.
+   - **#4**: Publish sends AI-generated text in one click. Of the defects still open, it is the only one whose effect the person cannot take back.
+   - **#2**: the reason behind a low confidence stays hidden until a click, and that reason is what tells the person what to check.
+   - **#5**: the composer has no accessible name, so with a screen reader the entry point of every demo is an unnamed field.
+
+   #1 and #3 were defects on the live site and are fixed on `feat/redesign`: they leave this list once it ships.
+2. **The goal.** Cannot be checked: the pilot predates the object model, and nothing states what the AI response is for. What is missing is its model, written with `design-interview`: which entity is focal (the response, or the output it carries), what a person must be able to do with it, and in which view each of these components appears.
+3. **What the checks do not cover.**
+   - Opinion: coherence with the design language is where #1 and #8 point (three clickable things with three keyboard behaviors, one error style for three meanings), but no check weighs it across the family.
+   - Opinion: the visual hierarchy of a response (output, confidence, actions) and the rhythm between these components were not looked at. The pilot read the code and the running page, never the page as an image.
+
 ## What the test says about the format
 
 - **The checks find things that "follow UX best practices" does not.** Findings 1, 2, 3 and 6 are specific and fixable, and none of them is obvious from a generic list.
