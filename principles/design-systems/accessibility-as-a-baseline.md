@@ -41,19 +41,21 @@ A floor, not a style: above it, how much contrast, how large the text, how stron
 - Do: define focus, hover and active states consistently (EP2 and CU8 check them).
 - Avoid: relying on manual fixes after components are shipped; leaving interactive states undefined; secondary text in a pale grey below the floor; input borders as faint as a divider; an error, a warning and a success that look the same once the colour is gone; icon buttons the size of their icon.
 
-**AB1** · must · runtime. Does every text reach 4.5:1 against the background it actually sits on (3:1 from 24 px, or 18.66 px bold), in every theme and mode the product offers?
+**AB1** · must · rendered. Does every text reach 4.5:1 against the background it actually sits on (3:1 from 24 px, or 18.66 px bold), in every theme and mode the product offers?
+Verify: the contrast table of the rendered checks (`../../docs/rendered.md`), in each theme; a text over a picture is measured on the pixels under it.
 
-**AB2** · must · runtime. Do field borders, control outlines, the focus indicator and every icon that carries meaning reach 3:1 against what surrounds them?
+**AB2** · must · rendered. Do field borders, control outlines, the focus indicator and every icon that carries meaning reach 3:1 against what surrounds them?
+Verify: the rendered checks measure field borders and control outlines; the focus indicator and the icons are read on a screenshot, the control focused with Tab for the first.
 
-**AB3** · must · runtime. With the page in greyscale (`filter: grayscale(1)` on the root), is everything colour says still said another way: by a word, an icon, a shape, a weight or a border?
+**AB3** · must · rendered. With the page in greyscale (`filter: grayscale(1)` on the root), is everything colour says still said another way: by a word, an icon, a shape, a weight or a border?
 
-**AB4** · must · runtime. Does every status (error, warning, success, info) carry an icon of its own next to its text, so it is recognised at a glance, before the text is read and without colour?
+**AB4** · must · rendered. Does every status (error, warning, success, info) carry an icon of its own next to its text, so it is recognised at a glance, before the text is read and without colour?
 
 **AB5** · should · code. Are text links underlined, or marked by something other than colour, unless the element already looks interactive (a menu item, a tab, a card)?
 
-**AB6** · must · runtime. Is every pointer target at least 24 by 24 CSS px, or spaced so that a 24 px circle centred on it touches no other target or circle?
+**AB6** · must · rendered. Is every pointer target at least 24 by 24 CSS px, or spaced so that a 24 px circle centred on it touches no other target or circle?
 
-**AB7** · should · runtime. Are frequent and primary targets, and every target on a touch screen, at least 44 by 44 px?
+**AB7** · should · rendered. Are frequent and primary targets, and every target on a touch screen, at least 44 by 44 px?
 
 ### Encode Accessibility into Components
 

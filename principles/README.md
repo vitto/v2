@@ -33,6 +33,6 @@ Body:
 - **Rules**: one block per use case on the site, same titles, with Do and Avoid lines and the checks that verify them.
 - **Checks**: a question with a yes or no answer, an id (`EP1`), a level and how to verify it.
   - `must`: a fail is a defect. `should`: a fail needs a reason. In a draft, either kind of fail is a question for the person instead.
-  - `code`: answerable by reading the code. `runtime`: needs the rendered page or an interaction.
+  - Where the answer comes from. `code`: reading the code. `runtime`: the running page and an action on it: the keyboard, the focus, what reaches the accessibility tree, a state reached by acting. `rendered`: the page as drawn, measured (its computed styles against the tokens of the design system, contrast, targets) and seen (its screenshots, blurred and in greyscale), at the narrowest and the widest width it supports and in each theme. `../docs/rendered.md` says how to run them; a `rendered` check that could not run is not verifiable, never a pass.
 - **Don't overdo it**: where applying the rule literally makes the UI worse. Agents tend to over-apply, so this section matters as much as the rules.
 - **With a design system**: what to ask the design system for. It never names a component, so the principles work with any design system and do not compete with its own guidance.
