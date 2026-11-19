@@ -1,6 +1,7 @@
 ---
 name: design-audit
 description: Audit an existing screen, component or change against Vittorio Vittori's design principles (UX, design systems, AI design) and the area's object model, and report every check as pass, fail or not verifiable, merged by place. Use when asked to review, audit or check the UX or UI quality of something already built.
+allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *)
 ---
 
 # Audit against the v2 principles
@@ -40,9 +41,14 @@ A screen that needs something the model does not have is an open question for `d
 - Read "Don't overdo it" before reporting a fail: it is there to stop false positives.
 - When a check needs a stance the files do not take, report it as an open question, not as a fail.
 - A check of a draft principle that fails is never a fail: it is a question for the person, defect or their choice, with what the rule asks and what the target does. Ask them all at the end, together. A defect becomes a Fail; a choice becomes a pass by choice, with their reason in one line.
+- A check the object model lists under Exceptions for this view is a **Pass by choice**, citing the exception: do not ask again. A Fail of a principle in force that the person calls their choice becomes a Pass by choice too, with their reason, and an exception for the model on their yes.
 
 ## 4. The report
 
 A table with #, checks, where and result. One row per problem, with every check id that caught it: a problem two principles catch is one row, not two. Results are **Fail** (with what to change), **Pass**, **Not verifiable** (with what would make it verifiable), **Open question** or, for a draft principle, **Draft: defect or choice?** until the person answers, then **Fail** or **Pass by choice** (with their reason). Defects first, passes last. For each fail, link the rule's example on the site: the file's `site` plus `#` and the rule title as a slug, when the file has a `site`.
 
 Change nothing unless asked: the audit reports. `docs/pilot-audit.md`, at the root of this plugin, is an example of the report.
+
+## 5. The decisions
+
+When the person answered a question of a draft, called a Fail their choice, or asked for a change while you audited, those are decisions the principles learn from. Record them as `../../docs/decisions-log.md`, from this skill's folder, says: one entry each, with the person's reason in one line, never asked mid-flow. Then run its `due`, and when a group is due, propose the change to the principle as that file says, only on the person's yes.
