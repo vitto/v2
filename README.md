@@ -73,7 +73,7 @@ Every skill: what it is for, the words that call it without the command, and wha
 
 `design-build` loads by itself when Claude builds or changes a UI; `/v2:design-interview` comes before a new view, `/v2:design-reframe` before adding to one. `/v2:design-audit <target>` reviews a screen, a component or a change. `/v2:agent-route` picks the model and the effort of a piece of work; the first time it runs on a machine, it offers to add one line to your global instructions, so that it weighs every piece of work. To try a local copy for one session without installing it: `claude --plugin-dir /path/to/v2`.
 
-A new version reaches an installed plugin only when `version` in [.claude-plugin/plugin.json](.claude-plugin/plugin.json) changes: bump it with each release.
+A new version reaches an installed plugin only when `version` in [.claude-plugin/plugin.json](.claude-plugin/plugin.json) changes: bump it with each release. Before a release, `node scripts/decisions.ts due` says which principles the decisions from the field are ready to change.
 
 ## With a design system
 
@@ -82,6 +82,16 @@ The principles say what must be true for the people using the interface and neve
 ## Where the principles come from
 
 Each principle has a page on the site with its description, its sources and an interactive example for each rule. The files in [`principles/`](principles/) hold what an agent needs: when the principle applies, its rules and its checks. They join the site by id, and each rule links to its example. A draft has no page yet: it names the sources it is inspired by, and its rules grow from the decisions taken in real work. The format is described in [`principles/README.md`](principles/README.md); [`docs/pilot-audit.md`](docs/pilot-audit.md) is the first audit made with it.
+
+### Principles that grow from your decisions
+
+When you call a failing check your choice, answer the question of a draft, or ask for a correction on what an agent built, `design-build` and `design-audit` ask why in one line, at the end of the session, and write the decision to your decisions log. When three decisions from different views agree on a rule, for the same kind of view, they propose a change to the principle, in our own words; it lands only on your yes, as a pull request and a new version. The log is yours and private, since it may name clients: v2 only knows its path. Set it once in `~/.claude/settings.json`, then start a new session:
+
+```json
+{ "env": { "V2_DECISIONS_LOG": "~/notes/decisions.jsonl" } }
+```
+
+Without it, a decision stays in the project, in its object model's Exceptions. The format, the counting and the moments: [docs/decisions-log.md](docs/decisions-log.md).
 
 ## The workflow
 
@@ -208,7 +218,7 @@ npm test
 .github/          the workflow that runs the specs
 skills/<name>/    one folder per skill: SKILL.md
 principles/       the principles, one file each, by section of the site
-docs/             the formats of the object model and the taxonomy register, reading notes, the pilot audit
+docs/             the formats of the object model, the taxonomy register and the decisions log, reading notes, the pilot audit
 scripts/          one script per job of the workflow, and its spec beside it; plugin.spec.ts, the plugin itself
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
 examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video

@@ -1,6 +1,7 @@
 ---
 name: design-build
 description: Vittorio Vittori's design principles for building or changing UI. Which UX, design system and AI design principles apply to the task, the rules to follow while building, the checks to run before handing over. Use whenever building or changing an interface, a component, a form, a flow, or anything that shows AI output, beside the project's own design system; a new view starts from the object model that design-interview writes.
+allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *)
 ---
 
 # Design with the v2 principles
@@ -24,5 +25,6 @@ The principles say what must be true for the people using the interface. They ne
 6. Run the `code` checks of every loaded principle on what you wrote. Run the `runtime` checks too when you can open the page (a dev server, a browser); otherwise list them as not verified.
 7. Report each check as pass, fail or not verifiable, with its id (`EP7`). Fix every `must` that fails. A failing `should` stays only with a written reason.
 8. A check of a draft principle that fails is not yours to fix or to excuse: it is a question for the person. Ask them all at the end, together, never one by one while building: what the rule asks, what the build does, and whether it is a defect or their choice. A defect you fix; a choice stays, with their reason in one line. Report each one with its answer.
+9. The person's answers, and the corrections they asked for on what you built ("move that button", "more space here"), are decisions the principles learn from. With the questions of step 8, in the same message, ask why for each correction they have not explained, in one line; a correction that only fixes a bug of yours is not one. Record them as `../../docs/decisions-log.md`, from this skill's folder, says; a choice that holds for this project only also goes into the object model's Exceptions, on their yes. Then run its `due`, and propose a change to a principle only as that file says.
 
 For a full review of UI that already exists, use `/v2:design-audit`.
