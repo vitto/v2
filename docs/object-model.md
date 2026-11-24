@@ -63,13 +63,13 @@ The software under the views: the steps, the models, the queues, the services. F
 
 ### 7. The design system
 
-The object model says *what* each view is for and *which* entities it holds; the design system says *how* it is built. A design system that works in layers, such as Magma's, has three of them, each read from its own tools (Magma: `get_pattern`, `get_guide`):
+The object model says *what* each view is for and *which* entities it holds; the design system says *how* it is built. The skills find the design system in the project and read it through its tools for agents. When the design system ships tools that are not loaded in the session, the skills stop and ask before recording an id (`design-system.md`). A design system that works in layers, such as Magma's, has three of them, each read from its own tools (Magma: `get_pattern`, `get_guide`):
 
 - **design language**: the rules of composition every page stands on (Magma: rhythm, density, actions, titles, surfaces, widths);
 - **building blocks**: the sections of a page that come back in the same arrangement (Magma: app-shell, page-header, item-list, labels-and-values);
 - **patterns**: the solution to a task that spans components and time (Magma: record-detail, list-with-filters, empty-state, loading, confirm-action, message-placement, concurrent-editing...).
 
-For each view, write which patterns and blocks realize it and which domains of the design language decide its composition, by their ids: the page of one focal entity with its related items is a record-detail; its children as a list are an item-list; what the machinery is doing is loading; a side panel that edits a related entity follows the design system's rule for it. Where the design system has nothing for what the view needs, say so: it is a gap, not a license to invent.
+For each view, write which patterns and blocks realize it and which domains of the design language decide its composition, by their ids: the page of one focal entity with its related items is a record-detail; its children as a list are an item-list; what the machinery is doing is loading; a side panel that edits a related entity follows the design system's rule for it. Where the design system has nothing for what the view needs, say so: it is a gap, not a license to invent. It goes to the Conflicts (section 8) with one of their resolutions. The build reports each piece it made without a component of the design system the same way, and checks it with DS1 (`design-system.md`).
 
 ### 8. Conflicts
 

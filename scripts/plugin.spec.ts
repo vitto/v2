@@ -7,7 +7,7 @@
   would be a download of hundreds of MB on every run.
 */
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 import { frontmatter } from './lib/frontmatter.ts';
@@ -45,7 +45,32 @@ describe('the skills', () => {
         `skills/${name}/SKILL.md: no rule on the horizontal rule above the answer`,
       );
     });
+
+    // a skill reads the docs it cites at run time: a renamed or missing file fails there, silently
+    it(`${name}: every file of the plugin it cites exists`, () => {
+      const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
+      for (const [cited] of text.matchAll(/\.\.\/[\w./-]+\.md/g)) {
+        const file = path.join(root, 'skills', name, cited);
+        assert.ok(existsSync(file), `skills/${name}/SKILL.md cites ${cited}, which does not exist`);
+      }
+    });
   }
+
+  // #51: a build that went on with the guides alone, the design system's tools not loaded, made by
+  // hand what the design system had; every design skill now checks its tools, and DS1 checks the build
+  it('the design skills find the design system and its tools as docs/design-system.md says', () => {
+    for (const name of ['design-build', 'design-audit', 'design-reframe', 'design-interview']) {
+      const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
+      assert.match(text, /`\.\.\/\.\.\/docs\/design-system\.md`/, `skills/${name}/SKILL.md does not cite it`);
+      assert.match(text, /never silently|Never fall back to the guides silently/, `skills/${name}/SKILL.md may fall back silently`);
+    }
+    for (const name of ['design-build', 'design-audit']) {
+      const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
+      assert.match(text, /\bDS1\b/, `skills/${name}/SKILL.md does not run DS1`);
+    }
+    const doc = readFileSync(path.join(root, 'docs', 'design-system.md'), 'utf8');
+    assert.match(doc, /^\*\*DS1\*\* · must · code\./m, 'docs/design-system.md does not define DS1 as a must, code check');
+  });
 });
 
 describe('the manifests', () => {
