@@ -1,6 +1,6 @@
 /*
-  The command line of a script: `--name=value` options, `--flag` switches and one number (an
-  issue or a pull request), in any order.
+  The command line of a script: `--name=value` options, `--flag` switches, one number (an issue
+  or a pull request) and words (a branch, a folder, a subject), in any order.
 */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,8 @@ export interface Args {
   number: (name?: string) => number | null;
   /** Every `--name=value`, by name. */
   values: Map<string, string>;
+  /** The bare arguments that are not a number, joined by a space; empty when there are none. */
+  words: string;
 }
 
 export const parseArgs = (argv: string[]): Args => {
@@ -36,6 +38,7 @@ export const parseArgs = (argv: string[]): Args => {
       const n = Number(raw.replace(/^#/, ''));
       return Number.isInteger(n) && n > 0 ? n : null;
     },
+    words: bare.filter((arg) => !/^#?\d+$/.test(arg)).join(' ').trim(),
   };
 };
 

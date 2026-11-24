@@ -1,7 +1,7 @@
 ---
 name: work-map
-description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
-argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch or glossary]"
+description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch, a worktree or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
+argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch, worktree or glossary]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts *)
 ---
 
@@ -21,8 +21,11 @@ Before each step, say in one line what it does.
   (`node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <epic>` lists them).
 - **done**: the work exists. The facts come from its diff: a pull request (`gh pr view <n> --json
   title,body,baseRefName,headRefName,closingIssuesReferences`, then `gh pr diff <n>`), a branch
-  (`git diff --stat <base>...<branch>`, then the diff), or the current folder (its commits since
-  the default branch, and what is uncommitted).
+  (`git diff --stat <base>...<branch>`, then the diff), a worktree (its folder: `git -C <folder>
+  log --oneline origin/<default branch>..HEAD`, then `git -C <folder> diff origin/<default
+  branch>...HEAD` and what is uncommitted, `git -C <folder> diff HEAD`), or the current folder (its
+  commits since the default branch, and what is uncommitted). `/v2:work-status` runs this skill
+  under the report of one piece of work, on the same target.
 - **glossary**: the hierarchy of the project's taxonomy register, not a piece of work: see
   "Glossary mode" below; steps 2 to 4 do not apply to it.
 - Without the word: done when there is work (a diff, a branch ahead), planned otherwise. With

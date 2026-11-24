@@ -12,12 +12,21 @@
         state, branch and labels (the agent groups them by subject), the open pull requests and
         what holds each, the local worktrees and the work in them GitHub has not seen, then the
         next action; the states of a part and of an issue outside an epic: scripts/lib/epic.ts
+    node scripts/status.ts <issue or pull request number | branch | worktree> [--repo=<owner/name>] [--config=<file>]
+        one piece of work: its state, its epic, its branch and how far behind it is, its
+        worktree and the work there GitHub has not seen, its pull requests and what holds each,
+        then the next action (scripts/lib/single.ts says how each target leads to the others);
+        a number with sub-issues is an epic, a branch named after an epic is that epic; words
+        that name no local worktree (its folder name or path) and no branch print the overview,
+        for the agent to narrow to the subject
 
   Where each answer comes from:
 
   - GitHub: scripts/lib/github.ts, through `gh`, as the person running it sees it; the
     repository is `--repo`, else the one gh reads from the remotes of the current folder;
-  - the local worktrees (the overview only): scripts/lib/worktrees.ts, git in the current folder;
+  - the local worktrees (the overview and one piece of work): scripts/lib/worktrees.ts, git in the
+    current folder; how far a piece of work is behind: `git rev-list --count <tip>..origin/<default
+    branch>`, as of the last fetch;
   - how a pull request into the default branch merges: `merge.method` of .claude/v2.json, else
     the merge queue of the default branch when GitHub has one, else a merge commit; the workflows
     that hold it: `merge.blockingWorkflows` (scripts/lib/config.ts).
@@ -32,17 +41,40 @@ import {
   ICONS,
   holds,
   issueItem,
+  itemsOf,
   legend,
   mergeCommand,
   report,
+  rowsOf,
   epicSummary,
   type Landing,
+  type Part,
   type PullRequest,
 } from './lib/epic.ts';
-import { readEpic, readOverview, type Overview } from './lib/github.ts';
+import {
+  hasMergeQueue,
+  readBranch,
+  readDefaultBranch,
+  readEpic,
+  readItem,
+  readOverview,
+  type Overview,
+} from './lib/github.ts';
 import { cell, link, plural, ref, table } from './lib/markdown.ts';
-import { repoOf, rootOf, type Repo } from './lib/run.ts';
-import { onlyHere, uncommitted, worktreesOf } from './lib/worktrees.ts';
+import { git, repoOf, rootOf, type Repo } from './lib/run.ts';
+import {
+  branchOf,
+  branchProgress,
+  issueOfBranch,
+  issueOfFolder,
+  issueOfPull,
+  issueProgress,
+  pullsOf,
+  renderPiece,
+  worktreeOf,
+  type Piece,
+} from './lib/single.ts';
+import { exists, onlyHere, resolveCopy, uncommitted, worktreesOf } from './lib/worktrees.ts';
 
 /** How the default branch takes a pull request. */
 export const landingOf = (config: Config, mergeQueue: boolean): Landing => ({
@@ -174,6 +206,176 @@ export const localWorktrees = (cwd: string): LocalWorktree[] => {
   }));
 };
 
+/** What a target resolves to: an epic, reported as one, or one piece of work. */
+type Resolved = { kind: 'epic'; number: number; branch?: string } | { kind: 'piece'; piece: Piece };
+
+/** The commits of `base` (its branch on origin) a piece of work misses, from git on this disk; null when unknown. */
+const behindOf = (cwd: string, worktree: LocalWorktree | null, branch: string | null, base: string): number | null => {
+  const upstream = `origin/${base}`;
+  if (!exists(cwd, upstream)) return null;
+  const tip = worktree ? git(worktree.dir, ['rev-parse', 'HEAD'], true) : branch ? resolveCopy(cwd, branch).ref : null;
+  if (!tip) return null;
+  return Number(git(cwd, ['rev-list', '--count', `${tip}..${upstream}`], true) ?? 0);
+};
+
+/** One piece of work from its issue (scripts/lib/single.ts says how the rest follows from it). */
+const fromIssue = (
+  repo: Repo,
+  cwd: string,
+  local: LocalWorktree[],
+  found: { issue: Part; parent: { number: number; state: 'OPEN' | 'CLOSED' } | null },
+  defaultBranch: string,
+  given: { target: Piece['target']; branch?: string; worktree?: LocalWorktree; pulls?: PullRequest[] },
+): Piece => {
+  const { issue, parent } = found;
+  let pulls = pullsOf(issue, [...issue.mentions, ...(given.pulls ?? [])]);
+  let progress = issueProgress(issue, pulls);
+  let branch = given.branch ?? branchOf(issue, pulls);
+  let epic: Piece['epic'] = null;
+  if (parent?.state === 'OPEN') {
+    // a part: its state and its pull requests as the report of its epic has them
+    const whole = readEpic(repo, parent.number).epic;
+    const rows = rowsOf(whole);
+    const item = itemsOf(whole, rows).find((one) => one.number === issue.number);
+    const ofPart = rows
+      .filter((row) => row.pr && !row.landing && row.parts.some((part) => part.number === issue.number))
+      .map((row) => row.pr as PullRequest);
+    pulls = [...new Map([...pulls, ...ofPart].map((pr) => [pr.number, pr])).values()].sort((a, b) =>
+      a.createdAt.localeCompare(b.createdAt),
+    );
+    if (item) progress = item.progress;
+    branch = given.branch ?? item?.branch ?? branch;
+    epic = { number: whole.number, title: whole.title, url: whole.url, branch: whole.branch };
+  }
+  const worktree = given.worktree ?? worktreeOf(local, branch, issue.number);
+  const base = epic?.branch ?? defaultBranch;
+  return {
+    target: given.target,
+    defaultBranch,
+    issue: { number: issue.number, title: issue.title, url: issue.url, state: issue.state },
+    epic,
+    progress,
+    branch,
+    worktree,
+    base,
+    behind: behindOf(cwd, worktree, branch, base),
+    pulls,
+  };
+};
+
+/** A branch: its issue when it has one, else the branch alone; null when no such branch exists. */
+const fromBranch = (
+  repo: Repo,
+  cwd: string,
+  local: LocalWorktree[],
+  branch: string,
+  given: { target: Piece['target']; worktree?: LocalWorktree },
+): Resolved | null => {
+  const read = readBranch(repo, branch);
+  const onDisk = exists(cwd, `refs/heads/${branch}`) || exists(cwd, `refs/remotes/origin/${branch}`);
+  if (!read.exists && !onDisk && !given.worktree) return null;
+  let epic: Piece['epic'] = null;
+  for (const n of [issueOfBranch(branch), ...read.pulls.map(issueOfPull)]) {
+    if (!n) continue;
+    const { item, defaultBranch } = readItem(repo, n);
+    if (item.kind === 'epic') {
+      // the branch of the epic is the epic; another branch named after it is the epic's own work
+      if (item.branches.includes(branch)) return { kind: 'epic', number: n, branch };
+      epic ??= {
+        number: item.number,
+        title: item.title,
+        url: item.url,
+        branch: item.branches.length === 1 ? item.branches[0] : null,
+      };
+      continue;
+    }
+    if (item.kind === 'issue')
+      return {
+        kind: 'piece',
+        piece: fromIssue(repo, cwd, local, item, defaultBranch, { ...given, branch, pulls: read.pulls }),
+      };
+  }
+  const worktree = given.worktree ?? worktreeOf(local, branch, null);
+  const base = epic?.branch ?? read.defaultBranch;
+  return {
+    kind: 'piece',
+    piece: {
+      target: given.target,
+      defaultBranch: read.defaultBranch,
+      issue: null,
+      epic,
+      progress: branchProgress(read.pulls),
+      branch,
+      worktree,
+      base,
+      behind: behindOf(cwd, worktree, branch, base),
+      pulls: read.pulls,
+    },
+  };
+};
+
+/** A worktree: as its branch; a detached one through the issue its folder is named after. */
+const fromWorktree = (repo: Repo, cwd: string, local: LocalWorktree[], w: LocalWorktree): Resolved => {
+  const target: Piece['target'] = { kind: 'worktree', name: path.basename(w.dir) };
+  if (w.branch) return fromBranch(repo, cwd, local, w.branch, { target, worktree: w }) as Resolved;
+  const n = issueOfFolder(w.dir);
+  const read = n ? readItem(repo, n) : null;
+  if (read?.item.kind === 'issue')
+    return { kind: 'piece', piece: fromIssue(repo, cwd, local, read.item, read.defaultBranch, { target, worktree: w }) };
+  const defaultBranch = read?.defaultBranch ?? readDefaultBranch(repo);
+  return {
+    kind: 'piece',
+    piece: {
+      target,
+      defaultBranch,
+      issue: null,
+      epic: null,
+      progress: 'todo',
+      branch: null,
+      worktree: w,
+      base: defaultBranch,
+      behind: behindOf(cwd, w, null, defaultBranch),
+      pulls: [],
+    },
+  };
+};
+
+/** A number: an epic, an issue or a pull request. */
+const fromNumber = (repo: Repo, cwd: string, local: LocalWorktree[], n: number): Resolved => {
+  const { item, defaultBranch } = readItem(repo, n);
+  if (item.kind === 'epic') return { kind: 'epic', number: n };
+  if (item.kind === 'issue')
+    return { kind: 'piece', piece: fromIssue(repo, cwd, local, item, defaultBranch, { target: { kind: 'issue', name: String(n) } }) };
+  if (item.kind === 'pull') {
+    const target: Piece['target'] = { kind: 'pull', name: String(n) };
+    const issue = issueOfPull(item.pr);
+    const read = issue ? readItem(repo, issue) : null;
+    if (read?.item.kind === 'issue')
+      return {
+        kind: 'piece',
+        piece: fromIssue(repo, cwd, local, read.item, defaultBranch, { target, branch: item.pr.headRefName, pulls: [item.pr] }),
+      };
+    const branch = fromBranch(repo, cwd, local, item.pr.headRefName, { target });
+    if (branch) return branch;
+    return {
+      kind: 'piece',
+      piece: {
+        target,
+        defaultBranch,
+        issue: null,
+        epic: null,
+        progress: branchProgress([item.pr]),
+        branch: item.pr.headRefName,
+        worktree: null,
+        base: item.pr.baseRefName,
+        behind: null,
+        pulls: [item.pr],
+      },
+    };
+  }
+  throw new Error(`#${n} is neither an issue nor a pull request of ${repo.owner}/${repo.name}`);
+};
+
 const main = () => {
   const args = parseArgs(process.argv.slice(2));
   const cwd = process.cwd();
@@ -181,14 +383,30 @@ const main = () => {
   const repo = repoOf(args.value('repo'), cwd);
   const number = args.number('epic');
   const notice = configNotice(config);
-  if (number) {
-    const { epic, mergeQueue } = readEpic(repo, number, args.value('branch'));
-    console.info([...notice, report(epic, landingOf(config.config, mergeQueue))].join('\n'));
-    return;
-  }
-  const overview = readOverview(repo);
   // the worktrees only when the folder is a checkout of that repository
   const local = args.value('repo') && !sameRepo(cwd, repo) ? [] : localWorktrees(cwd);
+  const epicReport = (n: number, branch?: string) => {
+    const { epic, mergeQueue } = readEpic(repo, n, args.value('branch') ?? branch);
+    console.info([...notice, report(epic, landingOf(config.config, mergeQueue))].join('\n'));
+  };
+  const show = (resolved: Resolved) => {
+    if (resolved.kind === 'epic') return epicReport(resolved.number, resolved.branch);
+    const landing = landingOf(config.config, hasMergeQueue(repo, resolved.piece.defaultBranch));
+    console.info([...notice, renderPiece(resolved.piece, landing)].join('\n'));
+  };
+  if (number) return show(fromNumber(repo, cwd, local, number));
+  const words = args.words;
+  if (words) {
+    const w = local.find((one) => path.basename(one.dir) === words || one.dir === path.resolve(cwd, words));
+    const resolved = w
+      ? fromWorktree(repo, cwd, local, w)
+      : /\s/.test(words)
+        ? null
+        : fromBranch(repo, cwd, local, words, { target: { kind: 'branch', name: words } });
+    if (resolved) return show(resolved);
+    notice.push(`No worktree or branch is named \`${words}\`: the overview follows, for the subject.`, '');
+  }
+  const overview = readOverview(repo);
   console.info(
     [...notice, renderOverview(repo, overview, landingOf(config.config, overview.mergeQueue), local)].join('\n'),
   );
