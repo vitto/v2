@@ -8,6 +8,11 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(nod
 
 Target: $ARGUMENTS (a page, a component, a folder or the current diff). When it is empty, ask.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 ## 1. The mode
 
 - **Screen**: a page or a flow people use. Run the checks as written.

@@ -7,6 +7,11 @@ description: Before building a new view, page, section, tool or editor, intervie
 
 The screens come from the work of the person, not from the software underneath. Before building, find out that work and write it down as an object model, in the format of `../../docs/object-model.md` (from this skill's folder). Arguments, if any: $ARGUMENTS.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 The arguments may name the area and the language of the interview (`italiano`, `english`, or any other). Without a language, ask in the one the person writes in. The questions of `questions.md` are written in English: ask them in the language of the interview, in natural words, never word by word.
 
 ## When

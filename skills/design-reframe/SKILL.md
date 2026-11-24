@@ -7,6 +7,11 @@ description: When a request adds something to an existing flow or view - a new e
 
 A flow drifts when each request is bolted onto the screen it lands on: after a few, nobody can tell where they are or what they can reach. So a request that adds to a flow changes the object model first, and the views are patched or rebuilt from it. Request: $ARGUMENTS.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 ## When
 
 - The request adds or changes an entity, a field, a state, an action or a step; or the person says they no longer follow a view.

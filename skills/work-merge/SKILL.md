@@ -10,6 +10,11 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *)
 The pull request: $ARGUMENTS. The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`, rule 1 above
 all: every merge is the person's decision.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 Before each step, say in one line what it does.
 
 ## 1. The approval

@@ -13,6 +13,11 @@ subject, section 4). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1
 person decides every merge) and rule 2 (the parts land in the branch of the epic, the epic in the
 default branch). The script says in its header where each answer comes from.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 Before each step, say in one line what it does. Every answer is tables, never a retelling in
 prose: show what the script prints, in its order, without dropping rows, and add one line at most
 on what the person has to decide.

@@ -13,6 +13,11 @@ answer comes from. How this project installs, builds, serves and maps its pages 
 `.claude/v2.json` (the README of the plugin); without it, say what is missing and ask for the
 commands instead of guessing them.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 Before each step, say in one line what it does. Show what the scripts print as tables, as they are.
 
 ## 1. Where the work is

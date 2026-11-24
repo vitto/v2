@@ -10,6 +10,11 @@ What to route, and what the person fixed: $ARGUMENTS. Nothing given, or `auto`: 
 the effort are chosen here. The point is to spend less: the cheaper model does what it does well,
 the stronger one only what needs it.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 ## 0. Called in the middle of a conversation
 
 When the person calls the skill themselves (`/v2:agent-route`, or "route" in words) and the
