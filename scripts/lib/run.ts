@@ -55,6 +55,32 @@ export const graphql = <T>(
   return (JSON.parse(gh(args, cwd)) as { data: T }).data;
 };
 
+/**
+ * A GraphQL query whose fields may fail one by one: the data GitHub returns, a failed field null,
+ * instead of throwing. `gh api graphql` exits non-zero when any field fails and still prints the
+ * data (seen 2026-11-24 with `compare` on a missing branch: NOT_FOUND on that field only). Throws
+ * when no data came back at all.
+ */
+export const graphqlPartial = <T>(
+  query: string,
+  variables: Record<string, string | number>,
+  cwd?: string,
+): T => {
+  try {
+    return graphql<T>(query, variables, cwd);
+  } catch (error) {
+    const out = (error as { stdout?: string }).stdout;
+    let data: T | undefined;
+    try {
+      data = out ? (JSON.parse(out) as { data?: T }).data : undefined;
+    } catch {
+      data = undefined;
+    }
+    if (data) return data;
+    throw error;
+  }
+};
+
 /** The repository: `--repo=owner/name` when given, otherwise the one gh reads from the folder. */
 export const repoOf = (option: string | undefined, cwd?: string): Repo => {
   if (option) {

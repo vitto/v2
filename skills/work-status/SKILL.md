@@ -1,13 +1,14 @@
 ---
 name: work-status
-description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with what matters, an icon for its state and its branch, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository - open epics, open pull requests and what holds each, local worktrees with work GitHub has not seen. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
-argument-hint: "[epic number]"
+description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with what matters, an icon for its state and its branch, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
+argument-hint: "[epic number or subject]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *)
 ---
 
 # Where the work stands
 
-The epic, if given: $ARGUMENTS. The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
+What the person gave, if anything: $ARGUMENTS (a number is an epic, words are a subject,
+section 4). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
 person decides every merge) and rule 2 (the parts land in the branch of the epic, the epic in the
 default branch). The script says in its header where each answer comes from.
 
@@ -23,11 +24,12 @@ In the repository the person is working on:
 node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <epic number>
 ```
 
-Without a number it shows the repository: its open epics, its open pull requests, its local
-worktrees. When the person asked about an epic without naming it and the table lists more than
-one, ask which; when their words name a subject several open epics share ("the epic of the
-studio"), show each of them instead. Other options: `--branch=<branch of the epic>` when the
-table says the branch is unknown, `--repo=<owner/name>` for a repository other than the folder's.
+Without a number it shows the repository: each open epic as a summary, the open issues outside
+an epic, the open pull requests, the local worktrees (section 3). When the person asked about an
+epic without naming it and the overview lists more than one, ask which; when their words name a
+subject instead ("the epic of the studio", "lavorazioni di studio"), section 4. Other
+options: `--branch=<branch of the epic>` when the table says the branch is unknown,
+`--repo=<owner/name>` for a repository other than the folder's.
 
 ## 2. What you write in the report of an epic
 
@@ -49,11 +51,65 @@ conversation. A number in the first column is a link whose text is the bare numb
 without `#` (the Claude desktop app shows `[#12](...)` to an issue as `owner/name#12`). With more
 than one epic, one block each, the legend once above the first.
 
-## 3. What it means
+## 3. What you write in the overview of the repository
+
+Without a number the script prints a summary, the form the maintainer chose on 2026-11-24: the
+legend once, a block per open epic, then the open issues outside an epic in one table, then the
+open pull requests, the local worktrees and the next action. The work is grouped as epics are,
+and what belongs to no epic is grouped too, "like an epic of various things".
+
+- **Each epic**: the same three things as in its report (section 2), the name, what it is for
+  (`gh issue view <epic> --json body`, one call per epic) and what matters in each row. The
+  block lists only what is not merged yet; the merged parts are in its count, which stays as
+  printed.
+- **The open issues outside an epic**: split the table into groups by subject, each written as
+  an epic of its own:
+  - a heading as the one of an epic: `###`, a short name of the subject the issues share (a
+    component, an area, a kind of work, never their state), the dot, and how many issues;
+  - under it two to four sentences: what the issues have in common, what is moving (a pull
+    request open), and what would close the group;
+  - the table `# | What matters | State | Branch` with its issues, in the order the script
+    printed them, without the column `Labels`: it served the grouping;
+  - every issue in exactly one group, every group with two issues at least; an issue alone in its
+    subject goes to a last group of various things, whose sentences say what is in it;
+  - the groups with a pull request open first, then the larger ones; the various things last;
+  - the subject from the title and the labels (`prg-*`, `bug`); the body only when they are not
+    enough. An issue titled `epic:` without sub-issues is an issue like the others: say in the
+    sentences of its group that it has no parts yet.
+- **The open pull requests**: what matters in each, as for a part.
+
+Everything else stays as printed: the legend, the counts, the numbers, the icons, the branches,
+the tables of the pull requests and of the worktrees, the next action. Headers, legend, the names
+and the sentences in the language of the conversation.
+
+## 4. A subject instead of a number
+
+When the person gives words instead of a number ("lavorazioni di studio", "the work on the
+studio"), they name a subject: run the script without a number and show the overview of section
+3 for that subject only, as the maintainer asked on 2026-11-24.
+
+- **The epics first**: each open epic related to the subject, as a block of section 3, in the
+  order the script printed them. An epic is related when the subject is what its title, its body
+  or the titles of its parts are about.
+- **Then the issues outside an epic** related to it, grouped by subject as in section 3; when they
+  are few, one group.
+- **The pull requests, the worktrees and the next action**: only the rows of the work shown (a pull
+  request of a part, of an issue or into the branch of an epic shown; a worktree on one of their
+  branches).
+- The match is by meaning, not by spelling: the subject in the language of the conversation finds
+  titles in another ("studio" finds `theme-studio`, "campi" finds the fields). Under the heading
+  of the overview, one line names the subject and how many epics and issues it found. When nothing
+  is related, say so and offer the whole overview.
+
+## 5. What it means
 
 - The icon of a part: merged, a pull request of it merged into the branch of the epic or the part
   closed; pull request open; to do, anything else, a pull request merged into another branch
   while the part stays open included (an earlier round left the rest of it to do).
+- The icon of an issue outside an epic: pull request open, when an open pull request belongs to
+  it as to a part (it closes the issue with a keyword, or comes from a branch linked to it or
+  named `<issue>-`); to do otherwise. It is never shown merged: merging into the default branch
+  closes it (rule 3).
 - "ready" means the person can decide, never that you may merge: a merge waits for the person's ok
   naming the pull request (`/v2:work-merge`, rule 1).
 - A worktree holding work GitHub has not seen (uncommitted files, commits no remote branch holds)

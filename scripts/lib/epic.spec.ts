@@ -4,7 +4,9 @@ import {
   belongsTo,
   blockingText,
   closes,
+  epicSummary,
   holds,
+  issueItem,
   itemsOf,
   mergeCommand,
   nextActions,
@@ -350,5 +352,70 @@ describe('report', () => {
     assert.match(text, /Branch: `10-epic`, not on GitHub\./);
     assert.match(text, /The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic\./);
     assert.doesNotMatch(text, /What matters/);
+  });
+});
+
+describe('epicSummary', () => {
+  const merged = (n: number, head: string) =>
+    pr(n, { headRefName: head, state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' });
+
+  it('counts the parts per state and lists only what is not merged, the epic own work included', () => {
+    const text = epicSummary(
+      epic({
+        distance: { ahead: 3, behind: 5 },
+        parts: [
+          part(20, { mentions: [merged(2, '20-a')] }),
+          part(21, { state: 'CLOSED' }),
+          part(22, { mentions: [pr(4, { headRefName: '22-c' })] }),
+          part(23, { branches: ['23-d'] }),
+        ],
+        intoBranch: [pr(7, { headRefName: 'tidy', title: 'tidy up' })],
+      }),
+    );
+    assert.match(text, /^### \[10\]\(https:\/\/github\.com\/o\/r\/issues\/10\) \u00b7 epic: the work$/m);
+    assert.match(text, /^Branch: `10-epic`, 5 commits behind `main`\.$/m);
+    assert.match(text, /^Parts: \u2705 2 \u00b7 \u{1f500} 1 \u00b7 \u2b1c 1$/mu, 'the parts only, not the own work');
+    assert.match(text, /^\| # \| What matters \| State \| Branch \|$/m);
+    assert.match(text, /^\| \[22\]\(.+\/issues\/22\) \| part 22 \| \u{1f500} \| `22-c` \|$/mu);
+    assert.match(text, /^\| \[7\]\(.+\/pull\/7\) \| work of the epic itself: tidy up \| \u{1f500} \| `tidy` \|$/mu);
+    assert.match(text, /^\| \[23\]\(.+\/issues\/23\) \| part 23 \| \u2b1c \| `23-d` \|$/mu);
+    assert.doesNotMatch(text, /\[20\]|\[21\]/, 'the merged parts are in the count only');
+    assert.doesNotMatch(text, /merged \u00b7/u, 'the legend is the overview\'s, once');
+    assert.doesNotMatch(text, /Next action|Open pull requests/);
+  });
+
+  it('says when every part is merged, and when the epic has no sub-issues', () => {
+    const done = epicSummary(epic({ parts: [part(20, { mentions: [merged(2, '20-a')] }), part(21, { state: 'CLOSED' })] }));
+    assert.match(done, /^Parts: \u2705 2 \u00b7 \u{1f500} 0 \u00b7 \u2b1c 0$/mu);
+    assert.match(done, /^Every part is merged into the branch of the epic\.$/m);
+    assert.doesNotMatch(done, /What matters/);
+    const empty = epicSummary(epic({ branch: null, linkedBranches: [] }));
+    assert.match(empty, /Branch: unknown, none is linked to the epic issue\./);
+    assert.match(empty, /The epic has no sub-issues/);
+    assert.doesNotMatch(empty, /Parts:/);
+  });
+});
+
+describe('issueItem', () => {
+  it('is open when an open pull request belongs to it, whatever its base, with the branch of that pull request', () => {
+    const issue = part(30, { branches: ['30-linked'] });
+    assert.deepEqual(
+      issueItem(issue, [pr(5, { headRefName: 'fix-x', baseRefName: 'main', body: 'Closes #30' })]),
+      { number: 30, url: `${URL}/issues/30`, title: 'part 30', progress: 'open', branch: 'fix-x' },
+    );
+    assert.equal(issueItem(issue, [pr(6, { headRefName: '30-b', baseRefName: '12-epic' })]).progress, 'open');
+    assert.equal(issueItem(issue, [pr(7, { headRefName: '30-linked' })]).branch, '30-linked');
+  });
+
+  it('is to do otherwise, with its linked branch: a merged pull request or a mere mention does not count', () => {
+    const issue = part(30, { branches: ['30-linked'] });
+    const item = issueItem(issue, [
+      pr(5, { headRefName: '30-a', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' }),
+      pr(6, { headRefName: 'other', body: 'Refs #30' }),
+      pr(7, { headRefName: '300-b' }),
+    ]);
+    assert.equal(item.progress, 'todo');
+    assert.equal(item.branch, '30-linked');
+    assert.equal(issueItem(part(31), []).branch, null);
   });
 });

@@ -13,14 +13,18 @@
     the GraphQL API; the distance of the branch of the epic from the default branch: the REST
     compare API; the files of the open pull requests (first 100 each): the GraphQL API;
   - the open epics: the advanced issue search (`ISSUE_ADVANCED`; the plain one ignores the
-    qualifier) for `has:sub-issue`, newest first, with `subIssuesSummary`;
+    qualifier) for `has:sub-issue`, newest first (first 50), then each read with the fields of
+    one epic, ten per query (`readEpics`), the distance through `Ref.compare` of the GraphQL API,
+    the files of the pull requests not read;
+  - the open issues: the GraphQL API, newest first (first 100), with their parent, the count of
+    their sub-issues, their labels and their linked branches;
   - the open pull requests of the repository: the GraphQL API, oldest first (first 100);
   - the runs of a workflow that are not finished: `gh run list` (the last 20 runs);
   - checks: the status rollup of the last commit of a pull request (none reported is not green).
 */
 import type { BlockingWorkflow } from './config.ts';
 import type { Checks, Epic, Part, PullRequest } from './epic.ts';
-import { gh, graphql, type Repo } from './run.ts';
+import { gh, graphql, graphqlPartial, type Repo } from './run.ts';
 
 export const PR_FIELDS = `fragment pr on PullRequest {
   number title url state isDraft baseRefName headRefName createdAt mergedAt body mergeable isInMergeQueue
@@ -97,65 +101,42 @@ export const readFiles = (repo: Repo, prs: PullRequest[]): void => {
   }
 };
 
-/** Reads an epic, and whether its default branch has a merge queue. */
-export const readEpic = (
-  repo: Repo,
-  number: number,
-  branchOption?: string,
-): { epic: Epic; mergeQueue: boolean } => {
-  const vars = { owner: repo.owner, name: repo.name };
-  type Issue = {
-    number: number;
-    title: string;
-    url: string;
-    state: 'OPEN' | 'CLOSED';
-    linkedBranches: Branches;
-  };
-  const first = graphql<{
-    repository: {
-      defaultBranchRef: { name: string };
-      issue:
-        | (Issue & {
-            subIssues: {
-              nodes: (Issue & {
-                blockedBy: { nodes: { number: number; state: 'OPEN' | 'CLOSED' }[] };
-                timelineItems: { nodes: { source?: unknown }[] };
-              })[];
-            };
-          })
-        | null;
-    };
-  }>(
-    `
-      ${PR_FIELDS}
-      query ($owner: String!, $name: String!, $n: Int!) {
-        repository(owner: $owner, name: $name) {
-          defaultBranchRef { name }
-          issue(number: $n) {
-            number title url state
-            linkedBranches(first: 10) { nodes { ref { name } } }
-            subIssues(first: 50) {
-              nodes {
-                number title url state
-                linkedBranches(first: 10) { nodes { ref { name } } }
-                blockedBy(first: 20) { nodes { number state } }
-                timelineItems(first: 100, itemTypes: [CROSS_REFERENCED_EVENT]) {
-                  nodes { ... on CrossReferencedEvent { source { ...pr } } }
-                }
-              }
-            }
-          }
-        }
+/** The fields of an epic issue its report reads: its linked branches and its parts (first 50); needs PR_FIELDS. */
+export const EPIC_FIELDS = `fragment epic on Issue {
+  number title url state
+  linkedBranches(first: 10) { nodes { ref { name } } }
+  subIssues(first: 50) {
+    nodes {
+      number title url state
+      linkedBranches(first: 10) { nodes { ref { name } } }
+      blockedBy(first: 20) { nodes { number state } }
+      timelineItems(first: 100, itemTypes: [CROSS_REFERENCED_EVENT]) {
+        nodes { ... on CrossReferencedEvent { source { ...pr } } }
       }
-    `,
-    { ...vars, n: number },
-  );
-  const issue = first.repository.issue;
-  if (!issue) throw new Error(`#${number} is not an issue of ${repo.owner}/${repo.name}`);
-  const defaultBranch = first.repository.defaultBranchRef.name;
-  const linkedBranches = names(issue.linkedBranches);
-  const branch = branchOption ?? (linkedBranches.length === 1 ? linkedBranches[0] : null);
-  const parts: Part[] = issue.subIssues.nodes.map((sub) => ({
+    }
+  }
+}`;
+
+type RawIssue = {
+  number: number;
+  title: string;
+  url: string;
+  state: 'OPEN' | 'CLOSED';
+  linkedBranches: Branches;
+};
+
+type RawEpic = RawIssue & {
+  subIssues: {
+    nodes: (RawIssue & {
+      blockedBy: { nodes: { number: number; state: 'OPEN' | 'CLOSED' }[] };
+      timelineItems: { nodes: { source?: unknown }[] };
+    })[];
+  };
+};
+
+/** The parts of an epic, from the fields of EPIC_FIELDS. */
+const partsOf = (issue: RawEpic): Part[] =>
+  issue.subIssues.nodes.map((sub) => ({
     number: sub.number,
     title: sub.title,
     url: sub.url,
@@ -167,6 +148,35 @@ export const readEpic = (
       .filter(isPullRequest)
       .map(toPullRequest),
   }));
+
+/** Reads an epic, and whether its default branch has a merge queue. */
+export const readEpic = (
+  repo: Repo,
+  number: number,
+  branchOption?: string,
+): { epic: Epic; mergeQueue: boolean } => {
+  const vars = { owner: repo.owner, name: repo.name };
+  const first = graphql<{
+    repository: { defaultBranchRef: { name: string }; issue: RawEpic | null };
+  }>(
+    `
+      ${PR_FIELDS}
+      ${EPIC_FIELDS}
+      query ($owner: String!, $name: String!, $n: Int!) {
+        repository(owner: $owner, name: $name) {
+          defaultBranchRef { name }
+          issue(number: $n) { ...epic }
+        }
+      }
+    `,
+    { ...vars, n: number },
+  );
+  const issue = first.repository.issue;
+  if (!issue) throw new Error(`#${number} is not an issue of ${repo.owner}/${repo.name}`);
+  const defaultBranch = first.repository.defaultBranchRef.name;
+  const linkedBranches = names(issue.linkedBranches);
+  const branch = branchOption ?? (linkedBranches.length === 1 ? linkedBranches[0] : null);
+  const parts = partsOf(issue);
 
   let intoBranch: PullRequest[] = [];
   let landings: PullRequest[] = [];
@@ -229,34 +239,140 @@ export const readEpic = (
   };
 };
 
-export interface EpicSummary {
-  number: number;
-  title: string;
-  url: string;
-  parts: { total: number; completed: number };
-  branches: string[];
+/**
+ * How many epics one query of `readEpics` reads. An epic costs about 12,000 nodes (50 parts with
+ * 100 cross references each, 110 pull requests of its branch), so ten stay far below the 500,000
+ * nodes GitHub allows a GraphQL query ("Rate limits and query limits for the GraphQL API").
+ */
+const EPICS_PER_QUERY = 10;
+
+/**
+ * The open epics in full, with the fields `readEpic` reads for one: its parts, the pull requests
+ * into its branch and from it into the default branch, how far its branch is from the default
+ * branch (`Ref.compare`). The branch of an epic is its one linked branch, as in `readEpic`. The
+ * files of the pull requests are not read: the overview shows no shared-files warning.
+ */
+export const readEpics = (
+  repo: Repo,
+  epics: { number: number; branches: string[] }[],
+  defaultBranch: string,
+): Epic[] => {
+  const out: Epic[] = [];
+  for (let i = 0; i < epics.length; i += EPICS_PER_QUERY) {
+    const chunk = epics
+      .slice(i, i + EPICS_PER_QUERY)
+      .map((epic) => ({ ...epic, branch: epic.branches.length === 1 ? epic.branches[0] : null }));
+    const branched = chunk.filter((epic) => epic.branch);
+    const declared = branched.length
+      ? `, $base: String!, $qualified: String!${branched.map((e) => `, $b${e.number}: String!`).join('')}`
+      : '';
+    const fields = chunk.map(({ number, branch }) =>
+      [
+        `e${number}: issue(number: ${number}) { ...epic }`,
+        ...(branch
+          ? [
+              `i${number}: pullRequests(baseRefName: $b${number}, first: 100, states: [OPEN, MERGED]) { nodes { ...pr } }`,
+              `l${number}: pullRequests(headRefName: $b${number}, baseRefName: $base, first: 10, states: [OPEN, MERGED]) { nodes { ...pr } }`,
+              `d${number}: ref(qualifiedName: $qualified) { compare(headRef: $b${number}) { aheadBy behindBy } }`,
+            ]
+          : []),
+      ].join('\n'),
+    );
+    const vars: Record<string, string> = { owner: repo.owner, name: repo.name };
+    if (branched.length) {
+      vars.base = defaultBranch;
+      vars.qualified = `refs/heads/${defaultBranch}`;
+      for (const epic of branched) vars[`b${epic.number}`] = epic.branch as string;
+    }
+    // A branch deleted between the two reads fails its own fields only (graphqlPartial).
+    const data = graphqlPartial<{ repository: Record<string, unknown> }>(
+      `
+        ${PR_FIELDS}
+        ${EPIC_FIELDS}
+        query ($owner: String!, $name: String!${declared}) {
+          repository(owner: $owner, name: $name) { ${fields.join('\n')} }
+        }
+      `,
+      vars,
+    ).repository;
+    for (const { number, branch } of chunk) {
+      const issue = data[`e${number}`] as RawEpic | null;
+      if (!issue) continue;
+      const prs = (alias: string) =>
+        ((data[alias] as { nodes: RawPullRequest[] } | null)?.nodes ?? []).map(toPullRequest);
+      const compare = (data[`d${number}`] as { compare: { aheadBy: number; behindBy: number } | null } | null)
+        ?.compare;
+      out.push({
+        number: issue.number,
+        title: issue.title,
+        url: issue.url,
+        state: issue.state,
+        defaultBranch,
+        branch,
+        linkedBranches: names(issue.linkedBranches),
+        parts: partsOf(issue),
+        intoBranch: branch ? prs(`i${number}`) : [],
+        landings: branch ? prs(`l${number}`) : [],
+        distance: compare ? { ahead: compare.aheadBy, behind: compare.behindBy } : null,
+      });
+    }
+  }
+  return out;
+};
+
+/** An open issue outside the open epics: a part with its labels. */
+export interface OpenIssue extends Part {
+  labels: string[];
 }
+
+export interface RawOpenIssue extends RawIssue {
+  parent: { number: number } | null;
+  subIssuesSummary: { total: number };
+  labels: { nodes: { name: string }[] };
+}
+
+/**
+ * The open issues outside the open epics: neither an epic (an issue with sub-issues) nor a part
+ * of one of `epics`. A part of a closed epic, or of an epic the search did not return, is outside.
+ */
+export const outsideEpics = (issues: RawOpenIssue[], epics: Set<number>): OpenIssue[] =>
+  issues
+    .filter((issue) => issue.subIssuesSummary.total === 0 && !(issue.parent && epics.has(issue.parent.number)))
+    .map((issue) => ({
+      number: issue.number,
+      title: issue.title,
+      url: issue.url,
+      state: issue.state,
+      branches: names(issue.linkedBranches),
+      blockedBy: [],
+      mentions: [],
+      labels: issue.labels.nodes.map((label) => label.name),
+    }));
 
 export interface Overview {
   defaultBranch: string;
   mergeQueue: boolean;
-  epics: EpicSummary[];
+  /** The open epics, newest first, read as the report of one epic reads them. */
+  epics: Epic[];
+  /** The open issues outside the open epics, newest first. */
+  issues: OpenIssue[];
+  /** The open issues past the first 100, not read. */
+  unread: number;
   pulls: PullRequest[];
 }
 
-/** The open epics and the open pull requests of a repository. */
+/** The open epics, the open issues outside them and the open pull requests of a repository. */
 export const readOverview = (repo: Repo): Overview => {
   const data = graphql<{
     repository: {
       defaultBranchRef: { name: string };
       pullRequests: { nodes: RawPullRequest[] };
+      issues: { totalCount: number; nodes: RawOpenIssue[] };
     };
     search: {
       nodes: ({
         number: number;
-        title: string;
-        url: string;
-        subIssuesSummary: { total: number; completed: number };
+        subIssuesSummary: { total: number };
         linkedBranches: Branches;
       } | Record<string, never>)[];
     };
@@ -269,12 +385,22 @@ export const readOverview = (repo: Repo): Overview => {
           pullRequests(states: [OPEN], first: 100, orderBy: { field: CREATED_AT, direction: ASC }) {
             nodes { ...pr }
           }
+          issues(states: [OPEN], first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+            totalCount
+            nodes {
+              number title url state
+              parent { number }
+              subIssuesSummary { total }
+              labels(first: 10) { nodes { name } }
+              linkedBranches(first: 10) { nodes { ref { name } } }
+            }
+          }
         }
         search(query: $q, type: ISSUE_ADVANCED, first: 50) {
           nodes {
             ... on Issue {
-              number title url
-              subIssuesSummary { total completed }
+              number
+              subIssuesSummary { total }
               linkedBranches(first: 10) { nodes { ref { name } } }
             }
           }
@@ -296,20 +422,18 @@ export const readOverview = (repo: Repo): Overview => {
   );
   const pulls = data.repository.pullRequests.nodes.map(toPullRequest);
   readFiles(repo, pulls);
+  const found = data.search.nodes
+    .filter((node): node is Exclude<typeof node, Record<string, never>> => 'number' in node)
+    .filter((node) => node.subIssuesSummary.total > 0)
+    .sort((a, b) => b.number - a.number)
+    .map((node) => ({ number: node.number, branches: names(node.linkedBranches) }));
+  const { issues } = data.repository;
   return {
     defaultBranch,
     mergeQueue: !!queue.repository.mergeQueue,
-    epics: data.search.nodes
-      .filter((node): node is Exclude<typeof node, Record<string, never>> => 'number' in node)
-      .filter((node) => node.subIssuesSummary.total > 0)
-      .sort((a, b) => b.number - a.number)
-      .map((node) => ({
-        number: node.number,
-        title: node.title,
-        url: node.url,
-        parts: node.subIssuesSummary,
-        branches: names(node.linkedBranches),
-      })),
+    epics: readEpics(repo, found, defaultBranch),
+    issues: outsideEpics(issues.nodes, new Set(found.map((epic) => epic.number))),
+    unread: Math.max(0, issues.totalCount - issues.nodes.length),
     pulls,
   };
 };

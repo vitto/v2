@@ -46,6 +46,14 @@
   - pull request open: a pull request of the part is open, whatever its base;
   - to do: anything else, a pull request merged into another branch included while the part is
     open (an earlier round of the work, which left the rest of the part to do).
+
+  The overview of the repository (scripts/status.ts without a number) shows each open epic as a
+  summary, as the person chose on 2026-11-24: the heading, the branch, the count of its parts per
+  state and a line only for what is not merged yet (`epicSummary`), through the same `itemsOf`. An
+  open issue outside an epic has two states only (`issueItem`): pull request open, when an open
+  pull request belongs to it by the criterion of a part (`belongsTo`); to do otherwise. It is
+  never shown merged: a pull request that closes it with a keyword closes it when it merges into
+  the default branch (GOVERNANCE.md rule 3), and its merged pull requests are not read.
 */
 import type { BlockingWorkflow, MergeMethod } from './config.ts';
 import { cell, link, ref } from './markdown.ts';
@@ -437,9 +445,8 @@ export const itemsOf = (epic: Epic, rows: Row[]): Item[] => {
   return items;
 };
 
-/** The report: the epic, its branch, a line per part, the open pull requests and the next action, in Markdown. */
-export const report = (epic: Epic, landingWay?: Landing): string => {
-  const rows = rowsOf(epic);
+/** The heading of an epic and the line of its branch: how far behind it is, only when it is. */
+const head = (epic: Epic): string[] => {
   const lines: string[] = [`### ${ref(epic.number, epic.url)} ${DOT} ${cell(epic.title)}`, ''];
   if (epic.state === 'CLOSED') lines.push('The epic issue is closed.', '');
   if (!epic.branch)
@@ -454,22 +461,66 @@ export const report = (epic: Epic, landingWay?: Landing): string => {
       `Branch: \`${epic.branch}\`, ${epic.distance.behind} commits behind \`${epic.defaultBranch}\`.`,
     );
   else lines.push(`Branch: \`${epic.branch}\`.`);
+  return lines;
+};
+
+/** The table of the items: the number alone as the text of its link, the title, the icon, the branch. */
+export const itemTable = (items: Item[]): string[] => [
+  '| # | What matters | State | Branch |',
+  '|---|---|:-:|---|',
+  ...items.map(
+    (item) =>
+      `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${item.branch ? `\`${cell(item.branch)}\`` : '-'} |`,
+  ),
+];
+
+/** How many parts are in each state, the three icons always in the same order. */
+export const partCounts = (epic: Epic, items: Item[]): string => {
+  const parts = new Set(epic.parts.map((part) => part.number));
+  const count = (progress: Progress) =>
+    items.filter((item) => parts.has(item.number) && item.progress === progress).length;
+  return `Parts: ${(['merged', 'open', 'todo'] as const).map((p) => `${ICONS[p]} ${count(p)}`).join(` ${DOT} `)}`;
+};
+
+/**
+ * The block of an epic in the overview of the repository: its heading and branch, the count of
+ * its parts per state, and a line only for what is not merged yet (parts, and the epic's own work
+ * still open); the merged parts are in the count.
+ */
+export const epicSummary = (epic: Epic): string => {
+  const items = itemsOf(epic, rowsOf(epic));
+  const lines = head(epic);
+  if (!epic.parts.length) {
+    lines.push('', 'The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic.');
+    return lines.join('\n');
+  }
+  lines.push('', partCounts(epic, items));
+  const left = items.filter((item) => item.progress !== 'merged');
+  lines.push('', ...(left.length ? itemTable(left) : ['Every part is merged into the branch of the epic.']));
+  return lines.join('\n');
+};
+
+/** The line of an open issue outside an epic: pull request open, or to do (the header says why never merged). */
+export const issueItem = (issue: Part, pulls: PullRequest[]): Item => {
+  const open = pulls.find((pr) => pr.state === 'OPEN' && belongsTo(pr, issue));
+  return {
+    number: issue.number,
+    url: issue.url,
+    title: issue.title,
+    progress: open ? 'open' : 'todo',
+    branch: open?.headRefName ?? issue.branches[0] ?? null,
+  };
+};
+
+/** The report: the epic, its branch, a line per part, the open pull requests and the next action, in Markdown. */
+export const report = (epic: Epic, landingWay?: Landing): string => {
+  const rows = rowsOf(epic);
+  const lines = head(epic);
   if (!epic.parts.length)
     lines.push('', 'The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic.');
 
   const items = itemsOf(epic, rows);
-  if (items.length)
-    lines.push(
-      '',
-      legend(),
-      '',
-      '| # | What matters | State | Branch |',
-      '|---|---|:-:|---|',
-      ...items.map(
-        (item) =>
-          `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${item.branch ? `\`${cell(item.branch)}\`` : '-'} |`,
-      ),
-    );
+  if (items.length) lines.push('', legend(), '', ...itemTable(items));
 
   const open = rows.filter((row) => row.pr?.state === 'OPEN');
   if (open.length)
