@@ -128,8 +128,12 @@ with what the work does, and that its map follow it. Yours:
 - **What matters** in each row of the pull requests, as for a part.
 - **The map**, last: run `/v2:work-map` on the same target (the issue or the pull request by its
   number, a branch by its name, a worktree by its folder path) and show what it gives under a
-  heading "How it works", in the language of the conversation. It picks done or planned itself:
-  done when there is work, planned from the issue otherwise.
+  heading "How it works", in the language of the conversation, as it prints it: the line that
+  sums it up, the diagram (its Mermaid block), the legend, then the table. Never the table
+  without the diagram: the table is the diagram in words, for whoever cannot see it (left out on
+  2026-11-24, and the maintainer asked where the diagram was). Open the page its `--html` writes
+  too. It picks done or planned itself: done when there is work, planned from the issue
+  otherwise.
 
 Everything else stays as printed: the icon, the branches, the counts, the table of the pull
 requests, the next action. Headers and the words before the colon (State, Epic, Branch, Worktree)
