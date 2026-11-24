@@ -2,10 +2,10 @@
   Where the work stands, as Markdown tables. The skill /v2:work-status shows what this prints.
 
     node scripts/status.ts <epic number> [--branch=<branch of the epic>] [--repo=<owner/name>] [--config=<file>]
-        the epic: its parts in the order they land, their pull requests, where each lands, its
-        checks, the open parts that change the same files, how far the branch of the epic is from
-        the default branch, then the next action (scripts/lib/epic.ts says where each answer
-        comes from)
+        the epic: a line per part in the order they land, with an icon for its state and its
+        branch; the open pull requests, where each lands, its checks, the open parts that change
+        the same files; how far the branch of the epic is behind the default branch; then the next
+        action (scripts/lib/epic.ts says where each answer comes from and what each icon means)
     node scripts/status.ts [--repo=<owner/name>] [--config=<file>]
         the repository: its open epics, its open pull requests and what holds each, the local
         worktrees and the work in them GitHub has not seen, then the next action

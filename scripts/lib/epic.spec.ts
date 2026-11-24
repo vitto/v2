@@ -5,6 +5,7 @@ import {
   blockingText,
   closes,
   holds,
+  itemsOf,
   mergeCommand,
   nextActions,
   report,
@@ -236,22 +237,118 @@ describe('blockingText and mergeCommand', () => {
   });
 });
 
+describe('itemsOf', () => {
+  const states = (e: Epic) =>
+    itemsOf(e, rowsOf(e)).map((item) => [item.number, item.progress, item.branch]);
+
+  it('marks a part merged by a merge into the branch of the epic or by its closed issue', () => {
+    const e = epic({
+      parts: [
+        part(20, { mentions: [pr(2, { headRefName: '20-a', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' })] }),
+        part(21, { state: 'CLOSED' }),
+      ],
+    });
+    assert.deepEqual(states(e), [
+      [20, 'merged', '20-a'],
+      [21, 'merged', null],
+    ]);
+  });
+
+  it('marks a part with an open pull request open, whatever merged before, with the branch of that pull request', () => {
+    const e = epic({
+      parts: [
+        part(20, {
+          branches: ['20-linked'],
+          mentions: [
+            pr(2, { headRefName: '20-a', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' }),
+            pr(3, { headRefName: '20-b' }),
+          ],
+        }),
+      ],
+    });
+    assert.deepEqual(states(e), [[20, 'open', '20-b']]);
+  });
+
+  it('leaves an open part to do when its pull requests merged into another branch', () => {
+    const e = epic({
+      parts: [
+        part(20, {
+          mentions: [
+            pr(2, { headRefName: '20-a', baseRefName: '9-earlier', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' }),
+          ],
+        }),
+        part(21, { branches: ['21-draft'] }),
+      ],
+    });
+    assert.deepEqual(states(e), [
+      [20, 'todo', null],
+      [21, 'todo', '21-draft'],
+    ]);
+  });
+
+  it('lists each part once, in the order its first row lands, then the work of the epic itself', () => {
+    const e = epic({
+      parts: [
+        part(20, { mentions: [pr(4, { headRefName: '20-c' })] }),
+        part(21, { mentions: [pr(3, { headRefName: '21-b', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' })] }),
+        part(22),
+      ],
+      intoBranch: [pr(7, { headRefName: 'tidy', title: 'tidy up' })],
+    });
+    assert.deepEqual(
+      itemsOf(e, rowsOf(e)).map((item) => [item.number, item.progress, item.title]),
+      [
+        [21, 'merged', 'part 21'],
+        [20, 'open', 'part 20'],
+        [7, 'open', 'work of the epic itself: tidy up'],
+        [22, 'todo', 'part 22'],
+      ],
+    );
+  });
+});
+
 describe('report', () => {
-  it('writes the branch, a table whose cells keep their columns, and the next action', () => {
+  it('writes the epic, its branch, a line per part with its icon, the open pull requests and the next action', () => {
     const text = report(
       epic({ parts: [part(20, { title: 'a | pipe\nand a line', mentions: [pr(5, { headRefName: '20-a' })] })] }),
     );
-    assert.match(text, /^## Epic \[#10\]\(https:\/\/github\.com\/o\/r\/issues\/10\): epic: the work$/m);
-    assert.match(text, /^Branch of the epic: `10-epic`, 3 commits ahead of `main` and 0 behind\.$/m);
-    assert.match(text, /^\| 1 \| \[#20\]\(.+\) a \\\| pipe and a line \| \[#5\]\(.+\) \| `10-epic` \| ready \|$/m);
-    assert.match(text, /^\| -> \| \*\*epic \[#10\]\(.+\)\*\* \| - \| `main` \| no pull request yet \|$/m);
+    assert.match(text, /^### \[10\]\(https:\/\/github\.com\/o\/r\/issues\/10\) \u00b7 epic: the work$/m);
+    assert.match(text, /^Branch: `10-epic`\.$/m);
+    assert.match(text, /^\u2705 merged \u00b7 \u{1f500} pull request open \u00b7 \u2b1c to do$/mu);
+    assert.match(text, /^\| # \| What matters \| State \| Branch \|\n\|---\|---\|:-:\|---\|$/m);
+    assert.match(text, /^\| \[20\]\(.+\/issues\/20\) \| a \\\| pipe and a line \| \u{1f500} \| `20-a` \|$/mu);
+    assert.match(text, /^\| \[5\]\(.+\/pull\/5\) \| \[20\]\(.+\) \| `10-epic` \| ready \|$/m);
+    assert.doesNotMatch(text, /\[#20\]/, 'a number in a column is a bare number');
     assert.match(text, /\*\*Next action\*\*\n\n- \[#5\]/);
+  });
+
+  it('says how far behind the branch is, and shows no table of pull requests when none is open', () => {
+    const text = report(
+      epic({
+        distance: { ahead: 3, behind: 5 },
+        parts: [part(20, { mentions: [pr(2, { headRefName: '20-a', state: 'MERGED', mergedAt: '2026-11-02T00:00:00Z' })] })],
+      }),
+    );
+    assert.match(text, /^Branch: `10-epic`, 5 commits behind `main`\.$/m);
+    assert.match(text, /^\| \[20\]\(.+\) \| part 20 \| \u2705 \| `20-a` \|$/mu);
+    assert.doesNotMatch(text, /Open pull requests/);
+  });
+
+  it('shows the open pull request of the epic as the epic', () => {
+    const text = report(
+      epic({
+        parts: [part(20, { state: 'CLOSED' })],
+        landings: [pr(60, { headRefName: '10-epic', baseRefName: 'main' })],
+      }),
+    );
+    assert.match(text, /^\| \[60\]\(.+\/pull\/60\) \| the epic \| `main` \| ready \|$/m);
   });
 
   it('says when the branch is not on GitHub, the epic is closed or has no sub-issues', () => {
     const text = report(epic({ distance: null, state: 'CLOSED' }));
     assert.match(text, /The epic issue is closed\./);
-    assert.match(text, /Branch of the epic: `10-epic`, not on GitHub\./);
+    assert.match(text, /Branch: `10-epic`, not on GitHub\./);
     assert.match(text, /The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic\./);
+    assert.doesNotMatch(text, /What matters/);
   });
 });
