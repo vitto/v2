@@ -13,6 +13,13 @@ export const short = (text: string, max = 60): string =>
 /** `[#12](url)`. */
 export const link = (n: number, url: string): string => `[#${n}](${url})`;
 
+/**
+ * `[12](url)`: the number alone, for a column of issue numbers. The Claude desktop app shows a
+ * link to an issue whose text is `#12` as `owner/name#12`, which widens the column; a link whose
+ * text is the bare number stays as written (seen 2026-11-24).
+ */
+export const ref = (n: number, url: string): string => `[${n}](${url})`;
+
 /** `1 file`, `2 files`. */
 export const plural = (n: number, one: string): string => `${n} ${one}${n === 1 ? '' : 's'}`;
 

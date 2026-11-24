@@ -36,9 +36,19 @@
   - how the epic lands: `merge.method` of .claude/v2.json, else the merge queue of the default
     branch when GitHub has one (`mergeQueue`), else a merge commit; the workflows that hold it:
     `merge.blockingWorkflows` of .claude/v2.json.
+
+  The report shows one line per part, as the person asked for it on 2026-11-24 (an icon for the
+  state, the branch, what matters written by the agent from the title), and the details of the
+  open pull requests in a table of their own. The state of a part:
+
+  - merged: a pull request of the part merged into the branch of the epic, or the part is closed
+    (the parts close only when the epic lands, GOVERNANCE.md rule 3);
+  - pull request open: a pull request of the part is open, whatever its base;
+  - to do: anything else, a pull request merged into another branch included while the part is
+    open (an earlier round of the work, which left the rest of the part to do).
 */
 import type { BlockingWorkflow, MergeMethod } from './config.ts';
-import { cell, link, short } from './markdown.ts';
+import { cell, link, ref } from './markdown.ts';
 
 export type Checks = 'SUCCESS' | 'FAILURE' | 'ERROR' | 'PENDING' | 'EXPECTED' | null;
 
@@ -367,46 +377,119 @@ export const nextActions = (
   return out;
 };
 
-/** The report: the epic, its branch, the table and the next action, in Markdown. */
+export type Progress = 'merged' | 'open' | 'todo';
+
+/** The icon of each state; the source stays ASCII, the output carries the emoji. */
+export const ICONS: Record<Progress, string> = {
+  merged: String.fromCodePoint(0x2705),
+  open: String.fromCodePoint(0x1f500),
+  todo: String.fromCodePoint(0x2b1c),
+};
+
+const DOT = String.fromCodePoint(0xb7);
+
+/** The legend of the icons, one line. */
+export const legend = (): string =>
+  `${ICONS.merged} merged ${DOT} ${ICONS.open} pull request open ${DOT} ${ICONS.todo} to do`;
+
+/** A line of the table: a part, or a pull request of the epic's own work. */
+export interface Item {
+  number: number;
+  url: string;
+  title: string;
+  progress: Progress;
+  branch: string | null;
+}
+
+/** One item per part, then the epic's own work, in the order its first row lands. */
+export const itemsOf = (epic: Epic, rows: Row[]): Item[] => {
+  const items: Item[] = [];
+  const seen = new Set<number>();
+  for (const row of rows) {
+    if (row.kind === 'epic' || row.landing) continue;
+    if (!row.parts.length && row.pr) {
+      items.push({
+        number: row.pr.number,
+        url: row.pr.url,
+        title: `work of the epic itself: ${row.pr.title}`,
+        progress: row.pr.state === 'MERGED' ? 'merged' : 'open',
+        branch: row.pr.headRefName,
+      });
+      continue;
+    }
+    for (const part of row.parts) {
+      if (seen.has(part.number)) continue;
+      seen.add(part.number);
+      const prs = rows
+        .filter((other) => other.pr && !other.landing && other.parts.includes(part))
+        .map((other) => other.pr as PullRequest);
+      const open = prs.find((pr) => pr.state === 'OPEN');
+      const merged = prs.find((pr) => pr.state === 'MERGED' && pr.baseRefName === epic.branch);
+      items.push({
+        number: part.number,
+        url: part.url,
+        title: part.title,
+        progress: open ? 'open' : merged || part.state === 'CLOSED' ? 'merged' : 'todo',
+        branch: open?.headRefName ?? merged?.headRefName ?? part.branches[0] ?? null,
+      });
+    }
+  }
+  return items;
+};
+
+/** The report: the epic, its branch, a line per part, the open pull requests and the next action, in Markdown. */
 export const report = (epic: Epic, landingWay?: Landing): string => {
   const rows = rowsOf(epic);
-  const lines: string[] = [`## Epic ${link(epic.number, epic.url)}: ${cell(epic.title)}`, ''];
+  const lines: string[] = [`### ${ref(epic.number, epic.url)} ${DOT} ${cell(epic.title)}`, ''];
   if (epic.state === 'CLOSED') lines.push('The epic issue is closed.', '');
   if (!epic.branch)
     lines.push(
       epic.linkedBranches.length > 1
-        ? `Branch of the epic: unknown, more than one is linked (${epic.linkedBranches.map((b) => `\`${b}\``).join(', ')}).`
-        : 'Branch of the epic: unknown, none is linked to the epic issue.',
+        ? `Branch: unknown, more than one is linked (${epic.linkedBranches.map((b) => `\`${b}\``).join(', ')}).`
+        : 'Branch: unknown, none is linked to the epic issue.',
     );
-  else if (!epic.distance) lines.push(`Branch of the epic: \`${epic.branch}\`, not on GitHub.`);
-  else
+  else if (!epic.distance) lines.push(`Branch: \`${epic.branch}\`, not on GitHub.`);
+  else if (epic.distance.behind)
     lines.push(
-      `Branch of the epic: \`${epic.branch}\`, ${epic.distance.ahead} commits ahead of \`${epic.defaultBranch}\` and ${epic.distance.behind} behind.`,
+      `Branch: \`${epic.branch}\`, ${epic.distance.behind} commits behind \`${epic.defaultBranch}\`.`,
     );
+  else lines.push(`Branch: \`${epic.branch}\`.`);
   if (!epic.parts.length)
     lines.push('', 'The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic.');
-  lines.push(
-    '',
-    '| # | Part | Pull request | Into | State |',
-    '|---|------|--------------|------|-------|',
-  );
-  let i = 0;
-  for (const row of rows) {
-    const what =
-      row.kind === 'epic' || row.landing
-        ? `**epic ${link(epic.number, epic.url)}**`
-        : row.parts.length
-          ? row.parts
-              .map((part) => `${link(part.number, part.url)} ${cell(short(part.title))}`)
-              .join('<br>')
-          : 'work of the epic itself';
-    const into =
-      row.pr?.baseRefName ??
-      (row.kind === 'epic' ? epic.defaultBranch : (epic.branch ?? epic.defaultBranch));
+
+  const items = itemsOf(epic, rows);
+  if (items.length)
     lines.push(
-      `| ${row.kind === 'epic' ? '->' : ++i} | ${what} | ${row.pr ? link(row.pr.number, row.pr.url) : '-'} | \`${cell(into)}\` | ${cell(row.state.join('; '))} |`,
+      '',
+      legend(),
+      '',
+      '| # | What matters | State | Branch |',
+      '|---|---|:-:|---|',
+      ...items.map(
+        (item) =>
+          `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${item.branch ? `\`${cell(item.branch)}\`` : '-'} |`,
+      ),
     );
-  }
+
+  const open = rows.filter((row) => row.pr?.state === 'OPEN');
+  if (open.length)
+    lines.push(
+      '',
+      '**Open pull requests**',
+      '',
+      '| Pull request | Of | Into | State |',
+      '|---|---|---|---|',
+      ...open.map((row) => {
+        const pr = row.pr as PullRequest;
+        const of = row.landing
+          ? 'the epic'
+          : row.parts.length
+            ? row.parts.map((part) => ref(part.number, part.url)).join(', ')
+            : 'the epic itself';
+        return `| ${ref(pr.number, pr.url)} | ${of} | \`${cell(pr.baseRefName)}\` | ${cell(row.state.join('; '))} |`;
+      }),
+    );
+
   lines.push(
     '',
     '**Next action**',
