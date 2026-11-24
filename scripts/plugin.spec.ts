@@ -35,6 +35,16 @@ describe('the skills', () => {
       assert.equal(fields.name, name, `${file}: the name is not the folder`);
       assert.ok(fields.description?.trim(), `${file}: no description`);
     });
+
+    // the person asked on 2026-11-24 to see where the answer of every skill starts
+    it(`${name}: opens its answer with a horizontal rule`, () => {
+      const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
+      assert.match(
+        text,
+        /^Where the answer starts: put a horizontal rule \(`---` on a line of its own, with an empty line$/m,
+        `skills/${name}/SKILL.md: no rule on the horizontal rule above the answer`,
+      );
+    });
   }
 });
 

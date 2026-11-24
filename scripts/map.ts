@@ -4,13 +4,17 @@
   changes, breaking changes first. The skill /v2:work-map writes the facts as JSON and shows what this
   prints, before the work (planned) or after it (done).
 
-    node scripts/map.ts <map.json | -> [--plan=<file>] [--html=<file>] [--into=<file>]
+    node scripts/map.ts <map.json | -> [--plan=<file>] [--html=<file>] [--svg=<file>] [--into=<file>]
         print the map in Markdown: a line that sums it up, a Mermaid diagram, its legend, the
         table of what changes (the diagram in words, for whoever cannot see it) and, in a hidden
         comment, the map itself, so a later map can be compared with it; `-` reads it from stdin
         --plan=<file>  compare with an earlier map, the plan: a JSON file, or Markdown holding a
                        map, such as the body of the issue it was added to
-        --html=<file>  also write a page that draws the diagram, to open in a browser
+        --html=<file>  also write a page that shows the diagram, to open in a browser: the SVG
+                       drawn into it, so it shows where no script runs; without the drawing, its
+                       source, until its script draws it
+        --svg=<file>   also write the diagram drawn to SVG (a white ground, valid XML)
+        --no-draw      with --html, do not draw: the page draws the diagram with its script
         --into=<file>  also write the map into a Markdown file (the body of an issue or of a pull
                        request, or the map beside a glossary): in place of the map it holds, else
                        at its end
@@ -58,11 +62,19 @@
     listed with both; things shown for context (unchanged) are never compared;
   - a relation of a glossary map, its source and what contradicts it: the JSON given, which the
     skill writes from the register and checks against the data;
-  - the page of --html: Mermaid from jsDelivr, its version pinned below; without a network it
-    shows the source of the diagram instead.
+  - the drawing of --svg and --html: Mermaid from jsDelivr, its version pinned below (MERMAID),
+    run in the Chrome of the computer, headless (scripts/lib/chrome.ts); without Chrome or the
+    network there is no SVG, the run says why, and the page shows the source until its script
+    draws it;
+  - what a label shows: the text given, as written (`escapeLabel` says why each character is
+    escaped, from what Mermaid did with it).
 */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { isMain, parseArgs } from './lib/args.ts';
+import { findChrome, launch } from './lib/chrome.ts';
 import { cell, plural, table } from './lib/markdown.ts';
 
 export const KIND_NAMES = ['entity', 'method', 'concept', 'axis', 'surface', 'external'] as const;
@@ -432,17 +444,22 @@ export const compare = (plan: MapSpec, done: MapSpec): Compared => {
 // The diagram
 
 /**
- * A text inside a Mermaid label: its entity codes for what Mermaid or HTML would read
- * (`#` first, since every code starts with it).
+ * A text inside a Mermaid label, shown as written. Mermaid reads the label of a node, an edge and
+ * a group as Markdown after it decodes its entity codes (seen on 2026-11-24 with MERMAID: `*x*`
+ * and `_x_` turn italic, so `--magma-*-wash-*` showed as `--magma--wash-`; a backtick, `~~`, a
+ * link, a heading, a quote or a line starting with `- `, `+ ` or `1. ` showed "Unsupported
+ * markdown"). So the Markdown punctuation is escaped with a backslash, which an entity code
+ * cannot do, and what Mermaid or HTML would read takes its entity code (`#` first, since every
+ * code starts with it).
  */
 export const escapeLabel = (value: string): string =>
   value
+    .replace(/[\\`*_[\]~+\-.!]/g, (char) => `\\${char}`)
     .replace(/#/g, '#35;')
     .replace(/&/g, '#38;')
     .replace(/"/g, '#34;')
     .replace(/</g, '#60;')
     .replace(/>/g, '#62;')
-    .replace(/`/g, '#96;')
     .replace(/\r?\n/g, ' ');
 
 /** Ids Mermaid accepts, the same for the same id, never a keyword (`end`, `class`). */
@@ -763,8 +780,14 @@ const htmlTable = (header: string[], rows: string[][]): string =>
     .map((row) => `<tr>${row.map((c) => `<td>${html(c)}</td>`).join('')}</tr>`)
     .join('')}</tbody></table>`;
 
-/** A page that draws the map: the diagram first, then its legend and its words. */
-export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
+/**
+ * A page that draws the map: the diagram first, then its legend and its words. With `svg` (drawn
+ * by `drawSvg`) the page holds the drawing itself and shows it where no script runs, as in the
+ * panel of a client that renders HTML without scripts (seen on 2026-11-24: the page stayed on
+ * "Drawing the diagram..."); its script only draws it again in dark mode. Without it the page
+ * shows the source until its script draws it, and keeps the source when it cannot.
+ */
+export const pageOf = (spec: MapSpec, rendered: Rendered, svg?: string | null): string => {
   const used = KIND_NAMES.filter((kind) => rendered.nodes.some((n) => n.kind === kind));
   const legend = used
     .map(
@@ -789,6 +812,7 @@ export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
   .muted { color: var(--muted); }
   #diagram { margin: 24px 0; overflow-x: auto; }
   #diagram svg { max-width: 100%; height: auto; }
+  #diagram.card { background: #ffffff; border-radius: 8px; padding: 12px; }
   ul.legend { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px 24px; }
   .swatch { display: inline-block; width: 14px; height: 14px; border: 2px solid; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
   table { border-collapse: collapse; width: 100%; margin: 12px 0 24px; }
@@ -800,7 +824,11 @@ export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
 <main>
   <h1>${html(spec.title)} <span class="muted">(${spec.mode})</span></h1>
   <p>${html([rendered.summary, rendered.against, spec.source ? `From ${spec.source}.` : null].filter(Boolean).join(' '))}</p>
-  <div id="diagram" role="img" aria-label="${html(`Diagram of ${spec.title}; the table below says the same in words.`)}"><p class="muted">Drawing the diagram...</p></div>
+  <div id="diagram"${svg ? ' class="card"' : ''} role="img" aria-label="${html(`Diagram of ${spec.title}; the table below says the same in words.`)}">${
+    svg
+      ? svg
+      : `<p class="muted">A script draws the diagram from its source; where scripts do not run, the source stays here.</p><pre>${html(rendered.diagram)}</pre>`
+  }</div>
   <ul class="legend">${legend}</ul>
   <p class="muted">${html(rendered.legend.replace(/^Legend: [^.]*\. /, ''))}</p>
   ${rendered.rows.length ? htmlTable(rendered.header, rendered.rows) : `<p>${spec.mode === 'glossary' ? 'No relations.' : 'Nothing changes.'}</p>`}
@@ -809,15 +837,21 @@ export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
 <script type="module">
   const source = ${source};
   const box = document.getElementById('diagram');
-  try {
-    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/${MERMAID}/dist/mermaid.esm.min.mjs');
-    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'strict' });
-    const { svg } = await mermaid.render('map', source);
-    box.innerHTML = svg;
-  } catch (error) {
-    box.innerHTML = '<p>The diagram could not be drawn here (' + String(error.message || error).replace(/</g, '&lt;') + '). Its source:</p><pre></pre>';
-    box.querySelector('pre').textContent = source;
+  const drawn = !!box.querySelector('svg');
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  if (!drawn || dark) {
+    try {
+      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/${MERMAID}/dist/mermaid.esm.min.mjs');
+      mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'strict' });
+      const { svg } = await mermaid.render('map-live', source);
+      box.innerHTML = svg;
+      box.classList.remove('card');
+    } catch (error) {
+      if (!drawn) {
+        box.innerHTML = '<p>The diagram could not be drawn here (' + String(error.message || error).replace(/</g, '&lt;') + '). Its source:</p><pre></pre>';
+        box.querySelector('pre').textContent = source;
+      }
+    }
   }
 </script>
 </body>
@@ -826,10 +860,71 @@ export const pageOf = (spec: MapSpec, rendered: Rendered): string => {
 };
 
 // ---------------------------------------------------------------------------------------------
+// The drawing
+
+/**
+ * What draws the diagram in the page of Chrome: Mermaid (MERMAID, from jsDelivr, as the page
+ * loads it), the light theme on a white ground so the file reads on any background, serialized
+ * as XML (a `<br>` in a label would break a standalone .svg).
+ */
+export const drawExpression = (diagram: string): string => `(async () => {
+  const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/${MERMAID}/dist/mermaid.esm.min.mjs');
+  mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'strict' });
+  const { svg } = await mermaid.render('map', ${JSON.stringify(diagram)});
+  const box = document.createElement('div');
+  box.innerHTML = svg;
+  document.body.append(box);
+  const element = box.querySelector('svg');
+  element.style.backgroundColor = '#ffffff';
+  return new XMLSerializer().serializeToString(element);
+})()`;
+
+/**
+ * The diagram drawn to SVG by the Chrome of the computer, headless (scripts/lib/chrome.ts, nothing
+ * to install), so it shows where no script runs. It needs Chrome and the network (Mermaid comes
+ * from jsDelivr); without either it throws, saying why, within `timeout` milliseconds.
+ */
+export const drawSvg = async (diagram: string, timeout = 30000): Promise<string> => {
+  const chrome = findChrome();
+  if (!chrome) throw new Error('no Chrome on this computer (install Google Chrome or Chromium, or set CHROME to its path)');
+  const profile = mkdtempSync(path.join(tmpdir(), 'v2-map-profile-'));
+  const { child, page } = await launch(chrome, profile, { width: 1600, height: 1200 });
+  const stop = new AbortController();
+  try {
+    const drawn = page.send<{
+      result: { value?: string };
+      exceptionDetails?: { text?: string; exception?: { description?: string } };
+    }>('Runtime.evaluate', { expression: drawExpression(diagram), awaitPromise: true, returnByValue: true });
+    // the timer stops once the drawing comes, or it would keep the process alive for `timeout`
+    const late = sleep(timeout, undefined, { signal: stop.signal }).then(() => {
+      throw new Error(`Mermaid did not draw it in ${timeout / 1000} seconds (is jsDelivr reachable?)`);
+    });
+    late.catch(() => {});
+    const result = await Promise.race([drawn, late]);
+    if (result.exceptionDetails)
+      throw new Error((result.exceptionDetails.exception?.description ?? result.exceptionDetails.text ?? 'Mermaid failed').split('\n')[0]);
+    if (!result.result.value?.startsWith('<svg')) throw new Error('Mermaid gave no SVG');
+    return result.result.value;
+  } finally {
+    stop.abort();
+    page.close();
+    // Chrome writes in its profile until it exits: remove the folder after, and never fail on it
+    const exited = new Promise((done) => child.once('exit', done));
+    child.kill();
+    await Promise.race([exited, sleep(5000)]);
+    try {
+      rmSync(profile, { recursive: true, force: true });
+    } catch {
+      // a temporary folder, which the system clears
+    }
+  }
+};
+
+// ---------------------------------------------------------------------------------------------
 
 const read = (file: string): string => (file === '-' ? readFileSync(0, 'utf8') : readFileSync(file, 'utf8'));
 
-const main = () => {
+const main = async () => {
   const argv = process.argv.slice(2);
   const args = parseArgs(argv);
   const file = argv.find((arg) => arg === '-' || !arg.startsWith('--'));
@@ -839,19 +934,33 @@ const main = () => {
   const plan = planFile ? parseMap(extractMap(read(planFile))) : undefined;
   const rendered = render(spec, plan);
   const htmlFile = args.value('html');
-  if (htmlFile) writeFileSync(htmlFile, pageOf(spec, rendered));
+  const svgFile = args.value('svg');
+  // the drawing, for the SVG file and for a page that shows it without a script
+  let svg: string | null = null;
+  const notes: string[] = [];
+  if ((htmlFile || svgFile) && !args.flag('no-draw'))
+    try {
+      svg = await drawSvg(rendered.diagram);
+    } catch (error) {
+      notes.push(
+        `The diagram was not drawn to SVG: ${(error as Error).message}.${htmlFile ? ' The page shows its source until a script draws it.' : ''}`,
+      );
+    }
+  if (svgFile && svg) {
+    writeFileSync(svgFile, `${svg}\n`);
+    notes.push(`The diagram as SVG: ${svgFile}`);
+  }
+  if (htmlFile) writeFileSync(htmlFile, pageOf(spec, rendered, svg));
   const intoFile = args.value('into');
   if (intoFile) writeFileSync(intoFile, into(existsSync(intoFile) ? readFileSync(intoFile, 'utf8') : '', rendered.markdown));
   const mmdFile = args.value('mmd');
   if (mmdFile) writeFileSync(mmdFile, `${rendered.diagram}\n`);
   console.info(rendered.markdown);
+  if (notes.length) console.info(['', ...notes].join('\n'));
 };
 
-if (isMain(import.meta.url)) {
-  try {
-    main();
-  } catch (error) {
+if (isMain(import.meta.url))
+  main().catch((error) => {
     console.error((error as Error).message);
     process.exitCode = 1;
-  }
-}
+  });

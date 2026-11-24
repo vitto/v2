@@ -1,7 +1,7 @@
 ---
 name: work-map
-description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
-argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch or glossary]"
+description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch, a worktree or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
+argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch, worktree or glossary]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts *)
 ---
 
@@ -12,6 +12,11 @@ is: a line that sums the work up, the diagram, its legend, then the same in word
 whoever cannot see the diagram). The script draws; you write the facts, as JSON, in the format its
 header gives.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 Before each step, say in one line what it does.
 
 ## 1. Planned or done
@@ -21,8 +26,11 @@ Before each step, say in one line what it does.
   (`node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <epic>` lists them).
 - **done**: the work exists. The facts come from its diff: a pull request (`gh pr view <n> --json
   title,body,baseRefName,headRefName,closingIssuesReferences`, then `gh pr diff <n>`), a branch
-  (`git diff --stat <base>...<branch>`, then the diff), or the current folder (its commits since
-  the default branch, and what is uncommitted).
+  (`git diff --stat <base>...<branch>`, then the diff), a worktree (its folder: `git -C <folder>
+  log --oneline origin/<default branch>..HEAD`, then `git -C <folder> diff origin/<default
+  branch>...HEAD` and what is uncommitted, `git -C <folder> diff HEAD`), or the current folder (its
+  commits since the default branch, and what is uncommitted). `/v2:work-status` runs this skill
+  under the report of one piece of work, on the same target.
 - **glossary**: the hierarchy of the project's taxonomy register, not a piece of work: see
   "Glossary mode" below; steps 2 to 4 do not apply to it.
 - Without the word: done when there is work (a diff, a branch ahead), planned otherwise. With
@@ -69,16 +77,23 @@ project.
 ## 3. Draw it
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts <map.json> [--plan=<plan.md or plan.json>] --html=<map.html>
+node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts <map.json> [--plan=<plan.md or plan.json>] --svg=<map.svg> --html=<map.html>
 ```
 
-Show what it prints, as it is, then two lines at most on what to look at first: a breaking
-change, something not done or not planned. When it refuses the map (an unknown kind, an edge to a
-missing node), fix the JSON and run it again; never write the diagram by hand.
+Show what it prints, as it is: the line that sums it up, the diagram (its Mermaid block), the
+legend and the table. Never the table alone: it is the diagram in words, for whoever cannot see
+it. Then two lines at most on what to look at first: a breaking change, something not done or not
+planned. When it refuses the map (an unknown kind, an edge to a missing node), fix the JSON and
+run it again; never write the diagram by hand.
 
-GitHub draws the Mermaid block; a terminal shows its source. So open the page `--html` wrote for
-the person: in the browser of the session when it has one, else `open <map.html>` (macOS) or
-`xdg-open <map.html>` (Linux). It loads Mermaid from jsDelivr; offline it shows the source.
+GitHub draws the Mermaid block; a terminal or a chat may only show its source. So the script also
+draws it, with the Chrome of the computer and Mermaid from jsDelivr: the SVG of `--svg`, and the
+page of `--html`, which holds the same drawing and so shows it where no script runs. Give the
+person the SVG (attach it to the answer when the client can, else its path) and open the page: in
+the browser of the session when it has one, else `open <map.html>` (macOS) or `xdg-open
+<map.html>` (Linux). When the script says the diagram was not drawn (no Chrome, no network), say
+why: the page then draws it with its own script where scripts run, and shows its source
+elsewhere.
 
 ## 4. On GitHub, if the person wants it
 

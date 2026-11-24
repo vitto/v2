@@ -19,6 +19,9 @@
   - the open issues: the GraphQL API, newest first (first 100), with their parent, the count of
     their sub-issues, their labels and their linked branches;
   - the open pull requests of the repository: the GraphQL API, oldest first (first 100);
+  - one number (`readItem`): `issueOrPullRequest` of the GraphQL API, an issue with its parent,
+    its linked branches and the pull requests of its timeline (first 100); one branch
+    (`readBranch`): its ref and the open and merged pull requests from it (first 20);
   - the runs of a workflow that are not finished: `gh run list` (the last 20 runs);
   - checks: the status rollup of the last commit of a pull request (none reported is not green).
 */
@@ -436,6 +439,130 @@ export const readOverview = (repo: Repo): Overview => {
     unread: Math.max(0, issues.totalCount - issues.nodes.length),
     pulls,
   };
+};
+
+/** The default branch of the repository (`defaultBranchRef`). */
+export const readDefaultBranch = (repo: Repo): string =>
+  graphql<{ repository: { defaultBranchRef: { name: string } } }>(
+    `query ($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { defaultBranchRef { name } } }`,
+    { owner: repo.owner, name: repo.name },
+  ).repository.defaultBranchRef.name;
+
+/** Whether a branch of the repository has a merge queue. */
+export const hasMergeQueue = (repo: Repo, branch: string): boolean =>
+  !!graphql<{ repository: { mergeQueue: { url: string } | null } }>(
+    `query ($owner: String!, $name: String!, $base: String!) {
+      repository(owner: $owner, name: $name) { mergeQueue(branch: $base) { url } }
+    }`,
+    { owner: repo.owner, name: repo.name, base: branch },
+  ).repository.mergeQueue;
+
+/** What one number of a repository is: an epic (an issue with sub-issues), an issue, a pull request, or nothing. */
+export type Item =
+  | { kind: 'epic'; number: number; title: string; url: string; branches: string[] }
+  | { kind: 'issue'; issue: Part; parent: { number: number; state: 'OPEN' | 'CLOSED' } | null }
+  | { kind: 'pull'; pr: PullRequest }
+  | { kind: 'none' };
+
+type RawItem =
+  | (RawIssue & {
+      __typename: 'Issue';
+      parent: { number: number; state: 'OPEN' | 'CLOSED' } | null;
+      subIssuesSummary: { total: number };
+      timelineItems: { nodes: { source?: unknown }[] };
+    })
+  | (RawPullRequest & { __typename: 'PullRequest' });
+
+/**
+ * Reads one number: `issueOrPullRequest` of the GraphQL API, an issue with its parent, its linked
+ * branches and the pull requests in its timeline (cross references, first 100), as a part of an
+ * epic is read. A number that is neither comes back as `none`.
+ */
+export const readItem = (repo: Repo, number: number): { item: Item; defaultBranch: string } => {
+  const data = graphqlPartial<{
+    repository: { defaultBranchRef: { name: string }; item: RawItem | null };
+  }>(
+    `
+      ${PR_FIELDS}
+      query ($owner: String!, $name: String!, $n: Int!) {
+        repository(owner: $owner, name: $name) {
+          defaultBranchRef { name }
+          item: issueOrPullRequest(number: $n) {
+            __typename
+            ... on Issue {
+              number title url state
+              parent { number state }
+              subIssuesSummary { total }
+              linkedBranches(first: 10) { nodes { ref { name } } }
+              timelineItems(first: 100, itemTypes: [CROSS_REFERENCED_EVENT]) {
+                nodes { ... on CrossReferencedEvent { source { ...pr } } }
+              }
+            }
+            ...pr
+          }
+        }
+      }
+    `,
+    { owner: repo.owner, name: repo.name, n: number },
+  );
+  const raw = data.repository.item;
+  const defaultBranch = data.repository.defaultBranchRef.name;
+  if (!raw) return { item: { kind: 'none' }, defaultBranch };
+  if (raw.__typename === 'PullRequest') return { item: { kind: 'pull', pr: toPullRequest(raw) }, defaultBranch };
+  if (raw.subIssuesSummary.total > 0)
+    return {
+      item: { kind: 'epic', number: raw.number, title: raw.title, url: raw.url, branches: names(raw.linkedBranches) },
+      defaultBranch,
+    };
+  return {
+    item: {
+      kind: 'issue',
+      parent: raw.parent,
+      issue: {
+        number: raw.number,
+        title: raw.title,
+        url: raw.url,
+        state: raw.state,
+        branches: names(raw.linkedBranches),
+        blockedBy: [],
+        mentions: raw.timelineItems.nodes
+          .map((node) => node.source)
+          .filter(isPullRequest)
+          .map(toPullRequest),
+      },
+    },
+    defaultBranch,
+  };
+};
+
+/** Whether a branch is on GitHub, and the open and merged pull requests from it (first 20, oldest first). */
+export const readBranch = (
+  repo: Repo,
+  branch: string,
+): { exists: boolean; pulls: PullRequest[]; defaultBranch: string } => {
+  const data = graphql<{
+    repository: {
+      defaultBranchRef: { name: string };
+      ref: { name: string } | null;
+      pullRequests: { nodes: RawPullRequest[] };
+    };
+  }>(
+    `
+      ${PR_FIELDS}
+      query ($owner: String!, $name: String!, $b: String!, $q: String!) {
+        repository(owner: $owner, name: $name) {
+          defaultBranchRef { name }
+          ref(qualifiedName: $q) { name }
+          pullRequests(headRefName: $b, first: 20, states: [OPEN, MERGED], orderBy: { field: CREATED_AT, direction: ASC }) {
+            nodes { ...pr }
+          }
+        }
+      }
+    `,
+    { owner: repo.owner, name: repo.name, b: branch, q: `refs/heads/${branch}` },
+  );
+  const pulls = data.repository.pullRequests.nodes.map(toPullRequest);
+  return { exists: !!data.repository.ref || pulls.length > 0, pulls, defaultBranch: data.repository.defaultBranchRef.name };
 };
 
 export interface MergeFacts {

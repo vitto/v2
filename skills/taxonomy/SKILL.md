@@ -8,6 +8,11 @@ argument-hint: "[the area, the word or the conflict]"
 
 A person reads a word in a view, a doc or a data file and must know which thing it means. When the same word names two things where both appear, or two words name one thing, the interface, the docs and the code drift apart and each new request makes it worse. The register makes the words of a project a decision, written once, read by everyone. Area or word: $ARGUMENTS.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 The format is `../../docs/taxonomy.md` (from this skill's folder); the worked example is there too.
 
 ## When

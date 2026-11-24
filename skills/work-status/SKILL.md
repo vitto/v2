@@ -1,16 +1,22 @@
 ---
 name: work-status
-description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with what matters, an icon for its state and its branch, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
-argument-hint: "[epic number or subject]"
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *)
+description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with what matters, an icon for its state and its branch, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Pointed at one piece of work - an issue, a pull request, a branch or a worktree - what it does in a few plain sentences, its state, then its map from /v2:work-map. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
+argument-hint: "[epic, issue or pull request number, branch, worktree, or subject]"
+allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *), Bash(gh pr view *), Bash(git log *), Bash(git diff *), Bash(git -C *)
 ---
 
 # Where the work stands
 
-What the person gave, if anything: $ARGUMENTS (a number is an epic, words are a subject,
-section 4). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
+What the person gave, if anything: $ARGUMENTS (a number is an epic, or one issue or pull
+request; the name of a branch or of a worktree is one piece of work, section 5; other words are a
+subject, section 4). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
 person decides every merge) and rule 2 (the parts land in the branch of the epic, the epic in the
 default branch). The script says in its header where each answer comes from.
+
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
 
 Before each step, say in one line what it does. Every answer is tables, never a retelling in
 prose: show what the script prints, in its order, without dropping rows, and add one line at most
@@ -21,10 +27,12 @@ on what the person has to decide.
 In the repository the person is working on:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <epic number>
+node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <what the person gave>
 ```
 
-Without a number it shows the repository: each open epic as a summary, the open issues outside
+A number with sub-issues is an epic (section 2); any other number, a branch or a worktree (its
+folder name or path) is one piece of work (section 5), and a branch named after an epic is that
+epic. Without anything, or with words that name no branch and no worktree, it shows the repository: each open epic as a summary, the open issues outside
 an epic, the open pull requests, the local worktrees (section 3). When the person asked about an
 epic without naming it and the overview lists more than one, ask which; when their words name a
 subject instead ("the epic of the studio", "lavorazioni di studio"), section 4. Other
@@ -85,8 +93,9 @@ and the sentences in the language of the conversation.
 ## 4. A subject instead of a number
 
 When the person gives words instead of a number ("lavorazioni di studio", "the work on the
-studio"), they name a subject: run the script without a number and show the overview of section
-3 for that subject only, as the maintainer asked on 2026-11-24.
+studio"), they name a subject: the script, given words that name no branch and no worktree,
+prints the overview after a first line saying so. Show the overview of section 3 for that subject
+only, as the maintainer asked on 2026-11-24, the line naming the subject in place of that one.
 
 - **The epics first**: each open epic related to the subject, as a block of section 3, in the
   order the script printed them. An epic is related when the subject is what its title, its body
@@ -101,15 +110,53 @@ studio"), they name a subject: run the script without a number and show the over
   of the overview, one line names the subject and how many epics and issues it found. When nothing
   is related, say so and offer the whole overview.
 
-## 5. What it means
+## 5. One piece of work
+
+When the target is one piece of work, never a list (an issue that is not an epic, a pull request,
+a branch, a worktree), the script prints its heading, its state, its epic, its branch, its
+worktree, its pull requests and the next action. The maintainer asked on 2026-11-24 that it open
+with what the work does, and that its map follow it. Yours:
+
+- **The name**: after the dot of the heading, a short name instead of the title, as for an epic;
+  a heading with no issue (`Branch ...`, `Worktree ...`) stays as printed.
+- **What it does**: right under the heading, before the state, two or three sentences that say
+  exactly what the work does, in plain words: what changes, and for whom (a person on a screen,
+  a product that installs it, whoever maintains it). No reference to the code (no file,
+  function, token, class, tag or command), no issue or pull request number, no branch: what it
+  does, not where. Read, in this order: the issue (`gh issue view <n> --json title,body`), its
+  pull request (`gh pr view <n> --json title,body`), then the work itself, which wins when they
+  disagree: its commits (`git log --oneline origin/<base>..<branch>`) and its diff
+  (`git diff --stat origin/<base>...<branch>`, then the diff); for a worktree, also what is
+  uncommitted (`git -C <folder> status --short`, `git -C <folder> diff HEAD`). When the work does
+  more or less than the issue asks, say it in a last sentence. With no work yet (no branch, no
+  diff), say what it will do, from the issue.
+- **What matters** in each row of the pull requests, as for a part.
+- **The map**, last: run `/v2:work-map` on the same target (the issue or the pull request by its
+  number, a branch by its name, a worktree by its folder path) and show what it gives under a
+  heading "How it works", in the language of the conversation, as it prints it: the line that
+  sums it up, the diagram (its Mermaid block), the legend, then the table. Never the table
+  without the diagram: the table is the diagram in words, for whoever cannot see it (left out on
+  2026-11-24, and the maintainer asked where the diagram was). Open the page its `--html` writes
+  too. It picks done or planned itself: done when there is work, planned from the issue
+  otherwise.
+
+Everything else stays as printed: the icon, the branches, the counts, the table of the pull
+requests, the next action. Headers and the words before the colon (State, Epic, Branch, Worktree)
+in the language of the conversation.
+
+## 6. What it means
 
 - The icon of a part: merged, a pull request of it merged into the branch of the epic or the part
   closed; pull request open; to do, anything else, a pull request merged into another branch
   while the part stays open included (an earlier round left the rest of it to do).
 - The icon of an issue outside an epic: pull request open, when an open pull request belongs to
   it as to a part (it closes the issue with a keyword, or comes from a branch linked to it or
-  named `<issue>-`); to do otherwise. It is never shown merged: merging into the default branch
-  closes it (rule 3).
+  named `<issue>-`); to do otherwise. It is never shown merged in a list: merging into the default
+  branch closes it (rule 3); one closed issue, pointed at alone, is merged.
+- How one piece of work leads to the rest: a pull request to the issue it closes (else the number
+  its branch starts with); a branch to the issue it is named after (`<issue>-<slug>`, rule 3), a
+  branch named after an epic but not linked to it being the epic's own work; a worktree to its
+  branch, or, detached, to the issue its folder name ends with (`magma-wt-1427`).
 - "ready" means the person can decide, never that you may merge: a merge waits for the person's ok
   naming the pull request (`/v2:work-merge`, rule 1).
 - A worktree holding work GitHub has not seen (uncommitted files, commits no remote branch holds)

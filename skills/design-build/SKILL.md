@@ -8,6 +8,11 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(nod
 
 The principles say what must be true for the people using the interface. They never name a component: how to build it is the project's design system's call. Arguments given with the command, if any: $ARGUMENTS.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 ## Before building
 
 0. Find the object model of the area (`../../docs/object-model.md`, from this skill's folder, says what it is). A new view, section or tool with no model: run `design-interview` first. A request that adds an entity, a field, a state or an action to a view: run `design-reframe` first. Build each view around its focal entity, with the entities around it at the granularity the model sets, with the patterns and blocks the model names for it. A conflict between the model and the design system found while building is added to the model's Conflicts section and told to the person; until it is resolved, follow the design system.

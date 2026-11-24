@@ -10,6 +10,11 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-video.ts *), Bas
 What to announce: $ARGUMENTS. The first word is the address of the live product; the rest, when
 given, is what the person says the product is.
 
+Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
+before and after it, or Markdown reads the line above as a heading) right above what this skill
+answers - its report, tables, map or questions - so the person sees where it starts. The
+one-line notes before each step stay above it.
+
 Before each step, say in one line what it does. The script `${CLAUDE_PLUGIN_ROOT}/scripts/linkedin-video.ts`
 says in its header how it records and which traps it already handles; its `Take` interface is
 the toolkit a scene drives the product with.
