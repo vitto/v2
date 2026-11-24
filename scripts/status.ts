@@ -7,8 +7,11 @@
         the same files; how far the branch of the epic is behind the default branch; then the next
         action (scripts/lib/epic.ts says where each answer comes from and what each icon means)
     node scripts/status.ts [--repo=<owner/name>] [--config=<file>]
-        the repository: its open epics, its open pull requests and what holds each, the local
-        worktrees and the work in them GitHub has not seen, then the next action
+        the repository: each open epic as a summary (its branch, the count of its parts per
+        state, a line per part not merged yet), the open issues outside the open epics with their
+        state, branch and labels (the agent groups them by subject), the open pull requests and
+        what holds each, the local worktrees and the work in them GitHub has not seen, then the
+        next action; the states of a part and of an issue outside an epic: scripts/lib/epic.ts
 
   Where each answer comes from:
 
@@ -25,9 +28,19 @@
 import path from 'node:path';
 import { isMain, parseArgs } from './lib/args.ts';
 import { configNotice, loadConfig, type Config } from './lib/config.ts';
-import { holds, mergeCommand, report, type Landing, type PullRequest } from './lib/epic.ts';
+import {
+  ICONS,
+  holds,
+  issueItem,
+  legend,
+  mergeCommand,
+  report,
+  epicSummary,
+  type Landing,
+  type PullRequest,
+} from './lib/epic.ts';
 import { readEpic, readOverview, type Overview } from './lib/github.ts';
-import { cell, link, plural, short, table } from './lib/markdown.ts';
+import { cell, link, plural, ref, table } from './lib/markdown.ts';
 import { repoOf, rootOf, type Repo } from './lib/run.ts';
 import { onlyHere, uncommitted, worktreesOf } from './lib/worktrees.ts';
 
@@ -65,32 +78,36 @@ export const renderOverview = (
       landing.method === 'queue' ? 'through its merge queue' : 'with a merge commit'
     }.`,
     '',
-    '**Open epics**',
+    legend(),
     '',
   );
-  if (!overview.epics.length)
-    lines.push('No open epic (an issue with sub-issues, GOVERNANCE.md rule 2).');
+  if (!overview.epics.length) lines.push('No open epic (an issue with sub-issues, GOVERNANCE.md rule 2).');
+  else lines.push(overview.epics.map(epicSummary).join('\n\n'));
+
+  lines.push('', '### Open issues outside an epic', '');
+  if (!overview.issues.length) lines.push('No open issue outside an epic.');
   else
     lines.push(
-      ...table(
-        ['Epic', 'Parts done', 'Branch'],
-        overview.epics.map((epic) => [
-          `${link(epic.number, epic.url)} ${cell(short(epic.title))}`,
-          `${epic.parts.completed} of ${epic.parts.total}`,
-          epic.branches.length ? epic.branches.map((b) => `\`${cell(b)}\``).join('<br>') : 'none linked',
-        ]),
-      ),
+      '| # | What matters | State | Branch | Labels |',
+      '|---|---|:-:|---|---|',
+      ...overview.issues.map((issue) => {
+        const item = issueItem(issue, overview.pulls);
+        return `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${
+          item.branch ? `\`${cell(item.branch)}\`` : '-'
+        } | ${issue.labels.length ? cell(issue.labels.join(', ')) : '-'} |`;
+      }),
     );
+  if (overview.unread) lines.push('', `${plural(overview.unread, 'more open issue')} not read: the first 100 only.`);
 
   lines.push('', '**Open pull requests**', '');
   if (!overview.pulls.length) lines.push('No open pull request.');
   else
     lines.push(
       ...table(
-        ['#', 'Pull request', 'From', 'Into', 'State'],
-        overview.pulls.map((pr, i) => [
-          String(i + 1),
-          `${link(pr.number, pr.url)} ${cell(short(pr.title))}`,
+        ['#', 'What matters', 'From', 'Into', 'State'],
+        overview.pulls.map((pr) => [
+          ref(pr.number, pr.url),
+          cell(pr.title),
           `\`${cell(pr.headRefName)}\``,
           `\`${cell(pr.baseRefName)}\``,
           cell(prState(pr).join('; ')),
@@ -116,7 +133,7 @@ export const renderOverview = (
               : w.local
                 ? plural(w.local, 'commit')
                 : '-',
-            pr ? link(pr.number, pr.url) : '-',
+            pr ? ref(pr.number, pr.url) : '-',
           ];
         }),
       ),
