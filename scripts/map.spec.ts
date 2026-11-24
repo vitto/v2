@@ -5,6 +5,7 @@ import {
   START,
   compare,
   diagramOf,
+  drawExpression,
   escapeLabel,
   extractMap,
   into,
@@ -16,6 +17,7 @@ import {
   styleOf,
   summaryOf,
   type MapSpec,
+  MERMAID,
 } from './map.ts';
 
 const plan = (): MapSpec =>
@@ -106,7 +108,14 @@ describe('the marks', () => {
 
 describe('the diagram', () => {
   it('escapes what Mermaid or HTML would read, # first', () => {
-    assert.equal(escapeLabel('a & <b>"#1"</b> `x`'), 'a #38; #60;b#62;#34;#35;1#34;#60;/b#62; #96;x#96;');
+    assert.equal(escapeLabel('a & <b>"#1"</b> `x`'), 'a #38; #60;b#62;#34;#35;1#34;#60;/b#62; \\`x\\`');
+  });
+
+  it('escapes the Markdown Mermaid reads in a label with a backslash, so it shows as written', () => {
+    assert.equal(escapeLabel('--magma-*-wash-*'), '\\-\\-magma\\-\\*\\-wash\\-\\*');
+    assert.equal(escapeLabel('_x_ 1. [a](b) ~~c~~ !'), '\\_x\\_ 1\\. \\[a\\](b) \\~\\~c\\~\\~ \\!');
+    assert.equal(escapeLabel('a\\b'), 'a\\\\b');
+    assert.equal(escapeLabel('two\nlines'), 'two lines');
   });
 
   it('draws each kind with its shape, inside its groups, with safe ids and one class per look', () => {
@@ -115,8 +124,8 @@ describe('the diagram', () => {
     assert.match(text, /^flowchart LR$/m);
     assert.match(text, /^ {2}subgraph g_scripts\["scripts\/"\]$/m);
     assert.match(text, /^ {4}subgraph g_lib\["lib\/"\]$/m);
-    assert.match(text, /^ {6}n_markdown\("markdown\.ts"\)$/m);
-    assert.match(text, /^ {4}n_skill\(\["\/v2:map<br\/><i>\+ new<\/i>"\]\)$/m);
+    assert.match(text, /^ {6}n_markdown\("markdown\\\.ts"\)$/m);
+    assert.match(text, /^ {4}n_skill\(\["\/v2:map<br\/><i>\\\+ new<\/i>"\]\)$/m);
     assert.match(text, /^ {4}n_old\(\["oldMap\(\)<br\/><i>\u2212 removed \u00b7 \u26a0 breaking<\/i>"\]\)$/m);
     assert.match(text, /^ {2}n_skill -->\|"runs"\| n_script$/m);
     assert.match(text, /^ {2}n_status -\.-> n_skill$/m);
@@ -244,6 +253,35 @@ describe('the page', () => {
     assert.match(page, /mermaid@\d+\.\d+\.\d+\/dist\/mermaid\.esm\.min\.mjs/);
     assert.equal(page.match(/<\/script>/g)?.length, 1, 'only the script of the page closes');
     assert.match(page, /<td>&lt;\/script&gt;<\/td>/);
+  });
+
+  it('shows the source where no script runs when there is no drawing', () => {
+    const spec = parseMap({ title: 'T', mode: 'done', nodes: [{ id: 'a', label: 'a <b>', kind: 'entity', change: 'new' }] });
+    const page = pageOf(spec, render(spec));
+    assert.doesNotMatch(page, /Drawing the diagram/);
+    assert.match(page, /<div id="diagram" role="img"[^>]*><p class="muted">A script draws the diagram/);
+    assert.match(page, /<pre>flowchart LR\n/);
+    assert.match(page, /#60;b#62;/, 'the source as Mermaid reads it, escaped once more for HTML');
+  });
+
+  it('holds the drawing itself, on a white card, and draws it again only in dark mode', () => {
+    const spec = parseMap({ title: 'T', mode: 'done', nodes: [{ id: 'a', label: 'a', kind: 'entity', change: 'new' }] });
+    const page = pageOf(spec, render(spec), '<svg id="map" xmlns="http://www.w3.org/2000/svg"><g/></svg>');
+    assert.match(page, /<div id="diagram" class="card" role="img"[^>]*><svg id="map"/);
+    assert.doesNotMatch(page, /<pre>flowchart/, 'the drawing, not the source');
+    assert.match(page, /if \(!drawn \|\| dark\)/);
+    assert.match(page, /mermaid\.render\('map-live', source\)/, 'another id than the drawing it replaces');
+    assert.equal(page.match(/<\/script>/g)?.length, 1);
+  });
+});
+
+describe('the drawing', () => {
+  it('runs the pinned Mermaid on the source, on a white ground, and returns XML', () => {
+    const expression = drawExpression('flowchart LR\n  a["x \\"y\\""]');
+    assert.match(expression, new RegExp(`https://cdn\\.jsdelivr\\.net/npm/${MERMAID.replace(/[.@]/g, '\\$&')}/dist/mermaid\\.esm\\.min\\.mjs`));
+    assert.match(expression, /mermaid\.render\('map', "flowchart LR\\n  a\[\\"x \\\\\\"y\\\\\\"\\"\]"\)/);
+    assert.match(expression, /backgroundColor = '#ffffff'/);
+    assert.match(expression, /new XMLSerializer\(\)\.serializeToString\(element\)/);
   });
 });
 
