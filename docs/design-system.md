@@ -12,7 +12,7 @@ Find it from the project, never from memory or from the conversation alone:
 - its docs and its instructions for agents (`CLAUDE.md`, `AGENTS.md`), when they name one;
 - its own folder of shared components, when the design system lives in the project.
 
-Then read what it ships for agents from the installed package and its docs, never guessed: an MCP server (a `bin` of the package, or a server its README documents), a Claude Code plugin and its skills, guides for agents. For example, a project on Magma has a `@maggioli-design-system/*` dependency. The package ships the `magma-mcp` server, and the `magma@magma` plugin adds the `magma:ui`, `magma:pattern-layer` and `magma:review` skills.
+Then read what it ships for agents from the installed package and its docs, never guessed: an MCP server (a `bin` of the package, or a server its README documents), a Claude Code plugin and its skills, guides for agents. For example, the project depends on the design system's package, the package lists an MCP server among its `bin` entries, and its README names a Claude Code plugin and the skills it adds.
 
 Say in one line which design system it is, its installed version and the tools it ships. When the project is the design system itself, its source and its docs give the answers, and the tools it ships are checked as below.
 
@@ -60,7 +60,7 @@ A piece built without one is a **gap**, never filled silently. Report each gap i
 - **The resolution proposed**, one of the three in the object model's Conflicts (`object-model.md`, section 8):
   - **The method adapts**: what the design system has is right, so the piece is rebuilt with it, and the request or the model changes.
   - **The design system changes**: a new id (a component, a block, a pattern) or a change to an existing one. It is proposed as an issue on the design system's repository, opened only on the person's yes.
-  - **The product decides**: the piece stays in the product only, in the product's own pattern layer (Magma: `/magma:pattern-layer`), not as loose markup in a page.
+  - **The product decides**: the piece stays in the product only, in the product's own pattern layer (the place the design system gives a product for its own patterns, when it has one), not as loose markup in a page.
 
 Until the person chooses, the piece stays as close to the design system as it allows: its tokens, and its nearest component. A gap in a view that has an object model also goes to the model's Conflicts.
 

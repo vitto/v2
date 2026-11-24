@@ -77,7 +77,7 @@ A new version reaches an installed plugin only when `version` in [.claude-plugin
 
 ## With a design system
 
-The principles say what must be true for the people using the interface and never name a component, so they work with any design system and do not compete with its guidance. When the design system has its own plugin or MCP server, such as [Magma](https://github.com/magma-design-system/magma)'s, use both: the design system says how, v2 says what must hold. When they disagree, the agent follows the design system and reports the difference.
+The principles say what must be true for the people using the interface and never name a component, so they work with any design system and do not compete with its guidance. When the design system has its own plugin or MCP server, use both: the design system says how, v2 says what must hold. When they disagree, the agent follows the design system and reports the difference.
 
 ## Where the principles come from
 
