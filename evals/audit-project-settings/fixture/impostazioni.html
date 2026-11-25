@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Impostazioni del progetto</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="toolbar">
+    <a href="/progetti">Progetti</a>
+    <input type="search" aria-label="Cerca nelle impostazioni" placeholder="Cerca...">
+  </header>
+
+  <main>
+    <h1>Impostazioni del progetto</h1>
+
+    <form id="settings" action="/api/projects/42" method="post">
+      <input type="text" name="name" placeholder="Nome del progetto" maxlength="40" required>
+
+      <label for="description">Descrizione</label>
+      <textarea id="description" name="description"></textarea>
+
+      <label class="check">
+        <input type="checkbox" name="public" checked>
+        Rendi il progetto pubblico
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="primary">Salva</button>
+        <div class="delete" onclick="deleteProject()">Elimina progetto</div>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    function deleteProject() {
+      fetch('/api/projects/42', { method: 'DELETE' }).then(() => {
+        location.href = '/progetti';
+      });
+    }
+  </script>
+</body>
+</html>

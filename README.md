@@ -211,6 +211,7 @@ npm test
 - The publisher is specified with no network: the requests of the sign-in, the Videos API and the Posts API, made against a `fetch` of the specs that records them; the text in LinkedIn's little text format; the id and the words that approve it; the checks; the suggested moments; the job of a scheduled post. A real post needs the person's account: `--rehearse` checks all of it but the post itself, and a first post approved checks the rest.
 - The plugin itself is specified as it ships, in [scripts/plugin.spec.ts](scripts/plugin.spec.ts): every skill's frontmatter parses (a SKILL.md whose YAML does not parse loads with empty metadata, and nothing says so), its `name` is its folder, it has a `description`; the manifests are JSON, and the marketplace lists this plugin. The frontmatter is read with no package ([scripts/lib/frontmatter.ts](scripts/lib/frontmatter.ts)), so it keeps to the YAML the skills use: one `key: value` per line, the value plain, quoted or a block; a list or a map is refused until that reader learns it.
 - `claude plugin validate . --strict` (`npm run validate` without `--strict`) checks more, by hand: CI does not install the Claude Code CLI.
+- `evals/` holds a suite in the format of `claude plugin eval`: does each skill still do its job, and on which model ([evals/README.md](evals/README.md), results in [evals/RESULTS.md](evals/RESULTS.md)). It runs by hand, on a login, when a model ships or a skill changes, never in `npm test`.
 - The same `npm test` runs on every pull request and on `main`, in [.github/workflows/test.yml](.github/workflows/test.yml): it is the check `/v2:work-merge` waits for.
 
 ### Layout
@@ -224,6 +225,7 @@ docs/             the formats of the object model, the taxonomy register and the
 scripts/          one script per job of the workflow, and its spec beside it; plugin.spec.ts, the plugin itself
 scripts/lib/      what the scripts share: git and gh, the configuration, the epic, the worktrees
 examples/         the .claude/v2.json of real projects; the scene of a LinkedIn video
+evals/            the cases of `claude plugin eval`, one folder each with its fixture; the results
 schema/           the JSON Schema of .claude/v2.json
 GOVERNANCE.md     the rules of the workflow
 ```

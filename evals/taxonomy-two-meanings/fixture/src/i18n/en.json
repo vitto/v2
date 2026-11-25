@@ -1,0 +1,17 @@
+{
+  "catalogue.search": "Search the catalogue",
+  "title.singular": "Title",
+  "title.author": "Author",
+  "copy.plural": "Copies",
+  "copy.available": "Copies available",
+  "copy.shelfmark": "Shelfmark",
+  "copy.state": "State",
+  "copy.barcode": "Copy barcode",
+  "duplicate.heading": "Duplicates to merge",
+  "duplicate.notice": "This title has other records in the catalogue: merge them into this one.",
+  "duplicate.merge": "Merge the duplicate",
+  "reader.singular": "Reader",
+  "reader.card": "Library card",
+  "loan.lend": "Lend",
+  "loan.due": "Due"
+}
