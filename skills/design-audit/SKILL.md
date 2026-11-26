@@ -40,6 +40,12 @@ A rule of the model that the built screen breaks because the design system makes
 
 A screen that needs something the model does not have is an open question for `design-reframe`, not a fail.
 
+## 2c. The design system
+
+When the project has a design system, find it and the tools it ships for agents, as `../../docs/design-system.md`, from this skill's folder, says (steps 1 and 2). When it ships tools that are not loaded in this session, stop before the checks. Tell the person what is missing, what it would give, and the ways to enable it, then ask whether to enable it or audit with the guides only. Never fall back to the guides silently: an audit that reads the guides by hand cannot tell which components the installed version has.
+
+Then run DS1 of that file on the target. Every piece made without a component, building block or pattern of the design system, and not already a gap the person resolved, is a row of the report. The row carries the resolution you propose, one of the three of that file (step 3).
+
 ## 3. The checks
 
 - `code` checks by reading the code. `runtime` checks on the running page when you can open it: keyboard, focus, the accessibility tree, a state reached by acting. A runtime check you could not run is not verifiable, never a pass.

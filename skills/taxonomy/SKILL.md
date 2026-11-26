@@ -38,7 +38,7 @@ First question, always: **can the code be touched?** (Is the identifier private 
 
 The five moves, lightest first:
 
-1. **Declared homonym**: the contexts never meet, so one name may stay. Write it in the register so nobody "fixes" it. Example: Magma's `variant` is one concept with a value per component; it is not two concepts.
+1. **Declared homonym**: the contexts never meet, so one name may stay. Write it in the register so nobody "fixes" it. Example: a design system's `variant` is one concept with a value per component; it is not two concepts.
 2. **Qualify**: the long form only where the contexts meet ("zona di livello" beside "stile di zona"), the short form everywhere else.
 3. **Rename**: the name changes in every language that collides, in the interface, the docs and, when the code can be touched, the code.
 4. **Alias**: the code cannot be touched, so the interface word differs from the identifier. The register links them, with the reason written ("read by mods", "lab code, to rename with the next schema change").
