@@ -43,7 +43,13 @@ chooses between the epic of that part and the whole repository):
   in it (a branch made, a commit, a pull request opened or merged), or in the summary of an
   earlier part of it; not every number it met in passing (a row of a table, an issue found on the
   way). First find the epic of each piece: run the script on the piece and read the `Epic:` its
-  report names (a branch named after an epic is that epic). Then ask, in the question dialog (in
+  report names (a branch named after an epic is that epic). When the script cannot read the piece
+  (GitHub out of reach, `gh` not logged in or not allowed to start), take its epic from the
+  conversation - the branch its branch or pull request was made on, the epic the person named -
+  else the piece is its own answer; and ask all the same, the failure in one line above the
+  question: the answer waits for the person, only the report waits for GitHub. How to give the
+  script access goes after the question, never instead of it (#63: without this, the reference
+  model skipped the question in 2 runs of 5). Then ask, in the question dialog (in
   Claude Code, `AskUserQuestion`), one question, "What do I show?", with these answers:
   - one per epic, else one per piece without an epic, in the order the conversation met them, at
     most three, the first marked recommended ("The epic 1397, which #1400 is a part of
