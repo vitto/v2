@@ -38,8 +38,10 @@
     `merge.blockingWorkflows` of .claude/v2.json.
 
   The report shows one line per part, as the person asked for it on 2026-11-24 (an icon for the
-  state, the branch, what matters written by the agent from the title), and the details of the
-  open pull requests in a table of their own. The state of a part:
+  state, the details written by the agent from the title, the branch under them), and the details
+  of the open pull requests in a table of their own. Since 2026-11-26 each line has a column
+  `Domain` (`DOMAINS`, below: the agent writes it, the script prints `?`) and the blocks are
+  apart by a horizontal rule. The state of a part:
 
   - merged: a pull request of the part merged into the branch of the epic, or the part is closed
     (the parts close only when the epic lands, GOVERNANCE.md rule 3);
@@ -56,7 +58,7 @@
   the default branch (GOVERNANCE.md rule 3), and its merged pull requests are not read.
 */
 import type { BlockingWorkflow, MergeMethod } from './config.ts';
-import { cell, link, ref } from './markdown.ts';
+import { cell, details, link, ref, rule, table } from './markdown.ts';
 
 export type Checks = 'SUCCESS' | 'FAILURE' | 'ERROR' | 'PENDING' | 'EXPECTED' | null;
 
@@ -387,11 +389,16 @@ export const nextActions = (
 
 export type Progress = 'merged' | 'open' | 'todo';
 
-/** The icon of each state; the source stays ASCII, the output carries the emoji. */
+/**
+ * The icon of each state, the ones the maintainer chose on 2026-11-26: a check mark for merged,
+ * a warning for a pull request open (it waits for something: checks, a review, an ok), an
+ * hourglass for to do. The source stays ASCII, the output carries the emoji (the warning sign
+ * with its emoji variation selector, or some fonts draw it as a small black glyph).
+ */
 export const ICONS: Record<Progress, string> = {
   merged: String.fromCodePoint(0x2705),
-  open: String.fromCodePoint(0x1f500),
-  todo: String.fromCodePoint(0x2b1c),
+  open: String.fromCodePoint(0x26a0, 0xfe0f),
+  todo: String.fromCodePoint(0x23f3),
 };
 
 const DOT = String.fromCodePoint(0xb7);
@@ -399,6 +406,65 @@ const DOT = String.fromCodePoint(0xb7);
 /** The legend of the icons, one line. */
 export const legend = (): string =>
   `${ICONS.merged} merged ${DOT} ${ICONS.open} pull request open ${DOT} ${ICONS.todo} to do`;
+
+/**
+ * The domain of a row: what kind of work it is, so the person reads it at a glance (asked by the
+ * maintainer on 2026-11-26, with bug, feature, change, css and governance as examples). A fixed
+ * set, each with a colour of its own that means the same in every run and every project; the
+ * word always beside the colour, never the colour alone. The agent writes it (the script prints
+ * `?`: GitHub has no field for it, and labels are a hint, often missing or wrong), one per row:
+ * the first of this list that applies, judged on what the work changes, from the title, the
+ * labels and, when they are not enough, the body. The criterion of each is the skill's
+ * (skills/work-status/SKILL.md, "The domain"), held equal to this list by scripts/plugin.spec.ts.
+ *
+ * - bug: the product does not do what it promises (its documentation, an accessibility floor,
+ *   how it worked before), even when the fix is only a style;
+ * - change: what exists changes or moves with nothing new for whoever uses it: a breaking
+ *   change, a rename, a removal, a refactor;
+ * - css: only the look changes, by choice: styles, tokens, colours, spacing, type, with no new
+ *   property, event or markup;
+ * - feature: something new for whoever uses the product: a component, a property, a case of a
+ *   pattern, a command, a page;
+ * - docs: only the documentation and the guides, a mistake in them included;
+ * - governance: only how the work flows: rules, workflows, review, release, labels, the skills
+ *   of the maintainers;
+ * - tooling: only what builds, tests and measures the product: the build, CI, dependencies,
+ *   tests and their infrastructure, scripts.
+ */
+export const DOMAINS = [
+  { name: 'bug', icon: String.fromCodePoint(0x1f534) },
+  { name: 'change', icon: String.fromCodePoint(0x1f535) },
+  { name: 'css', icon: String.fromCodePoint(0x1f7e3) },
+  { name: 'feature', icon: String.fromCodePoint(0x1f7e2) },
+  { name: 'docs', icon: String.fromCodePoint(0x1f7e1) },
+  { name: 'governance', icon: String.fromCodePoint(0x1f7e0) },
+  { name: 'tooling', icon: String.fromCodePoint(0x1f7e4) },
+] as const;
+
+/** What the script prints in the column `Domain`, for the agent to replace with a chip. */
+export const UNKNOWN_DOMAIN = '?';
+
+/** The legend of the domains, one line, in the order of `DOMAINS`. */
+export const domainLegend = (): string => DOMAINS.map((d) => `${d.icon} ${d.name}`).join(` ${DOT} `);
+
+/** The two legends, each a paragraph of its own. */
+export const legends = (): string[] => [legend(), '', domainLegend()];
+
+/**
+ * The table of pull requests, the same in every report: the domain, the title with the branch it
+ * comes from under it, where it lands, and its state (`stateOf`, which differs by report).
+ */
+export const pullTable = (pulls: PullRequest[], stateOf: (pr: PullRequest) => string): string[] =>
+  table(
+    ['#', 'Domain', 'Details', 'Into', 'State'],
+    pulls.map((pr) => [
+      ref(pr.number, pr.url),
+      UNKNOWN_DOMAIN,
+      details(pr.title, pr.headRefName),
+      `\`${cell(pr.baseRefName)}\``,
+      cell(stateOf(pr)),
+    ]),
+  );
 
 /** A line of the table: a part, or a pull request of the epic's own work. */
 export interface Item {
@@ -464,13 +530,16 @@ const head = (epic: Epic): string[] => {
   return lines;
 };
 
-/** The table of the items: the number alone as the text of its link, the title, the icon, the branch. */
+/**
+ * The table of the items: the number alone as the text of its link, the domain for the agent to
+ * write, the title with the branch under it, the icon.
+ */
 export const itemTable = (items: Item[]): string[] => [
-  '| # | What matters | State | Branch |',
-  '|---|---|:-:|---|',
+  '| # | Domain | Details | State |',
+  '|---|---|---|:-:|',
   ...items.map(
     (item) =>
-      `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${item.branch ? `\`${cell(item.branch)}\`` : '-'} |`,
+      `| ${ref(item.number, item.url)} | ${UNKNOWN_DOMAIN} | ${details(item.title, item.branch)} | ${ICONS[item.progress]} |`,
   ),
 ];
 
@@ -520,12 +589,12 @@ export const report = (epic: Epic, landingWay?: Landing): string => {
     lines.push('', 'The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic.');
 
   const items = itemsOf(epic, rows);
-  if (items.length) lines.push('', legend(), '', ...itemTable(items));
+  if (items.length) lines.push('', ...legends(), '', ...itemTable(items));
 
   const open = rows.filter((row) => row.pr?.state === 'OPEN');
   if (open.length)
     lines.push(
-      '',
+      ...rule(),
       '**Open pull requests**',
       '',
       '| Pull request | Of | Into | State |',
@@ -542,7 +611,7 @@ export const report = (epic: Epic, landingWay?: Landing): string => {
     );
 
   lines.push(
-    '',
+    ...rule(),
     '**Next action**',
     '',
     ...nextActions(epic, rows, landingWay).map((action) => `- ${action}`),

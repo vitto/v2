@@ -37,12 +37,13 @@ import {
   holds,
   issueItem,
   mergeCommand,
+  pullTable,
   type Landing,
   type Part,
   type Progress,
   type PullRequest,
 } from './epic.ts';
-import { cell, link, plural, ref, table } from './markdown.ts';
+import { cell, link, plural, ref, rule } from './markdown.ts';
 
 export interface Issue {
   number: number;
@@ -208,22 +209,10 @@ export const renderPiece = (piece: Piece, landing: Landing): string => {
     const where = w.branch ? '' : piece.branch ? ' (detached, not on the branch)' : ` (detached${behind})`;
     lines.push(`Worktree: \`${path.basename(w.dir)}\`${where}${unseen(w) ? `: ${unseen(w)}` : ', nothing GitHub has not seen'}.`);
   }
-  lines.push('', '**Pull requests**', '');
+  lines.push(...rule(), '**Pull requests**', '');
   if (!piece.pulls.length) lines.push('None.');
-  else
-    lines.push(
-      ...table(
-        ['#', 'What matters', 'From', 'Into', 'State'],
-        piece.pulls.map((pr) => [
-          ref(pr.number, pr.url),
-          cell(pr.title),
-          `\`${cell(pr.headRefName)}\``,
-          `\`${cell(pr.baseRefName)}\``,
-          cell(pullState(pr)),
-        ]),
-      ),
-    );
+  else lines.push(...pullTable(piece.pulls, pullState));
   const next = nextOf(piece, landing);
-  lines.push('', '**Next action**', '', ...(next.length ? next : ['Nothing waits.']).map((line) => `- ${line}`));
+  lines.push(...rule(), '**Next action**', '', ...(next.length ? next : ['Nothing waits.']).map((line) => `- ${line}`));
   return lines.join('\n');
 };
