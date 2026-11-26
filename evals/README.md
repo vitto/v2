@@ -62,6 +62,11 @@ header of the report names the model you asked for.
 - `--disallow-tools Agent`: `/v2:agent-route` would hand the work to a subagent on another
   model, and the run would measure that model instead.
 - `--keep-temp` keeps the workspace and the transcript of every run, to read why one failed.
+- A case that resumes a conversation (`history_file`) gets, in its own folder of the plugin, a
+  file named after the `sessionId` of its `history.jsonl`, where every run writes its session.
+  Every run still starts from the last line of `history.jsonl` (checked on 7 runs, 3 at once), so
+  the runs do not see each other. Git ignores the file; delete it after the runs: it holds the
+  requests of every run.
 - One model at a time: three at once, 9 runs in flight, reached the 5-hour limit of the plan, and
   a run or a judge call that meets the limit scores 0 without being graded; leave those runs out
   of the count.
