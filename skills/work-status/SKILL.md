@@ -217,7 +217,7 @@ Worktree) in the language of the conversation, the words of the chips as they ar
 - How one piece of work leads to the rest: a pull request to the issue it closes (else the number
   its branch starts with); a branch to the issue it is named after (`<issue>-<slug>`, rule 3), a
   branch named after an epic but not linked to it being the epic's own work; a worktree to its
-  branch, or, detached, to the issue its folder name ends with (`magma-wt-1427`).
+  branch, or, detached, to the issue its folder name ends with (`app-wt-1427`).
 - "ready" means the person can decide, never that you may merge: a merge waits for the person's ok
   naming the pull request (`/v2:work-merge`, rule 1).
 - A worktree holding work GitHub has not seen (uncommitted files, commits no remote branch holds)
