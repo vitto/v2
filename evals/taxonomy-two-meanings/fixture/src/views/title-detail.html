@@ -1,0 +1,31 @@
+<!-- The page of one title, for the librarians: where its copies are, and the records to merge. -->
+<main class="title-detail">
+  <h1 data-bind="title.name"></h1>
+  <p data-bind="title.author"></p>
+
+  <section>
+    <h2 data-i18n="copy.plural"></h2>
+    <table>
+      <thead>
+        <tr><th data-i18n="copy.shelfmark"></th><th data-i18n="copy.state"></th></tr>
+      </thead>
+      <tbody>
+        <tr data-each="title.copies">
+          <td data-bind="shelfmark"></td>
+          <td data-bind="state"></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <aside class="notice" data-if="title.duplicates.length">
+    <h2 data-i18n="duplicate.heading"></h2>
+    <p data-i18n="duplicate.notice"></p>
+    <ul>
+      <li data-each="title.duplicates">
+        <a data-bind-href="'/records/' + of" data-bind="source"></a>
+        <button data-action="merge" data-i18n="duplicate.merge"></button>
+      </li>
+    </ul>
+  </aside>
+</main>
