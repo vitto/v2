@@ -9,9 +9,10 @@
     node scripts/status.ts [--repo=<owner/name>] [--config=<file>]
         the repository: each open epic as a summary (its branch, the count of its parts per
         state, a line per part not merged yet), the open issues outside the open epics with their
-        state, branch and labels (the agent groups them by subject), the open pull requests and
-        what holds each, the local worktrees and the work in them GitHub has not seen, then the
-        next action; the states of a part and of an issue outside an epic: scripts/lib/epic.ts
+        state, branch and labels (the agent groups them by subject and writes the domain of each
+        row), the open pull requests and what holds each, the local worktrees and the work in
+        them GitHub has not seen, then the next action, each block apart by a horizontal rule;
+        the states of a part and of an issue outside an epic, and the domains: scripts/lib/epic.ts
     node scripts/status.ts <issue or pull request number | branch | worktree> [--repo=<owner/name>] [--config=<file>]
         one piece of work: its state, its epic, its branch and how far behind it is, its
         worktree and the work there GitHub has not seen, its pull requests and what holds each,
@@ -39,11 +40,13 @@ import { isMain, parseArgs } from './lib/args.ts';
 import { configNotice, loadConfig, type Config } from './lib/config.ts';
 import {
   ICONS,
+  UNKNOWN_DOMAIN,
   holds,
   issueItem,
   itemsOf,
-  legend,
+  legends,
   mergeCommand,
+  pullTable,
   report,
   rowsOf,
   epicSummary,
@@ -60,7 +63,7 @@ import {
   readOverview,
   type Overview,
 } from './lib/github.ts';
-import { cell, link, plural, ref, table } from './lib/markdown.ts';
+import { cell, details, link, plural, ref, rule, table } from './lib/markdown.ts';
 import { git, repoOf, rootOf, type Repo } from './lib/run.ts';
 import {
   branchOf,
@@ -110,46 +113,34 @@ export const renderOverview = (
       landing.method === 'queue' ? 'through its merge queue' : 'with a merge commit'
     }.`,
     '',
-    legend(),
-    '',
+    ...legends(),
+    ...rule(),
   );
   if (!overview.epics.length) lines.push('No open epic (an issue with sub-issues, GOVERNANCE.md rule 2).');
-  else lines.push(overview.epics.map(epicSummary).join('\n\n'));
+  else lines.push(overview.epics.map(epicSummary).join(`\n${rule().join('\n')}\n`));
 
-  lines.push('', '### Open issues outside an epic', '');
+  lines.push(...rule(), '### Open issues outside an epic', '');
   if (!overview.issues.length) lines.push('No open issue outside an epic.');
   else
     lines.push(
-      '| # | What matters | State | Branch | Labels |',
-      '|---|---|:-:|---|---|',
+      '| # | Domain | Details | State | Labels |',
+      '|---|---|---|:-:|---|',
       ...overview.issues.map((issue) => {
         const item = issueItem(issue, overview.pulls);
-        return `| ${ref(item.number, item.url)} | ${cell(item.title)} | ${ICONS[item.progress]} | ${
-          item.branch ? `\`${cell(item.branch)}\`` : '-'
+        return `| ${ref(item.number, item.url)} | ${UNKNOWN_DOMAIN} | ${details(item.title, item.branch)} | ${
+          ICONS[item.progress]
         } | ${issue.labels.length ? cell(issue.labels.join(', ')) : '-'} |`;
       }),
     );
   if (overview.unread) lines.push('', `${plural(overview.unread, 'more open issue')} not read: the first 100 only.`);
 
-  lines.push('', '**Open pull requests**', '');
+  lines.push(...rule(), '**Open pull requests**', '');
   if (!overview.pulls.length) lines.push('No open pull request.');
-  else
-    lines.push(
-      ...table(
-        ['#', 'What matters', 'From', 'Into', 'State'],
-        overview.pulls.map((pr) => [
-          ref(pr.number, pr.url),
-          cell(pr.title),
-          `\`${cell(pr.headRefName)}\``,
-          `\`${cell(pr.baseRefName)}\``,
-          cell(prState(pr).join('; ')),
-        ]),
-      ),
-    );
+  else lines.push(...pullTable(overview.pulls, (pr) => prState(pr).join('; ')));
 
   const pullOf = new Map(overview.pulls.map((pr) => [pr.headRefName, pr]));
   if (worktrees.length) {
-    lines.push('', '**Local worktrees**', '');
+    lines.push(...rule(), '**Local worktrees**', '');
     lines.push(
       ...table(
         ['Folder', 'Branch', 'Uncommitted', 'Only on this disk', 'Pull request'],
@@ -190,7 +181,7 @@ export const renderOverview = (
       next.push(`\`${path.basename(w.dir)}\` holds work GitHub has not seen: ${what.join(', ')}.`);
   }
   if (!next.length) next.push('Nothing waits for your ok, and no worktree holds work GitHub has not seen.');
-  lines.push('', '**Next action**', '', ...next.map((line) => `- ${line}`));
+  lines.push(...rule(), '**Next action**', '', ...next.map((line) => `- ${line}`));
   return lines.join('\n');
 };
 

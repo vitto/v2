@@ -27,6 +27,22 @@ export const plural = (n: number, one: string): string => `${n} ${one}${n === 1 
 export const capped = (items: string[], max: number): string[] =>
   items.length > max ? [...items.slice(0, max), `+${items.length - max} more`] : items;
 
+/**
+ * The horizontal rule between the blocks of a report (an epic, a group of issues, the pull
+ * requests, the worktrees, the next action), so the person sees where one ends: asked by the
+ * maintainer on 2026-11-26. It always stands between empty lines, or Markdown reads the line
+ * above it as a heading.
+ */
+export const rule = (): string[] => ['', '---', ''];
+
+/**
+ * The cell `Details`: the title, and under it the branch of the row when it has one, which
+ * took a column of its own until 2026-11-26 (the maintainer asked for it under the text). The
+ * line break is `<br>`, the only one a table cell holds, as the tables of scripts/pages.ts do.
+ */
+export const details = (title: string, branch?: string | null): string =>
+  branch ? `${cell(title)}<br>\`${cell(branch)}\`` : cell(title);
+
 /** A Markdown table from a header and rows of cells (already escaped). */
 export const table = (header: string[], rows: string[][]): string[] => [
   `| ${header.join(' | ')} |`,

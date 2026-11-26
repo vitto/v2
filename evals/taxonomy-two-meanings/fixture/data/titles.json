@@ -1,0 +1,16 @@
+{
+  "titles": [
+    {
+      "id": "t-1043",
+      "name": "Il nome della rosa",
+      "author": "Umberto Eco",
+      "copies": [
+        { "id": "c-88121", "shelfmark": "853.914 ECO 1", "state": "shelf" },
+        { "id": "c-88122", "shelfmark": "853.914 ECO 2", "state": "loan" }
+      ],
+      "duplicates": [
+        { "id": "t-2210", "of": "t-1043", "source": "import from the regional catalogue, 2019" }
+      ]
+    }
+  ]
+}
