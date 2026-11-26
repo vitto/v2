@@ -316,12 +316,17 @@ describe('report', () => {
     );
     assert.match(text, /^### \[10\]\(https:\/\/github\.com\/o\/r\/issues\/10\) \u00b7 epic: the work$/m);
     assert.match(text, /^Branch: `10-epic`\.$/m);
-    assert.match(text, /^\u2705 merged \u00b7 \u{1f500} pull request open \u00b7 \u2b1c to do$/mu);
-    assert.match(text, /^\| # \| What matters \| State \| Branch \|\n\|---\|---\|:-:\|---\|$/m);
-    assert.match(text, /^\| \[20\]\(.+\/issues\/20\) \| a \\\| pipe and a line \| \u{1f500} \| `20-a` \|$/mu);
+    assert.match(text, /^\u2705 merged \u00b7 \u26a0\ufe0f pull request open \u00b7 \u23f3 to do$/mu);
+    assert.match(
+      text,
+      /^\u{1f534} bug \u00b7 \u{1f535} change \u00b7 \u{1f7e3} css \u00b7 \u{1f7e2} feature \u00b7 \u{1f7e1} docs \u00b7 \u{1f7e0} governance \u00b7 \u{1f7e4} tooling$/mu,
+    );
+    assert.match(text, /^\| # \| Domain \| Details \| State \|\n\|---\|---\|---\|:-:\|$/m);
+    assert.match(text, /^\| \[20\]\(.+\/issues\/20\) \| \? \| a \\\| pipe and a line<br>`20-a` \| \u26a0\ufe0f \|$/mu);
     assert.match(text, /^\| \[5\]\(.+\/pull\/5\) \| \[20\]\(.+\) \| `10-epic` \| ready \|$/m);
     assert.doesNotMatch(text, /\[#20\]/, 'a number in a column is a bare number');
-    assert.match(text, /\*\*Next action\*\*\n\n- \[#5\]/);
+    assert.match(text, /\n\n---\n\n\*\*Open pull requests\*\*\n/, 'a rule between the blocks');
+    assert.match(text, /\n\n---\n\n\*\*Next action\*\*\n\n- \[#5\]/);
   });
 
   it('says how far behind the branch is, and shows no table of pull requests when none is open', () => {
@@ -332,7 +337,7 @@ describe('report', () => {
       }),
     );
     assert.match(text, /^Branch: `10-epic`, 5 commits behind `main`\.$/m);
-    assert.match(text, /^\| \[20\]\(.+\) \| part 20 \| \u2705 \| `20-a` \|$/mu);
+    assert.match(text, /^\| \[20\]\(.+\) \| \? \| part 20<br>`20-a` \| \u2705 \|$/mu);
     assert.doesNotMatch(text, /Open pull requests/);
   });
 
@@ -351,7 +356,7 @@ describe('report', () => {
     assert.match(text, /The epic issue is closed\./);
     assert.match(text, /Branch: `10-epic`, not on GitHub\./);
     assert.match(text, /The epic has no sub-issues: rule 2 makes each part a sub-issue of the epic\./);
-    assert.doesNotMatch(text, /What matters/);
+    assert.doesNotMatch(text, /Details/);
   });
 });
 
@@ -374,11 +379,11 @@ describe('epicSummary', () => {
     );
     assert.match(text, /^### \[10\]\(https:\/\/github\.com\/o\/r\/issues\/10\) \u00b7 epic: the work$/m);
     assert.match(text, /^Branch: `10-epic`, 5 commits behind `main`\.$/m);
-    assert.match(text, /^Parts: \u2705 2 \u00b7 \u{1f500} 1 \u00b7 \u2b1c 1$/mu, 'the parts only, not the own work');
-    assert.match(text, /^\| # \| What matters \| State \| Branch \|$/m);
-    assert.match(text, /^\| \[22\]\(.+\/issues\/22\) \| part 22 \| \u{1f500} \| `22-c` \|$/mu);
-    assert.match(text, /^\| \[7\]\(.+\/pull\/7\) \| work of the epic itself: tidy up \| \u{1f500} \| `tidy` \|$/mu);
-    assert.match(text, /^\| \[23\]\(.+\/issues\/23\) \| part 23 \| \u2b1c \| `23-d` \|$/mu);
+    assert.match(text, /^Parts: \u2705 2 \u00b7 \u26a0\ufe0f 1 \u00b7 \u23f3 1$/mu, 'the parts only, not the own work');
+    assert.match(text, /^\| # \| Domain \| Details \| State \|$/m);
+    assert.match(text, /^\| \[22\]\(.+\/issues\/22\) \| \? \| part 22<br>`22-c` \| \u26a0\ufe0f \|$/mu);
+    assert.match(text, /^\| \[7\]\(.+\/pull\/7\) \| \? \| work of the epic itself: tidy up<br>`tidy` \| \u26a0\ufe0f \|$/mu);
+    assert.match(text, /^\| \[23\]\(.+\/issues\/23\) \| \? \| part 23<br>`23-d` \| \u23f3 \|$/mu);
     assert.doesNotMatch(text, /\[20\]|\[21\]/, 'the merged parts are in the count only');
     assert.doesNotMatch(text, /merged \u00b7/u, 'the legend is the overview\'s, once');
     assert.doesNotMatch(text, /Next action|Open pull requests/);
@@ -386,9 +391,9 @@ describe('epicSummary', () => {
 
   it('says when every part is merged, and when the epic has no sub-issues', () => {
     const done = epicSummary(epic({ parts: [part(20, { mentions: [merged(2, '20-a')] }), part(21, { state: 'CLOSED' })] }));
-    assert.match(done, /^Parts: \u2705 2 \u00b7 \u{1f500} 0 \u00b7 \u2b1c 0$/mu);
+    assert.match(done, /^Parts: \u2705 2 \u00b7 \u26a0\ufe0f 0 \u00b7 \u23f3 0$/mu);
     assert.match(done, /^Every part is merged into the branch of the epic\.$/m);
-    assert.doesNotMatch(done, /What matters/);
+    assert.doesNotMatch(done, /Details/);
     const empty = epicSummary(epic({ branch: null, linkedBranches: [] }));
     assert.match(empty, /Branch: unknown, none is linked to the epic issue\./);
     assert.match(empty, /The epic has no sub-issues/);

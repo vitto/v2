@@ -1,6 +1,6 @@
 ---
 name: work-status
-description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with what matters, an icon for its state and its branch, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Pointed at one piece of work - an issue, a pull request, a branch or a worktree - what it does in a few plain sentences, its state, then its map from /v2:work-map. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
+description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with its domain as a coloured chip (bug, change, css, feature, docs, governance, tooling), its details with the branch under them and an icon for its state, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Pointed at one piece of work - an issue, a pull request, a branch or a worktree - what it does in a few plain sentences, its state, then its map from /v2:work-map. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
 argument-hint: "[epic, issue or pull request number, branch, worktree, or subject]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *), Bash(gh pr view *), Bash(git log *), Bash(git diff *), Bash(git -C *)
 ---
@@ -16,7 +16,10 @@ default branch). The script says in its header where each answer comes from.
 Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
 before and after it, or Markdown reads the line above as a heading) right above what this skill
 answers - its report, tables, map or questions - so the person sees where it starts. The
-one-line notes before each step stay above it.
+one-line notes before each step stay above it. Inside the answer, a rule the same way between
+its blocks, as the maintainer asked on 2026-11-26: keep the ones the script prints (after the
+legends, between the epics, before the issues outside an epic, the pull requests, the worktrees
+and the next action) and put one after each block you write (each group of issues, the map).
 
 Before each step, say in one line what it does. Every answer is tables, never a retelling in
 prose: show what the script prints, in its order, without dropping rows, and add one line at most
@@ -41,54 +44,86 @@ options: `--branch=<branch of the epic>` when the table says the branch is unkno
 
 ## 2. What you write in the report of an epic
 
-The script prints the titles of GitHub as they are; three things it cannot write are yours.
+The script prints the titles of GitHub as they are; four things it cannot write are yours.
 Everything else stays as printed: the rows and their order, the numbers, the icons, the branches,
-the table of the open pull requests, the next action.
+the table of the open pull requests, the rules between the blocks, the next action.
 
 - **The name of the epic**: after the dot of the heading, a short name instead of the title (no
   `epic:` prefix, no list of the parts).
 - **What the epic is for**: under the heading, before the branch, two to four sentences or a short
   list, from the body of the epic (`gh issue view <epic> --json body`): why the work exists, what
   it is made of, when it is done, and what it waits for or what waits for it.
-- **What matters**: each title of the column rewritten as one phrase of at most 55 characters
-  saying what is crucial in that part, so the column stays narrow and every row reads at a
-  glance. When the title is not enough, read the body of the part.
+- **Details**: each title of the column rewritten as one phrase of at most 55 characters saying
+  what is crucial in that part, so the column stays narrow and every row reads at a glance. When
+  the title is not enough, read the body of the part. The branch under it (after `<br>`) stays as
+  printed: since 2026-11-26 it is there instead of a column of its own.
+- **The domain**: the `?` of the column `Domain`, replaced in every row by its chip, below.
 
-Write them, the headers of the tables, the legend and the word `Branch` in the language of the
-conversation. A number in the first column is a link whose text is the bare number: keep it so,
-without `#` (the Claude desktop app shows `[#12](...)` to an issue as `owner/name#12`). With more
-than one epic, one block each, the legend once above the first.
+### The domain
+
+What kind of work a row is, so the person reads it at a glance without confusing one kind with
+another (the maintainer, 2026-11-26). The set is fixed, the one of the second legend the
+script prints (`DOMAINS` in `scripts/lib/epic.ts`): never another word, never another colour,
+never translated, so a colour means the same in every run and every project. The chip is the
+coloured circle of the legend and the word together, as the legend writes them, never the colour
+alone. One per row: **the first of this list that applies**, judged on what the work changes.
+
+| Domain | When |
+|---|---|
+| bug | The product does not do what it promises - its documentation, an accessibility floor, how it worked before - even when the fix is only a style |
+| change | What exists changes or moves with nothing new for whoever uses it: a breaking change, a rename, a removal, a refactor |
+| css | Only the look changes, by choice: styles, tokens, colours, spacing, type, with no new property, event or markup |
+| feature | Something new for whoever uses the product: a component, a property, a case of a pattern, a command, a page |
+| docs | Only the documentation and the guides, a mistake in them included |
+| governance | Only how the work flows: rules, workflows, review, release, labels, the skills of the maintainers |
+| tooling | Only what builds, tests and measures the product: the build, CI, dependencies, tests and their infrastructure, scripts |
+
+Read it from the title and the labels; the body only when they are not enough. Labels are a
+hint, not the answer: `bug` points to bug, `docs` to docs, but an issue labelled `feature` that
+only asks for another look is css. A pull request takes the domain of the issue it closes, else
+the one its title says (`fix` a bug, `docs` docs); the epic's own work, the domain of what it
+does.
+
+Write the names, the sentences, the headers of the tables, the legends and the word `Branch` in
+the language of the conversation; the words of the chips stay as they are. A number in the first
+column is a link whose text is the bare number: keep it so, without `#` (the Claude desktop app
+shows `[#12](...)` to an issue as `owner/name#12`). With more than one epic, one block each, the
+legends once above the first.
 
 ## 3. What you write in the overview of the repository
 
 Without a number the script prints a summary, the form the maintainer chose on 2026-11-24: the
-legend once, a block per open epic, then the open issues outside an epic in one table, then the
-open pull requests, the local worktrees and the next action. The work is grouped as epics are,
-and what belongs to no epic is grouped too, "like an epic of various things".
+legends once, a block per open epic, then the open issues outside an epic in one table, then the
+open pull requests, the local worktrees and the next action, a rule between each. The work is
+grouped as epics are, and what belongs to no epic is grouped too, "like an epic of various
+things".
 
-- **Each epic**: the same three things as in its report (section 2), the name, what it is for
-  (`gh issue view <epic> --json body`, one call per epic) and what matters in each row. The
-  block lists only what is not merged yet; the merged parts are in its count, which stays as
-  printed.
+- **Each epic**: the same four things as in its report (section 2), the name, what it is for
+  (`gh issue view <epic> --json body`, one call per epic), the details and the domain of each
+  row. The block lists only what is not merged yet; the merged parts are in its count, which
+  stays as printed.
 - **The open issues outside an epic**: split the table into groups by subject, each written as
   an epic of its own:
   - a heading as the one of an epic: `###`, a short name of the subject the issues share (a
     component, an area, a kind of work, never their state), the dot, and how many issues;
   - under it two to four sentences: what the issues have in common, what is moving (a pull
     request open), and what would close the group;
-  - the table `# | What matters | State | Branch` with its issues, in the order the script
-    printed them, without the column `Labels`: it served the grouping;
+  - the table `# | Domain | Details | State` with its issues, in the order the script printed
+    them, the details and the domain written as for a part, without the column `Labels`: it
+    served the grouping and the domain;
+  - a rule after the group, so the next one starts apart;
   - every issue in exactly one group, every group with two issues at least; an issue alone in its
     subject goes to a last group of various things, whose sentences say what is in it;
   - the groups with a pull request open first, then the larger ones; the various things last;
   - the subject from the title and the labels (`prg-*`, `bug`); the body only when they are not
     enough. An issue titled `epic:` without sub-issues is an issue like the others: say in the
     sentences of its group that it has no parts yet.
-- **The open pull requests**: what matters in each, as for a part.
+- **The open pull requests**: the details and the domain of each, as for a part.
 
-Everything else stays as printed: the legend, the counts, the numbers, the icons, the branches,
-the tables of the pull requests and of the worktrees, the next action. Headers, legend, the names
-and the sentences in the language of the conversation.
+Everything else stays as printed: the legends, the counts, the numbers, the icons, the branches,
+the tables of the pull requests and of the worktrees, the rules, the next action. Headers,
+legends, the names and the sentences in the language of the conversation, the words of the chips
+as they are.
 
 ## 4. A subject instead of a number
 
@@ -130,10 +165,10 @@ with what the work does, and that its map follow it. Yours:
   uncommitted (`git -C <folder> status --short`, `git -C <folder> diff HEAD`). When the work does
   more or less than the issue asks, say it in a last sentence. With no work yet (no branch, no
   diff), say what it will do, from the issue.
-- **What matters** in each row of the pull requests, as for a part.
+- **The details and the domain** in each row of the pull requests, as for a part (section 2).
 - **The map**, last: run `/v2:work-map` on the same target (the issue or the pull request by its
-  number, a branch by its name, a worktree by its folder path) and show what it gives under a
-  heading "How it works", in the language of the conversation, as it prints it: the line that
+  number, a branch by its name, a worktree by its folder path) and show what it gives, after a
+  rule, under a heading "How it works", in the language of the conversation, as it prints it: the line that
   sums it up, the diagram (its Mermaid block), the legend, then the table. Never the table
   without the diagram: the table is the diagram in words, for whoever cannot see it (left out on
   2026-11-24, and the maintainer asked where the diagram was). Open the page its `--html` writes
@@ -141,8 +176,8 @@ with what the work does, and that its map follow it. Yours:
   otherwise.
 
 Everything else stays as printed: the icon, the branches, the counts, the table of the pull
-requests, the next action. Headers and the words before the colon (State, Epic, Branch, Worktree)
-in the language of the conversation.
+requests, the rules, the next action. Headers and the words before the colon (State, Epic, Branch,
+Worktree) in the language of the conversation, the words of the chips as they are.
 
 ## 6. What it means
 

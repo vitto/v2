@@ -144,7 +144,9 @@ describe('renderPiece', () => {
     assert.ok(lines.includes(`Epic: [10](${URL}/issues/10) ${DOT} epic: the work.`));
     assert.ok(lines.includes('Branch: `30-b`, 4 commits behind `10-epic`.'));
     assert.ok(lines.includes('Worktree: `magma-wt-b`: 2 uncommitted files.'));
-    assert.ok(lines.includes(`| [7](${URL}/pull/7) | a \\| b | \`30-b\` | \`10-epic\` | ready |`));
+    assert.ok(lines.includes(`| [7](${URL}/pull/7) | ? | a \\| b<br>\`30-b\` | \`10-epic\` | ready |`));
+    assert.match(text, /\n\n---\n\n\*\*Pull requests\*\*\n\n\| # \| Domain \| Details \| Into \| State \|\n/, 'a rule between the blocks');
+    assert.match(text, /\n\n---\n\n\*\*Next action\*\*\n/);
     assert.ok(lines.includes(`- [#7](${URL}/pull/7) is ready to merge into \`10-epic\`: it waits for your ok ("ok #7", then \`gh pr merge 7 --merge\`).`));
     assert.ok(lines.includes('- `magma-wt-b` holds work GitHub has not seen: 2 uncommitted files.'));
   });
