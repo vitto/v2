@@ -1,6 +1,6 @@
 ---
 name: work-status
-description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with its domain as a coloured chip (bug, change, css, feature, docs, governance, tooling), its details with the branch under them and an icon for its state, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, in a conversation that already has work, that work - the epic each piece of it belongs to, else the piece; in a new conversation, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Pointed at one piece of work - an issue, a pull request, a branch or a worktree - what it does in a few plain sentences, its state, then its map from /v2:work-map. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
+description: 'Where the work stands, as tables. With an epic number, the epic - what it is for, its branch, a line per part in the order its work lands with its domain as a coloured chip (bug, change, css, feature, docs, governance, tooling), its details with the branch under them and an icon for its state, the open pull requests with their checks, conflicts and shared files - and the next action. Without one, in a conversation that already has work, it first asks what to show - the epic each piece of that work belongs to, else the piece, or the whole repository; in a new conversation, the repository as a summary - each open epic with what it is for and its parts not merged yet, the open issues outside an epic grouped by subject with a summary above each group, the open pull requests and what holds each, local worktrees with work GitHub has not seen. With words instead of a number, the same summary for one subject - the related epics first, then the related issues outside an epic, grouped. Pointed at one piece of work - an issue, a pull request, a branch or a worktree - what it does in a few plain sentences, its state, then its map from /v2:work-map. Use when asked where things stand, for the state of an epic, a pull request or the repository; in Italian "stato", "a che punto siamo", "come siamo messi".'
 argument-hint: "[epic, issue or pull request number, branch, worktree, or subject]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *), Bash(gh pr view *), Bash(git log *), Bash(git diff *), Bash(git -C *)
 ---
@@ -9,8 +9,8 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${C
 
 What the person gave, if anything: $ARGUMENTS (a number is an epic, or one issue or pull
 request; the name of a branch or of a worktree is one piece of work, section 5; other words are a
-subject, section 4; nothing at all is the work of the conversation, or the repository in a new
-one, section 1). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
+subject, section 4; nothing at all is a question, the epic of the conversation's work or the
+whole repository, and the repository in a new conversation, section 1). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
 person decides every merge) and rule 2 (the parts land in the branch of the epic, the epic in the
 default branch). The script says in its header where each answer comes from.
 
@@ -34,22 +34,29 @@ In the repository the person is working on:
 node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts <what the person gave>
 ```
 
-When the person gave nothing, the conversation says what to pass, as the maintainer asked on
-2026-11-26 (a conversation about one part answered with the whole repository):
+When the person gave nothing, the conversation says what to ask, as the maintainer asked on
+2026-11-26 (a conversation about one part answered with the whole repository; the person
+chooses between the epic of that part and the whole repository):
 
-- **A conversation that already has work** asks where that work stands, not the repository. Its
-  work is each issue, pull request, branch or worktree it acts on or is about: named by the
-  person, worked on in it (a branch made, a commit, a pull request opened or merged), or in the
-  summary of an earlier part of it; not every number it met in passing (a row of a table, an
-  issue found on the way). For each piece, its epic when it has one: run the script on the piece,
-  and when its report names an `Epic:`, pass that epic (section 2); else show the piece itself
-  (section 5). An epic reached by several pieces is shown once; several epics or pieces, one
-  block each, the epics first, in the order the conversation met them.
-- **A new conversation**, with no work yet, or a person asking for the whole repository ("tutto
-  il repository", "il quadro d'insieme", "overview"): nothing to pass, the overview (section 3).
+- **A conversation that already has work**: ask what to show before any report. Its work is each
+  issue, pull request, branch or worktree it acts on or is about: named by the person, worked on
+  in it (a branch made, a commit, a pull request opened or merged), or in the summary of an
+  earlier part of it; not every number it met in passing (a row of a table, an issue found on the
+  way). First find the epic of each piece: run the script on the piece and read the `Epic:` its
+  report names (a branch named after an epic is that epic). Then ask, in the question dialog (in
+  Claude Code, `AskUserQuestion`), one question, "What do I show?", with these answers:
+  - one per epic, else one per piece without an epic, in the order the conversation met them, at
+    most three, the first marked recommended ("The epic 1397, which #1400 is a part of
+    (Recommended)"); an epic reached by several pieces is one answer;
+  - the last, "The whole repository, its issues grouped": the overview.
 
-Before the report, one line says what was taken from the conversation ("this conversation works
-on 1400, a part of the epic 1397: the epic"), so the person can ask for the overview instead.
+  The answer leads to section 2 for an epic, section 5 for a piece, section 3 for the repository.
+  Where the dialog cannot be shown, ask the same in chat as a numbered list and stop until the
+  person answers. Never run the script with nothing before the answer: the overview is one of
+  the answers, not the default.
+- **A new conversation**, with no work yet, or a person asking for the whole repository in words
+  ("tutto il repository", "il quadro d'insieme", "overview"): nothing to ask and nothing to pass,
+  the overview (section 3).
 
 A number with sub-issues is an epic (section 2); any other number, a branch or a worktree (its
 folder name or path) is one piece of work (section 5), and a branch named after an epic is that
