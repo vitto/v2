@@ -53,8 +53,9 @@ on 1400, a part of the epic 1397: the epic"), so the person can ask for the over
 
 A number with sub-issues is an epic (section 2); any other number, a branch or a worktree (its
 folder name or path) is one piece of work (section 5), and a branch named after an epic is that
-epic. Without anything, or with words that name no branch and no worktree, it shows the repository: each open epic as a summary, the open issues outside
-an epic, the open pull requests, the local worktrees (section 3). When the person asked about an
+epic. The script, run with nothing or with words that name no branch and no worktree, shows the
+repository: each open epic as a summary, the open issues outside an epic, the open pull requests,
+the local worktrees (section 3). When the person asked about an
 epic without naming it and the overview lists more than one, ask which; when their words name a
 subject instead ("the epic of the studio", "lavorazioni di studio"), section 4. Other
 options: `--branch=<branch of the epic>` when the table says the branch is unknown,
