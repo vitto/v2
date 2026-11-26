@@ -1,22 +1,24 @@
 # Results
 
-Runs of 2026-11-25 on Claude Code 2.1.325, judge `claude-sonnet-5-5`, with the flags of the
-[README](README.md#running-it). Costs are list-price estimates of each run, judge included; the
-runs spent the quota of the plan.
+Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0, judge
+`claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
+estimates of a valid run, judge included; the runs spent the quota of the plan.
 
 | Skill | Case | Opus 5.5 (reference) | Sonnet 5.5 | Haiku 5.5 | Floor | Cost a run, O / S / H |
 | --- | --- | --- | --- | --- | --- | --- |
-| `taxonomy` | taxonomy-two-meanings | 5/5 | not measured (plan limit) | 3/5 | to measure: Sonnet or Opus | 0.26 / - / 0.05 USD |
-| `design-reframe` | reframe-reservations | 7/7 | 3/4 | 2/8 | to measure: Sonnet if its next valid run passes, else Opus | 0.30 / 0.16 / 0.04 USD |
-| `design-audit` | audit-project-settings | 8/10 | 2/5 | 4/10 | none: the reference does not pass (finding 1) | 0.50 / 0.27 / 0.07 USD |
+| `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
+| `design-reframe` | reframe-reservations | 7/7 | 4/5 | 2/8 | **Sonnet 5.5**, at the threshold | 0.32 / 0.16 / 0.04 USD |
+| `design-audit` | audit-project-settings | 8/10 | 2/5 | 4/10 | none: the reference does not pass (finding 1) | 0.51 / 0.27 / 0.07 USD |
 
 How to read it:
 
 - **a/b** is the runs where every grader passed, over the valid runs. A run is valid when it ended
-  without an API error and every judge call answered: 8 runs hit the 5-hour limit of the plan
+  without an API error and every judge call answered: 11 runs hit the 5-hour limit of the plan
   and are left out.
 - **The floor** needs at least 4 passes over 5 valid runs, on a case the reference passes every
-  time; Haiku holds none of the three skills.
+  time; Haiku holds none of the three skills. `design-reframe` holds on Sonnet with no run to
+  spare: its one failure is the judged rubric (two votes of three), so measure it again whenever
+  the skill or Sonnet changes.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
   batches; the judged graders did not change. The next run of the suite starts from these
@@ -50,5 +52,6 @@ How to read it:
 
 ## Cost
 
-12.34 USD at list price for 71 runs (6 of calibration). Three models at once, 9 runs in flight,
-reached the 5-hour limit of the plan: run one model at a time.
+14.94 USD at list price for 77 runs, 1.80 of it the judge: 6 runs of calibration and 11 cut by
+the plan limit included. Three models at once, 9 runs in flight, reached the 5-hour limit of the
+plan: run one model at a time.
