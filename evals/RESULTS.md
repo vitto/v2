@@ -1,14 +1,15 @@
 # Results
 
-Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0, judge
-`claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
-estimates of a valid run, judge included; the runs spent the quota of the plan.
+Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
+on 0.21.0 with its fix, #55), judge `claude-sonnet-5-5`, with the flags of the
+[README](README.md#running-it). Costs are list-price estimates of a valid run, judge included; the
+runs spent the quota of the plan.
 
 | Skill | Case | Opus 5.5 (reference) | Sonnet 5.5 | Haiku 5.5 | Floor | Cost a run, O / S / H |
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
 | `design-reframe` | reframe-reservations | 7/7 | 4/5 | 2/8 | **Sonnet 5.5**, at the threshold | 0.32 / 0.16 / 0.04 USD |
-| `design-audit` | audit-project-settings | 8/10 | 2/5 | 4/10 | none: the reference does not pass (finding 1) | 0.51 / 0.27 / 0.07 USD |
+| `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
 
 How to read it:
 
@@ -16,9 +17,13 @@ How to read it:
   without an API error and every judge call answered: 11 runs hit the 5-hour limit of the plan
   and are left out.
 - **The floor** needs at least 4 passes over 5 valid runs, on a case the reference passes every
-  time; Haiku holds none of the three skills. `design-reframe` holds on Sonnet with no run to
-  spare: its one failure is the judged rubric (two votes of three), so measure it again whenever
+  time; Haiku holds none of the three skills. `design-reframe` and `design-audit` hold on Sonnet
+  with no run to spare: the one failure of each is the judged rubric (two votes of three for
+  `design-reframe`; three of three for `design-audit`, on a report that, read by hand, keeps the
+  search field out of the defects and cites rows in its summary), so measure them again whenever
   the skill or Sonnet changes.
+- The figures of `design-audit` are the runs after its fix (#55); the runs before it measured the
+  rule that finding 1 describes, and are left out.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
   batches; the judged graders did not change. The next run of the suite starts from these
@@ -26,17 +31,23 @@ How to read it:
 
 ## Findings
 
-1. **`design-audit` marks Pass checks it could not run.** A row gives Pass to a runtime or
-   rendered check read from the code: AB1 (a contrast computed from the stylesheet), AB10 ("no
-   animations"), AB8 (a name read from an `aria-label`), EP10. Every model does it, the reference
-   too: Opus in 2 runs of 10, Sonnet in 3 of 5, Haiku in 2 of 10. `SKILL.md` and
-   `docs/rendered.md` already say "not verifiable, never a pass"; the rule does not hold where the
-   report is written. A fix of the skill, not a limit of a model: say it in step 4 of the skill,
-   with the estimate from the stylesheet as the example. Until then the case has no floor.
+1. **`design-audit` marked Pass checks it could not run; fixed in #55.** A row gave Pass to a
+   runtime or rendered check read from the code: AB1 (a contrast computed from the stylesheet),
+   AB10 ("no animations"), AB8 (a name read from an `aria-label`), EP10. Every model did it, the
+   reference too: Opus in 2 runs of 10, Sonnet in 3 of 5, Haiku in 2 of 10. The rule lived in
+   step 3 only; step 4, where the result of a row is chosen, listed Pass with no condition. The
+   skill now says that the level of a check decides its result, that an estimate from the code
+   goes in the row of a Not verifiable, and that a Pass row holds only checks run at their level.
+   After the fix no run of 15, on any model, trips `no-unrun-pass`; the reports put the estimate
+   in a Not verifiable row (AB1: `#222` on white about 16:1 by the stylesheet, to measure on the
+   page).
 2. **`design-reframe` on Haiku changes the model before the person's yes** (4 runs of 8), and keeps
    the reader's data editable in the title page, which its model rules out.
 3. **`taxonomy` on Haiku qualifies a homonym whose views never meet** ("titolo", 2 runs of 5): it
    reads "the same librarian sees both" as "they meet in one place".
+4. **`design-audit` on Haiku loses the principles or touches a file** (2 runs of 5): in one it
+   looks for the principles at a path it guesses, finds nothing, and reviews with general criteria
+   and no check ids; in the other it calls Edit once, though its report says no file changed.
 
 ## What the calibration fixed
 
@@ -52,6 +63,6 @@ How to read it:
 
 ## Cost
 
-14.94 USD at list price for 77 runs, 1.80 of it the judge: 6 runs of calibration and 11 cut by
-the plan limit included. Three models at once, 9 runs in flight, reached the 5-hour limit of the
-plan: run one model at a time.
+18.79 USD at list price for 92 runs, 2.15 of it the judge: 6 runs of calibration and 11 cut by
+the plan limit included, and the 15 runs of `design-audit` after its fix (3.85 USD). Three models
+at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model at a time.
