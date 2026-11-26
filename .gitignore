@@ -2,3 +2,5 @@
 node_modules/
 *.log
 evals/results/
+# A run that resumes a case's history_file writes its session beside it, named after its sessionId.
+evals/*/*-*-*-*-*.jsonl
