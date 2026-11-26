@@ -67,17 +67,26 @@ describe('renderOverview', () => {
     );
     assert.match(text, /^## Where `vitto\/home` stands$/m);
     assert.match(text, /^Default branch: `main`, with a merge commit\.$/m);
-    assert.equal(text.match(/^\u2705 merged \u00b7 \u{1f500} pull request open \u00b7 \u2b1c to do$/gmu)?.length, 1);
+    assert.equal(text.match(/^\u2705 merged \u00b7 \u26a0\ufe0f pull request open \u00b7 \u23f3 to do$/gmu)?.length, 1);
+    assert.equal(
+      text.match(
+        /^\u{1f534} bug \u00b7 \u{1f535} change \u00b7 \u{1f7e3} css \u00b7 \u{1f7e2} feature \u00b7 \u{1f7e1} docs \u00b7 \u{1f7e0} governance \u00b7 \u{1f7e4} tooling$/gmu,
+      )?.length,
+      1,
+    );
+    assert.match(text, /to do\n\n\u{1f534} bug .*\n\n---\n\n### \[12\]/u, 'the two legends, then a rule before the first block');
     assert.match(text, /^### \[12\]\(https:\/\/x\/12\) \u00b7 epic: the site$/m);
-    assert.match(text, /^Parts: \u2705 1 \u00b7 \u{1f500} 1 \u00b7 \u2b1c 0$/mu);
-    assert.match(text, /^\| \[13\]\(https:\/\/x\/13\) \| part 13 \| \u{1f500} \| `13-part` \|$/mu);
+    assert.match(text, /^Parts: \u2705 1 \u00b7 \u26a0\ufe0f 1 \u00b7 \u23f3 0$/mu);
+    assert.match(text, /^\| \[13\]\(https:\/\/x\/13\) \| \? \| part 13<br>`13-part` \| \u26a0\ufe0f \|$/mu);
     assert.doesNotMatch(text, /\[16\]/, 'a merged part is in the count only');
-    assert.match(text, /^### Open issues outside an epic\n\n\| # \| What matters \| State \| Branch \| Labels \|$/m);
-    assert.match(text, /^\| \[20\]\(https:\/\/x\/20\) \| a \\\| bug \| \u{1f500} \| `20-fix` \| bug, prg-site \|$/mu);
-    assert.match(text, /^\| \[21\]\(https:\/\/x\/21\) \| part 21 \| \u2b1c \| `21-c` \| - \|$/mu);
-    assert.match(text, /^\| # \| What matters \| From \| Into \| State \|$/m);
-    assert.match(text, /^\| \[14\]\(https:\/\/x\/14\) \| a \\\| b \| `20-fix` \| `main` \| ready \|$/m);
-    assert.match(text, /^\| \[15\]\(https:\/\/x\/15\) \| .* \| `13-part` \| `12-site` \| checks running \|$/m);
+    assert.match(text, /\n\n---\n\n### Open issues outside an epic\n\n\| # \| Domain \| Details \| State \| Labels \|$/m);
+    assert.match(text, /^\| \[20\]\(https:\/\/x\/20\) \| \? \| a \\\| bug<br>`20-fix` \| \u26a0\ufe0f \| bug, prg-site \|$/mu);
+    assert.match(text, /^\| \[21\]\(https:\/\/x\/21\) \| \? \| part 21<br>`21-c` \| \u23f3 \| - \|$/mu);
+    assert.match(text, /\n\n---\n\n\*\*Open pull requests\*\*\n\n\| # \| Domain \| Details \| Into \| State \|$/m);
+    assert.match(text, /^\| \[14\]\(https:\/\/x\/14\) \| \? \| a \\\| b<br>`20-fix` \| `main` \| ready \|$/m);
+    assert.match(text, /^\| \[15\]\(https:\/\/x\/15\) \| \? \| .*<br>`13-part` \| `12-site` \| checks running \|$/m);
+    assert.match(text, /\n\n---\n\n\*\*Local worktrees\*\*\n/);
+    assert.match(text, /\n\n---\n\n\*\*Next action\*\*\n/);
     assert.match(text, /^\| `home` \(here\) \| `main` \| - \| - \| - \|$/m);
     assert.match(text, /^\| `home-wt-13` \| `13-part` \| 2 files \| 1 commit \| \[15\]\(https:\/\/x\/15\) \|$/m);
     assert.match(text, /^\| `home-wt-12-preview` \| `12-preview` \| - \| the local preview, never pushed \| - \|$/m);
@@ -109,5 +118,24 @@ describe('renderOverview', () => {
       [],
     );
     assert.match(text, /^20 more open issues not read: the first 100 only\.$/m);
+  });
+
+  it('keeps the epics apart by a rule, and puts none after the last block', () => {
+    const text = renderOverview(
+      repo,
+      {
+        defaultBranch: 'main',
+        mergeQueue: true,
+        epics: [epic({ number: 12, title: 'epic: one' }), epic({ number: 30, title: 'epic: two' })],
+        issues: [],
+        unread: 0,
+        pulls: [],
+      },
+      landingOf(DEFAULTS, true),
+      [],
+    );
+    assert.match(text, /sub-issue of the epic\.\n\n---\n\n### \[30\]/);
+    assert.equal(text.match(/^---$/gm)?.length, 5, 'after the legends, between the epics, before the issues, the pull requests and the next action');
+    assert.doesNotMatch(text, /---\s*$/, 'the answer ends with the next action');
   });
 });

@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
+import { DOMAINS } from './lib/epic.ts';
 import { frontmatter } from './lib/frontmatter.ts';
 
 const root = path.join(import.meta.dirname, '..');
@@ -86,5 +87,20 @@ describe('the manifests', () => {
     const entry = read('marketplace.json').plugins?.find((p: { name: string }) => p.name === plugin.name);
     assert.ok(entry, `marketplace.json does not list ${plugin.name}`);
     assert.equal(entry.source, './');
+  });
+});
+
+// the script prints the legend of the domains, the skill says when each applies: one list, in
+// one order, since the first that applies wins (2026-11-26)
+describe('work-status: the domains', () => {
+  it('the table of the skill is DOMAINS, in its order', () => {
+    const text = readFileSync(path.join(root, 'skills', 'work-status', 'SKILL.md'), 'utf8');
+    const section = text.split(/^### The domain$/m)[1]?.split(/^#{2,3} /m)[0] ?? '';
+    const names = [...section.matchAll(/^\| ([a-z]+) \| /gm)].map((match) => match[1]);
+    assert.deepEqual(
+      names,
+      DOMAINS.map((domain) => domain.name),
+      'skills/work-status/SKILL.md, "The domain": the table and scripts/lib/epic.ts DOMAINS differ',
+    );
   });
 });

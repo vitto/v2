@@ -1,0 +1,26 @@
+<!-- The loan desk: lend a copy to a reader, take it back. -->
+<main class="loan-desk">
+  <form data-action="lend">
+    <label for="card" data-i18n="reader.card"></label>
+    <input id="card" name="card">
+    <label for="barcode" data-i18n="copy.barcode"></label>
+    <input id="barcode" name="barcode">
+    <button type="submit" data-i18n="loan.lend"></button>
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th data-i18n="title.singular"></th>
+        <th data-i18n="reader.singular"></th>
+        <th data-i18n="loan.due"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-each="loans.today">
+        <td data-bind="copy.title.name"></td>
+        <td data-bind="reader.name"></td>
+        <td data-bind="due"></td>
+      </tr>
+    </tbody>
+  </table>
+</main>

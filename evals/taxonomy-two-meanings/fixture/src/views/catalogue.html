@@ -1,0 +1,20 @@
+<!-- The catalogue: find a title. -->
+<main class="catalogue">
+  <input type="search" data-i18n-aria-label="catalogue.search">
+  <table>
+    <thead>
+      <tr>
+        <th data-i18n="title.singular"></th>
+        <th data-i18n="title.author"></th>
+        <th data-i18n="copy.available"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-each="titles">
+        <td><a data-bind-href="'/titles/' + id" data-bind="name"></a></td>
+        <td data-bind="author"></td>
+        <td data-bind="copies.filter(c => c.state === 'shelf').length"></td>
+      </tr>
+    </tbody>
+  </table>
+</main>

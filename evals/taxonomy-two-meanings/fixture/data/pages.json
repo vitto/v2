@@ -1,0 +1,6 @@
+{
+  "pages": [
+    { "id": "p-1", "heading": "Orari di apertura", "path": "/orari", "updated": "2026-09-02" },
+    { "id": "p-2", "heading": "Come fare la tessera", "path": "/tessera", "updated": "2026-06-18" }
+  ]
+}

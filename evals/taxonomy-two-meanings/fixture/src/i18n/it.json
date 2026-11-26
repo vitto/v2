@@ -1,0 +1,17 @@
+{
+  "catalogue.search": "Cerca nel catalogo",
+  "title.singular": "Titolo",
+  "title.author": "Autore",
+  "copy.plural": "Copie",
+  "copy.available": "Copie disponibili",
+  "copy.shelfmark": "Collocazione",
+  "copy.state": "Stato",
+  "copy.barcode": "Codice della copia",
+  "duplicate.heading": "Copie da unire",
+  "duplicate.notice": "Questo titolo ha altre copie nel catalogo: uniscile a questa scheda.",
+  "duplicate.merge": "Unisci la copia",
+  "reader.singular": "Lettore",
+  "reader.card": "Tessera del lettore",
+  "loan.lend": "Presta",
+  "loan.due": "Scadenza"
+}

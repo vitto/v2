@@ -1,0 +1,21 @@
+<!-- The admin of the public site: its pages (opening hours, events, how to get a card).
+     A separate app, used by the town's web office, with its own menu and its own strings
+     (src/site-admin/i18n); it shows no catalogue data. -->
+<main class="site-pages">
+  <table>
+    <thead>
+      <tr>
+        <th data-i18n="page.heading"></th>
+        <th data-i18n="page.path"></th>
+        <th data-i18n="page.updated"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-each="pages">
+        <td><a data-bind-href="'/admin/pages/' + id" data-bind="heading"></a></td>
+        <td data-bind="path"></td>
+        <td data-bind="updated"></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
