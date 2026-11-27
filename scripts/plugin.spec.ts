@@ -1,8 +1,9 @@
 /*
   The plugin as it ships, so that CI fails on it before a merge: every skill's frontmatter parses
   (a SKILL.md whose YAML does not parse loads with empty metadata and nothing says so, as
-  skills/map/SKILL.md would have before 4cc9f4d), its name is its folder, it has a description; the
-  manifests are JSON, and the marketplace lists the plugin of this folder. `npm run validate`
+  skills/map/SKILL.md would have before 4cc9f4d), its name is its folder, it has a description; its
+  examples.md, the cheatsheet of /v2:help, keeps its format and its rules; the manifests are JSON,
+  and the marketplace lists the plugin of this folder. `npm run validate`
   (`claude plugin validate .`) checks more, by hand: CI installs nothing, and the Claude Code CLI
   would be a download of hundreds of MB on every run.
 */
@@ -10,6 +11,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, it } from 'node:test';
+import { problemsOf, readSkill, readSkills } from './help.ts';
 import { DOMAINS } from './lib/epic.ts';
 import { frontmatter } from './lib/frontmatter.ts';
 
@@ -60,6 +62,14 @@ describe('the skills', () => {
       );
     });
 
+    // #74: /v2:help draws the cheatsheet from each skill's examples.md; a skill without them, or
+    // with examples that call another skill or words its description does not hold, would teach
+    // the person what the plugin does not do
+    it(`${name}: its examples.md parses and keeps the rules of the cheatsheet`, () => {
+      const skill = readSkill(root, name);
+      assert.deepEqual(problemsOf(skill), [], `skills/${name}: see the header of scripts/help.ts for the format`);
+    });
+
     // a skill reads the docs it cites at run time: a renamed or missing file fails there, silently
     it(`${name}: every file of the plugin it cites exists`, () => {
       const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
@@ -69,6 +79,17 @@ describe('the skills', () => {
       }
     });
   }
+
+  // #74: the order of the cheatsheet is the order a person meets the skills of a group
+  it('the examples give each skill of a group its own place', () => {
+    const places = new Map<string, string>();
+    for (const skill of readSkills(root)) {
+      if (!skill.examples) continue;
+      const place = `${skill.examples.group} ${skill.examples.order}`;
+      assert.ok(!places.has(place), `skills/${skill.name}/examples.md and skills/${places.get(place)}/examples.md: both are ${place}`);
+      places.set(place, skill.name);
+    }
+  });
 
   // #51: a build that went on with the guides alone, the design system's tools not loaded, made by
   // hand what the design system had; every design skill now checks its tools, and DS1 checks the build
