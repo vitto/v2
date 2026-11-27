@@ -3,7 +3,7 @@ type: llm
 focus: last_message
 ---
 
-The reply answers `/v2:work-status` typed with no argument after a conversation where the person
+The reply answers `/v2:work` typed with no argument after a conversation where the person
 worked on the issue #12, a part of the epic #10: a branch `12-validate-postcode` made from the
 branch of the epic `10-checkout-one-page`, a commit, and the pull request #14 into the branch of
 the epic. GitHub cannot be reached in the sandbox of the run, so the reply may say so and say how
