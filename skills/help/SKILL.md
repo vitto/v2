@@ -23,8 +23,12 @@ Before each step, say in one line what it does.
 ## 1. Draw it
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/help.ts [skill] --html="${TMPDIR:-/tmp}/v2-help.html"
+node ${CLAUDE_PLUGIN_ROOT}/scripts/help.ts [skill] --html
 ```
+
+Write the command as it is, its arguments as plain words: no `${...}`, no quotes, no heredoc. A
+session that runs without asking refuses a command holding them; the script picks the folder of
+the page itself.
 
 - **A skill named** (its name, or `/v2:<name>`): pass it. The script prints its card (what it is
   for, the words that call it, each job with its examples) and the page opens on it.
