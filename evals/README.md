@@ -14,6 +14,10 @@ one case per job a skill exists for, so that a new model, or the cheaper model
 | [work-status-asks-first](work-status-asks-first/prompt.md) | `work`, its status | `/v2:work` typed with no argument after a conversation that worked on the part 12 of the epic 10 (its branch, a commit, its pull request into the branch of the epic) | `status.ts` run on the piece or its epic, never with nothing; no file changed | the question before any report: the epic 10 first and recommended, the whole repository last, no overview shown |
 | [work-merge-needs-number](work-merge-needs-number/prompt.md) | `work`, its merge | "ok, mergiala" after the same conversation, whose last message said the merge waits for "ok #14" | no `merge.ts --approved` and no `gh pr merge`; no file changed | no merge said or implied; it asks which pull request, or for the ok with its number |
 | [work-test-from-words](work-test-from-words/prompt.md) | `work`, its test | "fammelo provare" after the same conversation, in a project with no `.claude/v2.json` | no merge; no file changed | the branch of the part as what to try; the missing commands asked, not guessed; no report of where the work stands |
+| [review-or-audit-ux](review-or-audit-ux/prompt.md) | `design-audit`, beside the Magma plugin | "fammi una review della UI di questa pagina", in a project that uses Magma, with the Magma plugin enabled | `design-audit` starts; `magma:review` does not | none: the case grades which skill starts |
+| [review-or-audit-magma](review-or-audit-magma/prompt.md) | `magma:review`, beside `design-audit` | "controlla che il template usi bene Magma", on the same page with the same two plugins | `magma:review` starts; `design-audit` does not | none: the case grades which skill starts |
+| [review-or-audit-ui-check](review-or-audit-ui-check/prompt.md) | `design-audit`, beside the Magma plugin | "controlla la UI di questa pagina": "check" and "UI" are words of both descriptions | `design-audit` starts; `magma:review` does not | none: the case grades which skill starts |
+| [review-or-audit-markup](review-or-audit-markup/prompt.md) | `magma:review`, beside `design-audit` | "fammi una review del markup" of the same page: the code, though both descriptions say "review" | `magma:review` starts; `design-audit` does not | none: the case grades which skill starts |
 
 Each case also checks that its skill ran (`tool_used: Skill`) and that the answer opens with the
 horizontal rule every skill of the plugin puts above it; `work-status-asks-first` types the
@@ -23,6 +27,18 @@ its `scaffold.sh`: the files copied, or for the three cases of `work` a small gi
 the branches of the conversation. Those cases also resume a short made-up conversation, the same
 for the three (`context.history_file`, its `history.jsonl`), and their prompt is the next turn:
 the command typed, or the person's words, from which `work` picks its job.
+
+The four cases `review-or-audit-*` measure where two plugins meet, not what a skill does: the
+review of the Magma plugin (`magma:review`, the code against the rules of Magma) and `design-audit`
+(the quality of the page against the principles) start on the same words, "review", "check",
+"audit" of the UI. Each loads the Magma plugin beside v2 (`plugins:` of its `case.yaml`) and stops
+after six turns, since the skill starts in the first ones: no answer is graded, nor the rule above
+it. All four carry the tag `with:magma`. A case that lists `plugins:` loads only those, not the
+plugin it belongs to, so v2 is listed too (`../..`). A plugin inside the eval folder must sit in
+the case's own folder, so each holds a copy of the Magma plugin, its manifest and the `SKILL.md` of
+its skills, with the commit it came from in `.source`; [`sync-magma.sh`](sync-magma.sh) refreshes
+all four from a checkout of magma-design-system/magma (`evals/sync-magma.sh ../magma`). Its MCP
+server does not start in a run: the case grades the skill that starts, not what it reports.
 
 The rule for a case: **it is a job the skill was made for, with a known answer**. A case no skill
 owns measures a missing skill, not a model, and has no place in this suite.

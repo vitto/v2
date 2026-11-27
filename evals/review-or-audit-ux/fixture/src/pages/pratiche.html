@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Le mie pratiche</title>
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body class="bg-white text-gray-700">
+  <mds-header>
+    <mds-text typography="h5">Sportello tributi</mds-text>
+  </mds-header>
+
+  <main class="p-[18px]">
+    <mds-text typography="h3">Le mie pratiche</mds-text>
+
+    <div class="flex gap-2">
+      <mds-input placeholder="Cerca per numero di pratica"></mds-input>
+      <mds-button variant="primary" disabled="false">Cerca</mds-button>
+    </div>
+
+    <ul class="mt-4">
+      <li class="flex justify-between border-b border-gray-200 py-3">
+        <span>TARI 2026 - rata 2</span>
+        <span style="color: #c62828">Scaduta</span>
+        <div class="text-red-600 cursor-pointer" onclick="eliminaPratica(118)">Elimina</div>
+      </li>
+      <li class="flex justify-between border-b border-gray-200 py-3">
+        <span>IMU 2026 - acconto</span>
+        <span style="color: #2e7d32">Pagata</span>
+        <div class="text-red-600 cursor-pointer" onclick="eliminaPratica(97)">Elimina</div>
+      </li>
+    </ul>
+  </main>
+
+  <script>
+    function eliminaPratica(id) {
+      fetch('/api/pratiche/' + id, { method: 'DELETE' }).then(() => location.reload());
+    }
+  </script>
+</body>
+</html>

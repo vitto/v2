@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: review-or-audit-ux
+# The Magma plugin is enabled beside v2, as in a project that uses Magma: its skill review starts
+# on the same words as design-audit. A case that lists plugins loads only those, so v2 (../..) is
+# listed too; a plugin inside the eval folder must sit in the case's own folder, so Magma's is a
+# copy (../sync-magma.sh).
+plugins: [../.., plugins/magma]
+context:
+  scaffold_script: scaffold.sh

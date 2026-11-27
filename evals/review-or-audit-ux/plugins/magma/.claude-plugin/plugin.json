@@ -1,0 +1,20 @@
+{
+  "name": "magma",
+  "displayName": "Magma",
+  "description": "The Magma design system of Maggioli in Claude Code: skills to set it up, write UI, review and migrate, and the MCP server that answers from the version installed in the project.",
+  "author": {
+    "name": "Maggioli Design System",
+    "url": "https://github.com/magma-design-system"
+  },
+  "homepage": "https://github.com/magma-design-system/magma/tree/main/projects/claude-plugin",
+  "repository": "https://github.com/magma-design-system/magma",
+  "license": "MIT",
+  "keywords": [
+    "design-system",
+    "web-components",
+    "stencil",
+    "tailwind",
+    "maggioli",
+    "magma"
+  ]
+}
