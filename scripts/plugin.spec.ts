@@ -60,12 +60,18 @@ describe('the skills', () => {
       );
     });
 
-    // a skill reads the docs it cites at run time: a renamed or missing file fails there, silently
+    // a skill reads the docs it cites at run time: a renamed or missing file fails there, silently;
+    // its own files too, as the jobs of work (#69) beside its SKILL.md, each read only when it runs
     it(`${name}: every file of the plugin it cites exists`, () => {
-      const text = readFileSync(path.join(root, 'skills', name, 'SKILL.md'), 'utf8');
-      for (const [cited] of text.matchAll(/\.\.\/[\w./-]+\.md/g)) {
-        const file = path.join(root, 'skills', name, cited);
-        assert.ok(existsSync(file), `skills/${name}/SKILL.md cites ${cited}, which does not exist`);
+      const folder = path.join(root, 'skills', name);
+      for (const own of readdirSync(folder).filter((file) => file.endsWith('.md'))) {
+        const text = readFileSync(path.join(folder, own), 'utf8');
+        const cited = [
+          ...[...text.matchAll(/\.\.\/[\w./-]+\.md/g)].map((match) => match[0]),
+          ...[...text.matchAll(/\]\(([\w.-]+\.md)\)/g)].map((match) => match[1]),
+        ];
+        for (const file of cited)
+          assert.ok(existsSync(path.join(folder, file)), `skills/${name}/${own} cites ${file}, which does not exist`);
       }
     });
   }
@@ -105,15 +111,15 @@ describe('the manifests', () => {
 
 // the script prints the legend of the domains, the skill says when each applies: one list, in
 // one order, since the first that applies wins (2026-11-26)
-describe('work-status: the domains', () => {
+describe('work: the domains of its status', () => {
   it('the table of the skill is DOMAINS, in its order', () => {
-    const text = readFileSync(path.join(root, 'skills', 'work-status', 'SKILL.md'), 'utf8');
+    const text = readFileSync(path.join(root, 'skills', 'work', 'status.md'), 'utf8');
     const section = text.split(/^### The domain$/m)[1]?.split(/^#{2,3} /m)[0] ?? '';
     const names = [...section.matchAll(/^\| ([a-z]+) \| /gm)].map((match) => match[1]);
     assert.deepEqual(
       names,
       DOMAINS.map((domain) => domain.name),
-      'skills/work-status/SKILL.md, "The domain": the table and scripts/lib/epic.ts DOMAINS differ',
+      'skills/work/status.md, "The domain": the table and scripts/lib/epic.ts DOMAINS differ',
     );
   });
 });
