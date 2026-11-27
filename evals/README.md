@@ -44,7 +44,7 @@ on every command: without `--model` a run takes the default model, and in zsh a 
 holds two words is not split into arguments.
 
 ```bash
-claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *help.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
+claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *help.ts*)" "Bash(node *audit.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
 ```
 
 Then the same with `--model claude-haiku-5-5`, and with `--model claude-sonnet-5-5` for the
@@ -56,11 +56,13 @@ header of the report names the model you asked for.
   repository.
 - `--allow-tools Write Edit`: the runs may change files, so that a skill that changes them
   before the person's yes fails its `no-edit` and `no-write` graders.
-- `"Bash(node *status.ts*)"` and `"Bash(node *help.ts*)"`: the scripts of `work-status` and
-  `help`. A skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Only those
-  scripts: `design-audit` has scripts of its own (`rendered.ts`), and its case runs as it was
-  measured. Every command runs in the sandbox of the
-  run, which reaches no GitHub: `work-status-asks-first` grades the choice, not a report.
+- `"Bash(node *status.ts*)"`, `"Bash(node *help.ts*)"` and `"Bash(node *audit.ts*)"`: the
+  scripts of `work-status`, `help` and the report of `design-audit`, which reads its JSON from
+  stdin. A skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Only those
+  scripts: `rendered.ts` would need Chrome and a running page, which the fixture of
+  `design-audit` does not have, so its checks stay not verifiable. Every command runs in the
+  sandbox of the run, which reaches no GitHub: `work-status-asks-first` grades the choice, not a
+  report.
 - `--disallow-tools Agent`: `/v2:agent-route` would hand the work to a subagent on another
   model, and the run would measure that model instead.
 - `--keep-temp` keeps the workspace and the transcript of every run, to read why one failed.
