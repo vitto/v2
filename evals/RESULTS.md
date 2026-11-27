@@ -1,8 +1,8 @@
 # Results
 
 Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
-on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65; `help` on
-2026-11-27, on the branch of the epic #73 after #80), judge
+on 2026-11-27 with its report drawn by `audit.ts`, the branch of #75; `work-status` on 0.26.0
+with its fixes, #63 and #65; `help` on 2026-11-27, on the branch of the epic #73 after #80), judge
 `claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
 estimates of a valid run, judge included; the runs spent the quota of the plan.
 
@@ -10,7 +10,7 @@ estimates of a valid run, judge included; the runs spent the quota of the plan.
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
 | `design-reframe` | reframe-reservations | 7/7 | 4/5 | 2/8 | **Sonnet 5.5**, at the threshold | 0.32 / 0.16 / 0.04 USD |
-| `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
+| `design-audit` | audit-project-settings | 4/4 | 5/5 | 2/5 | **Sonnet 5.5** (finding 8) | 0.67 / 0.32 / 0.06 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
 | `help` | help-cheatsheet | 5/5 | 4/5 | 2/5 | **Sonnet 5.5**, at the threshold (finding 7) | 0.15 / 0.09 / 0.01 USD |
 
@@ -20,15 +20,18 @@ How to read it:
   without an API error and every judge call answered: 11 runs hit the 5-hour limit of the plan
   and are left out.
 - **The floor** needs at least 4 passes over 5 valid runs, on a case the reference passes every
-  time; Haiku holds one of the five skills, `work-status`, Sonnet all five. `design-reframe` and
-  `design-audit` hold on Sonnet with no run to spare: the one failure of each is the judged
-  rubric (two votes of three for `design-reframe`; three of three for `design-audit`, on a report
-  that, read by hand, keeps the search field out of the defects and cites rows in its summary),
-  so measure them again whenever the skill or Sonnet changes.
-- The figures of `design-audit` are the runs after its fix (#55); the runs before it measured the
-  rule that finding 1 describes, and are left out. The same for `work-status` (#63 and #65,
-  findings 5 and 6): its figures are the 15 runs on 0.26.0, after both fixes, from the branch of
-  #65 before it landed.
+  time; Haiku holds one of the five skills, `work-status`, Sonnet all five. `design-reframe`
+  holds on Sonnet with no run to spare: its one failure is the judged rubric (two votes of
+  three), so measure it again whenever the skill or Sonnet changes.
+- The figures of `design-audit` are the runs of the branch of #75 (1e652df), the report written
+  as JSON and drawn by `scripts/audit.ts`. Before it, on the branch of the epic #73 (79b9a78,
+  the report written by hand), the reference passed 5 runs of 5. Opus has 4 valid runs: the
+  fifth stalled on API retries until the timeout of 1200 s and is left out. On 0.21.0, after
+  its fix (#55), the case gave 5/5, 4/5 and 3/5; the one failure of Sonnet there was the judged
+  rubric, three votes of three, on a report that, read by hand, kept the search field out of the
+  defects and cited rows in its summary.
+- The figures of `work-status` are the 15 runs on 0.26.0, after both of its fixes (#63 and #65,
+  findings 5 and 6), from the branch of #65 before it landed.
 - `help` is new: before it, on `main` (0.27.0, the case copied in), the reference passed 0 runs
   of 5. No skill ran, so neither did the script; it answered from the listing of the skills,
   named `/v2:work-test` in 3 runs of 5, and put no rule above the answer.
@@ -82,6 +85,19 @@ How to read it:
    `${...}`, quotes or a heredoc fail the rule `Bash(node *help.ts*)`); #80 made it a bare
    `--html` before these runs. The floor stays Sonnet: no fix for Haiku (the maintainer's
    choice, 2026-11-27).
+8. **`design-audit` drew its report with `audit.ts` in 6 valid runs of 14, and wrote it by hand
+   in the others** (#75): Opus 2 of 4, Sonnet 4 of 5, Haiku 0 of 5. The script was never
+   refused. Every run that skipped it had met one denial before, of another command: a compound
+   `ls && find; cat` looking for the files, or `rendered.ts`, left out of the runs. The message of
+   a denial names the tool, not the command ("Permission to use Bash has been denied"), and the
+   answer reads it as all of Bash ("i comandi della shell non sono consentiti in questa
+   sessione"), though the skill says a refusal of another command says nothing about this one.
+   The table by hand keeps the rules, and the graders pass it. Of the 6 runs that drew it, 3 were
+   refused first, every time for the same field: a row of passes or of not verifiable without
+   `note`, its `looked` or its `verify` and `estimate` holding what it found; they fixed the JSON
+   and ran it again. Haiku lost the target in 1 run (it looked for the page in the folder of the
+   plugin, and its Glob and Read there were denied) and failed the judged rubric in 2, on the
+   search field reported in a row of defects or in the opinions.
 
 ## What the calibration fixed
 
@@ -103,3 +119,6 @@ of `work-status` (4.57 USD: 2 trial runs, 5 before its first fix, 15 after it, 1
 second, 1.47 USD). Three models
 at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model at a time.
 `help-cheatsheet` (2026-11-27): 20 runs, 1.82 USD, 0.57 of it the 5 runs before the skill.
+`audit-project-settings` on #75 (2026-11-27): 24 runs, 8.98 USD, 3.59 of it the 7 runs before
+the change and 0.64 the 2 trial runs; 19 more runs met the plan limit at their start and cost
+nothing.
