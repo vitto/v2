@@ -1,6 +1,6 @@
 ---
 name: agent-route
-description: 'The model and the effort a piece of work needs, so the cheaper ones do what they can: before starting a piece of work or handing it to a subagent, weigh it (light, standard, heavy), keep it in the session when its model fits, else run it in a subagent with the model and the effort it needs; never switch the model of the session, and never use a model or a service billed per use beyond the person''s plan without their yes. Called by the person in the middle of a conversation, it opens a new session under this one with the message that continues the work instead of doing it there. Without arguments everything is automatic; the person can fix the effort (minimo, basso, medio, alto, massimo, auto) or the model. Use before starting or delegating a piece of work, and when the person names a model or an effort for it; in Italian "route", "che modello usi", "quale modello", "impegno basso", "impegno alto", "impegno massimo", "fallo con haiku", "fallo con opus", "risparmia token", "continua in una nuova sessione".'
+description: 'Picks the model and the effort a piece of work needs, and runs it in a subagent when the session''s do not fit; called mid-conversation, continues the work in a new session. Use before starting or delegating work; in Italian "che modello usi", "impegno alto", "fallo con haiku", "risparmia token".'
 argument-hint: "[auto | minimo | basso | medio | alto | massimo] [model] [the work]"
 ---
 

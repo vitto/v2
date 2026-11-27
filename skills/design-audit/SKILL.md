@@ -1,6 +1,6 @@
 ---
 name: design-audit
-description: Audit an existing screen, component or change against Vittorio Vittori's design principles (UX, design systems, AI design) and the area's object model, and report every check as pass, fail or not verifiable, merged by place, closing with a summary of where to start and whether the view does its job. Use when asked to review, audit or check the UX or UI quality of something already built.
+description: 'Audit a screen, a component or a change already built against Vittorio Vittori''s design principles and the area''s object model: every check pass, fail or not verifiable, then where to start. Use when asked to review, audit or check the UX or UI quality of something built.'
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts *)
 ---
 

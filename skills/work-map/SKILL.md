@@ -1,6 +1,6 @@
 ---
 name: work-map
-description: 'The map of a piece of work, before it (planned) or after it (done): a line that sums it up, then a Mermaid diagram of what the work is made of - entities, methods, concepts, axes, what people see - grouped by where each thing lives, colored and shaped by kind, marked new, changed or removed, red where it breaks, then the same in words. After the work, compared with its plan: what was not done, what was not planned. In glossary mode, the hierarchy of the project''s taxonomy register instead - contains, is a, refers to - every edge with its source, dashed where it has none, red where the data contradicts it. Use to see what a plan, an issue, an epic, a branch, a worktree or a pull request touches, before starting or once done, or to see and check the hierarchy of a glossary; in Italian "mappa", "mappa della lavorazione", "diagramma", "schema", "fammi vedere cosa cambia", "cosa stiamo per fare", "cosa abbiamo fatto", "mappa del glossario", "gerarchia dei concetti".'
+description: 'A diagram of what a piece of work is made of, before it or once done, marked new, changed or removed, red where it breaks; or the hierarchy of a glossary. Use to see what a plan, an issue, an epic or a pull request touches; in Italian "mappa", "fammi vedere cosa cambia", "cosa abbiamo fatto".'
 argument-hint: "[planned | done | glossary] [issue, pull request, epic, branch, worktree or glossary]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/map.ts *)
 ---

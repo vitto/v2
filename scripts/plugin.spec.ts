@@ -15,6 +15,9 @@ import { frontmatter } from './lib/frontmatter.ts';
 
 const root = path.join(import.meta.dirname, '..');
 
+/** The longest description a skill in the listing may have: what it does, when, the words that call it (#67). */
+const DESCRIPTION = 300;
+
 const skills = readdirSync(path.join(root, 'skills'), { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
@@ -35,6 +38,16 @@ describe('the skills', () => {
       }
       assert.equal(fields.name, name, `${file}: the name is not the folder`);
       assert.ok(fields.description?.trim(), `${file}: no description`);
+      // #67: Claude Code lists every skill's description in each session within a budget of 1% of
+      // the context window, shared with every plugin enabled, and drops the descriptions of the
+      // skills used least when it does not fit (https://code.claude.com/docs/en/skills.md, "Skill
+      // descriptions are cut short"); on 2026-11-27 share-linkedin and work-test were listed by
+      // name only. A skill only the person launches is out of the listing, so out of the limit.
+      if (fields['disable-model-invocation'] !== 'true')
+        assert.ok(
+          fields.description.length <= DESCRIPTION,
+          `${file}: the description is ${fields.description.length} characters, over ${DESCRIPTION}: what the skill does, when to use it and the words that call it; the rest goes in the body`,
+        );
     });
 
     // the person asked on 2026-11-24 to see where the answer of every skill starts

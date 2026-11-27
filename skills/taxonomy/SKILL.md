@@ -1,6 +1,6 @@
 ---
 name: taxonomy
-description: Keep the words of a project consistent across its interface, docs, data and code - a register of its concepts in the project's glossary, keyed by English IDs that never change, with a name per language, what each concept is and is not, where it is contained, what it refers to, and its identifiers in code and data; find the conflicts (two meanings meeting under one name in one place) and resolve them with the lightest of five moves; repair the hierarchy edge by edge against real instances. Use when a word means two things, two words mean one thing, a new concept or a rename is coming, the glossary is missing or drifting, or before an interview or a map that needs the project's words; in Italian "tassonomia", "glossario", "registro dei termini", "come lo chiamiamo", "due parole per la stessa cosa", "questa parola vuol dire due cose", "rinomina".
+description: 'Keep a project''s words consistent: a register in its glossary, each conflict resolved with the lightest move, the hierarchy checked against the data. Use when a word means two things, two words mean one, or a rename is coming; in Italian "glossario", "questa parola vuol dire due cose".'
 argument-hint: "[the area, the word or the conflict]"
 ---
 
