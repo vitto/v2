@@ -62,12 +62,13 @@
     listed with both; things shown for context (unchanged) are never compared;
   - a relation of a glossary map, its source and what contradicts it: the JSON given, which the
     skill writes from the register and checks against the data;
-  - the drawing of --svg and --html: Mermaid from jsDelivr, its version pinned below (MERMAID),
-    run in the Chrome of the computer, headless (scripts/lib/chrome.ts); without Chrome or the
-    network there is no SVG, the run says why, and the page shows the source until its script
-    draws it;
-  - what a label shows: the text given, as written (`escapeLabel` says why each character is
-    escaped, from what Mermaid did with it).
+  - the drawing of --svg and --html: Mermaid from jsDelivr, its version pinned below (MERMAID,
+    the one GitHub draws with), run in the Chrome of the computer, headless
+    (scripts/lib/chrome.ts); without Chrome or the network there is no SVG, the run says why, and
+    the page shows the source until its script draws it;
+  - what a label shows: the text given, as written, in the syntax Mermaid documents and nothing
+    else, so the diagram reads the same wherever the Mermaid is drawn (`escapeLabel` gives the
+    rule of each character and its source; `diagramOf` the line of the marks).
 */
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -200,7 +201,13 @@ const RED = '#dc2626';
 const GHOST = 'fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray:3 3,color:#64748b';
 const GROUP = 'fill:none,stroke:#94a3b8,stroke-width:1px';
 const DOT = ' \u00b7 ';
-export const MERMAID = 'mermaid@11.4.1';
+/**
+ * The Mermaid that draws the SVG and the page: the version GitHub draws the map with in an issue
+ * or a pull request, where it is kept (12.3.0, read from the bundle of its viewer,
+ * viewscreen.githubusercontent.com, on 2026-11-27), so the drawing here is the one people see
+ * there. At least 11.13.0, the first that reads a label as text (see `escapeLabel`).
+ */
+export const MERMAID = 'mermaid@12.3.0';
 
 export const START = '<!-- v2:map:start -->';
 export const END = '<!-- v2:map:end -->';
@@ -444,23 +451,47 @@ export const compare = (plan: MapSpec, done: MapSpec): Compared => {
 // The diagram
 
 /**
- * A text inside a Mermaid label, shown as written. Mermaid reads the label of a node, an edge and
- * a group as Markdown after it decodes its entity codes (seen on 2026-11-24 with MERMAID: `*x*`
- * and `_x_` turn italic, so `--magma-*-wash-*` showed as `--magma--wash-`; a backtick, `~~`, a
- * link, a heading, a quote or a line starting with `- `, `+ ` or `1. ` showed "Unsupported
- * markdown"). So the Markdown punctuation is escaped with a backslash, which an entity code
- * cannot do, and what Mermaid or HTML would read takes its entity code (`#` first, since every
- * code starts with it).
+ * A text inside a quoted Mermaid label (of a node, an edge, a group), shown as written, in the
+ * syntax Mermaid documents and nothing else: no backslash escape, which is not Mermaid's and
+ * which other renderers print, and no HTML.
+ *
+ * Where each rule comes from:
+ * - a label in quotes holds any text, and an entity code (`#quot;`, `#35;`, or an HTML character
+ *   name) writes a character the syntax would read: the flowchart syntax of Mermaid, "Special
+ *   characters that break syntax" and "Entity codes to escape characters"
+ *   (https://mermaid.js.org/syntax/flowchart.html#entity-codes-to-escape-characters);
+ * - Markdown is read only in a Markdown string, between backticks inside the quotes ("Markdown
+ *   Strings", the same page). Mermaid 11.0 to 11.12 read every label as Markdown, a bug fixed in
+ *   11.13.0 (its changelog, PR #7276: plain text that looks like Markdown, "1.", "- x", is no
+ *   longer misinterpreted), so `*`, `_`, `-`, `+`, `.`, `[`, `~` stay as written;
+ * - where the map is drawn, read from each bundle on 2026-11-27: GitHub with Mermaid 12.3.0, its
+ *   labels HTML; the chat of the Claude desktop app with Mermaid 11.17.2 and `htmlLabels: false`,
+ *   its labels SVG text, where Mermaid decodes only `&amp;`, `&lt;` and `&gt;` in a label of one
+ *   line (`decodeHTMLEntities` in its createText.ts) and the app `&quot;`.
+ *
+ * So, tried in those three and in MERMAID:
+ * - `"` ends the label: `#quot;`;
+ * - `<`, `>` and `&` are markup or a character reference in an HTML label (`<b>` turns bold,
+ *   `Map<string>` loses `<string>`): `#lt;`, `#gt;`, `#amp;`, the codes SVG text decodes too;
+ * - `#` starts an entity code where a word and `;` follow it: `#35;` there, only there (in SVG
+ *   text a label of one line shows it as `&#35;`, a label with its marks as `#`);
+ * - a backtick right after the opening quote starts a Markdown string: a space goes before it,
+ *   which every one of them drops (Mermaid trims each line of a label, `nonMarkdownToLines`; an
+ *   HTML label does not wrap, `white-space: nowrap`), where `#96;` would show as itself in a
+ *   label of one line in SVG text;
+ * - a line break of the text becomes a space: a label is one line, its marks the next.
+ * A label cannot hold `\n` as written: Mermaid breaks the line there since 11.13.0 (the same
+ * changelog), after it decodes any entity code, so none keeps it.
  */
 export const escapeLabel = (value: string): string =>
   value
-    .replace(/[\\`*_[\]~+\-.!]/g, (char) => `\\${char}`)
-    .replace(/#/g, '#35;')
-    .replace(/&/g, '#38;')
-    .replace(/"/g, '#34;')
-    .replace(/</g, '#60;')
-    .replace(/>/g, '#62;')
-    .replace(/\r?\n/g, ' ');
+    .replace(/\r?\n/g, ' ')
+    .replace(/#(?=\w+;)/g, '#35;')
+    .replace(/&/g, '#amp;')
+    .replace(/"/g, '#quot;')
+    .replace(/</g, '#lt;')
+    .replace(/>/g, '#gt;')
+    .replace(/^`/, ' `');
 
 /** Ids Mermaid accepts, the same for the same id, never a keyword (`end`, `class`). */
 const idsOf = (prefix: string, ids: string[]): Map<string, string> => {
@@ -513,9 +544,14 @@ export const diagramOf = (spec: Pick<MapSpec, 'direction'>, groups: Group[], nod
   const groupIds = idsOf('g_', groups.map((g) => g.id));
   const lines = [`flowchart ${spec.direction}`];
 
+  // The marks on a line of their own, after `<br>`: the line break of a quoted label in Mermaid's
+  // syntax ("Markdown Strings" in its flowchart syntax: with traditional strings, `<br>` tags),
+  // which Mermaid reads itself in an HTML label and in SVG text alike (`nonMarkdownToLines` in
+  // its handle-markdown-text.ts), tried in the three places of `escapeLabel`. Plain, not
+  // italic: only a Markdown string has italics, and it would read the label as Markdown.
   const nodeLine = (node: Shown, indent: string) => {
     const marks = marksOf(node);
-    const label = escapeLabel(node.label) + (marks.length ? `<br/><i>${marks.map(escapeLabel).join(DOT)}</i>` : '');
+    const label = escapeLabel(node.label) + (marks.length ? `<br>${marks.map(escapeLabel).join(DOT)}` : '');
     const { open, close } = KINDS[node.kind];
     lines.push(`${indent}${nodeIds.get(node.id)}${open}${label}${close}`);
   };

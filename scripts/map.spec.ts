@@ -106,16 +106,60 @@ describe('the marks', () => {
   });
 });
 
+/** A label as Mermaid reads it back: each entity code, found as Mermaid finds them (`#\w+;`, once). */
+const NAMED: Record<string, string> = { quot: '"', amp: '&', lt: '<', gt: '>' };
+const decode = (label: string): string =>
+  label.replace(/#(\w+);/g, (code, name: string) => (/^\d+$/.test(name) ? String.fromCharCode(Number(name)) : (NAMED[name] ?? code)));
+
 describe('the diagram', () => {
-  it('escapes what Mermaid or HTML would read, # first', () => {
-    assert.equal(escapeLabel('a & <b>"#1"</b> `x`'), 'a #38; #60;b#62;#34;#35;1#34;#60;/b#62; \\`x\\`');
+  it('writes a label as it is: since Mermaid 11.13.0 a quoted label is text, not Markdown', () => {
+    assert.equal(escapeLabel('--magma-*-wash-*'), '--magma-*-wash-*');
+    assert.equal(escapeLabel('full-review theme-list.ts + new - x 1. step'), 'full-review theme-list.ts + new - x 1. step');
+    assert.equal(escapeLabel('_x_ **y** [a](b) ~~c~~ ! a\\b (p) {q} | r; s%%'), '_x_ **y** [a](b) ~~c~~ ! a\\b (p) {q} | r; s%%');
+    assert.equal(escapeLabel('two\nlines'), 'two lines');
   });
 
-  it('escapes the Markdown Mermaid reads in a label with a backslash, so it shows as written', () => {
-    assert.equal(escapeLabel('--magma-*-wash-*'), '\\-\\-magma\\-\\*\\-wash\\-\\*');
-    assert.equal(escapeLabel('_x_ 1. [a](b) ~~c~~ !'), '\\_x\\_ 1\\. \\[a\\](b) \\~\\~c\\~\\~ \\!');
-    assert.equal(escapeLabel('a\\b'), 'a\\\\b');
-    assert.equal(escapeLabel('two\nlines'), 'two lines');
+  it('takes an entity code only where the syntax or HTML would read the character', () => {
+    // a quote ends the label; <, > and & are markup in an HTML label, and SVG text decodes these codes too
+    assert.equal(escapeLabel('a & <b>"x"</b>'), 'a #amp; #lt;b#gt;#quot;x#quot;#lt;/b#gt;');
+    // # starts an entity code only before a word and a semicolon
+    assert.equal(escapeLabel('#1404 C# #35; #x;'), '#1404 C# #35;35; #35;x;');
+    // a backtick opens a Markdown string only right after the opening quote: a space keeps it text
+    assert.equal(escapeLabel('`code` and `more`'), ' `code` and `more`');
+    assert.equal(escapeLabel('a `b`'), 'a `b`');
+  });
+
+  it('gives back the text as written once Mermaid decodes it, with no backslash escape and no tag', () => {
+    const punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+    const backslashes = (value: string) => value.split('\\').length - 1;
+    for (const text of [punctuation, `\`${punctuation}\``, '#a; #1; &amp; &#35; <br> <i>x</i>', 'a "b" #c; `d`']) {
+      const label = escapeLabel(text);
+      // Mermaid drops the space a leading backtick takes
+      assert.equal(decode(label).trimStart(), text, label);
+      assert.doesNotMatch(label, /["<>]/, label);
+      assert.doesNotMatch(label, /^"?`/, 'never a Markdown string');
+      assert.equal(backslashes(label), backslashes(text), `no backslash added: ${label}`);
+    }
+  });
+
+  it('writes the labels of groups and edges the same way, the marks on a line of their own', () => {
+    const spec = parseMap({
+      title: 't',
+      mode: 'done',
+      groups: [{ id: 'g', label: 'tokens/ *wash* "x" <y>' }],
+      nodes: [
+        { id: 'a', label: '--magma-*-wash-*', kind: 'entity', change: 'renamed', was: '*old_name*', group: 'g' },
+        { id: 'b', label: 'Map<string>', kind: 'entity' },
+      ],
+      edges: [{ from: 'a', to: 'b', label: '1. reads "x" | y' }],
+    });
+    const text = diagramOf(spec, spec.groups, spec.nodes, spec.edges);
+    assert.match(text, /^ {2}n_b\["Map#lt;string#gt;"\]$/m);
+    assert.match(text, /^ {2}subgraph g_g\["tokens\/ \*wash\* #quot;x#quot; #lt;y#gt;"\]$/m);
+    assert.match(text, /^ {4}n_a\["--magma-\*-wash-\*<br>~ renamed from \*old_name\*"\]$/m);
+    assert.match(text, /^ {2}n_a -->\|"1\. reads #quot;x#quot; \| y"\| n_b$/m);
+    assert.doesNotMatch(text, /\\/, 'no backslash escape');
+    assert.deepEqual([...new Set(text.match(/<[^>]*>/g))], ['<br>'], 'no tag but the line break of the marks');
   });
 
   it('draws each kind with its shape, inside its groups, with safe ids and one class per look', () => {
@@ -124,9 +168,9 @@ describe('the diagram', () => {
     assert.match(text, /^flowchart LR$/m);
     assert.match(text, /^ {2}subgraph g_scripts\["scripts\/"\]$/m);
     assert.match(text, /^ {4}subgraph g_lib\["lib\/"\]$/m);
-    assert.match(text, /^ {6}n_markdown\("markdown\\\.ts"\)$/m);
-    assert.match(text, /^ {4}n_skill\(\["\/v2:map<br\/><i>\\\+ new<\/i>"\]\)$/m);
-    assert.match(text, /^ {4}n_old\(\["oldMap\(\)<br\/><i>\u2212 removed \u00b7 \u26a0 breaking<\/i>"\]\)$/m);
+    assert.match(text, /^ {6}n_markdown\("markdown\.ts"\)$/m);
+    assert.match(text, /^ {4}n_skill\(\["\/v2:map<br>\+ new"\]\)$/m);
+    assert.match(text, /^ {4}n_old\(\["oldMap\(\)<br>\u2212 removed \u00b7 \u26a0 breaking"\]\)$/m);
     assert.match(text, /^ {2}n_skill -->\|"runs"\| n_script$/m);
     assert.match(text, /^ {2}n_status -\.-> n_skill$/m);
     assert.match(text, /^ {2}class n_skill,n_script method_new$/m);
@@ -261,7 +305,7 @@ describe('the page', () => {
     assert.doesNotMatch(page, /Drawing the diagram/);
     assert.match(page, /<div id="diagram" role="img"[^>]*><p class="muted">A script draws the diagram/);
     assert.match(page, /<pre>flowchart LR\n/);
-    assert.match(page, /#60;b#62;/, 'the source as Mermaid reads it, escaped once more for HTML');
+    assert.match(page, /a #lt;b#gt;/, 'the source as Mermaid reads it, escaped once more for HTML');
   });
 
   it('holds the drawing itself, on a white card, and draws it again only in dark mode', () => {
@@ -282,6 +326,11 @@ describe('the drawing', () => {
     assert.match(expression, /mermaid\.render\('map', "flowchart LR\\n  a\[\\"x \\\\\\"y\\\\\\"\\"\]"\)/);
     assert.match(expression, /backgroundColor = '#ffffff'/);
     assert.match(expression, /new XMLSerializer\(\)\.serializeToString\(element\)/);
+  });
+
+  it('pins a Mermaid that reads a quoted label as text: 11.13.0 or later', () => {
+    const [major, minor] = MERMAID.replace('mermaid@', '').split('.').map(Number);
+    assert.ok(major > 11 || (major === 11 && minor >= 13), MERMAID);
   });
 });
 
