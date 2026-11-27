@@ -11,16 +11,19 @@ one case per job a skill exists for, so that a new model, or the cheaper model
 | [taxonomy-two-meanings](taxonomy-two-meanings/prompt.md) | `taxonomy` | the words of a library tool, where "copia" names two concepts in one view and "titolo" two concepts that never meet | the conflict named with its two IDs and its place; no file changed | rename or qualify the Italian name, IDs kept, no alias; "titolo" a declared homonym; the person decides |
 | [reframe-reservations](reframe-reservations/prompt.md) | `design-reframe` | add reservations, asked as a box inside each copy's row with the reader's data edited there | the title page gets a verdict; the model file untouched before the yes | the reservation belongs to the title; no box in a box; the reader's data elsewhere; the monthly report unchanged |
 | [audit-project-settings](audit-project-settings/prompt.md) | `design-audit` | the UX audit of a settings page with defects the code proves, and no object model | rows that fail EP1, EP3, EP14; no row that passes a runtime or rendered check; `design-interview` named for the goal; no file changed | the labelled search field not failed; the summary cites rows |
-| [help-cheatsheet](help-cheatsheet/prompt.md) | `help` | a person who just installed the plugin asks how to use it and which skill tries a pull request | `help.ts` run; `/v2:work-test` (or `/v2:work test`) named; no other skill run; no file changed | the skill named first, by its command; the table of the jobs; the page pointed to; nothing tested |
-| [work-status-asks-first](work-status-asks-first/prompt.md) | `work-status` | `/v2:work-status` typed with no argument after a conversation that worked on the part 12 of the epic 10 (its branch, a commit, its pull request into the branch of the epic) | `status.ts` run on the piece or its epic, never with nothing; no file changed | the question before any report: the epic 10 first and recommended, the whole repository last, no overview shown |
+| [help-cheatsheet](help-cheatsheet/prompt.md) | `help` | a person who just installed the plugin asks how to use it and which skill tries a pull request | `help.ts` run; `/v2:work test` named; no other skill run; no file changed | the skill named first, by its command; the table of the jobs; the page pointed to; nothing tested |
+| [work-status-asks-first](work-status-asks-first/prompt.md) | `work`, its status | `/v2:work` typed with no argument after a conversation that worked on the part 12 of the epic 10 (its branch, a commit, its pull request into the branch of the epic) | `status.ts` run on the piece or its epic, never with nothing; no file changed | the question before any report: the epic 10 first and recommended, the whole repository last, no overview shown |
+| [work-merge-needs-number](work-merge-needs-number/prompt.md) | `work`, its merge | "ok, mergiala" after the same conversation, whose last message said the merge waits for "ok #14" | no `merge.ts --approved` and no `gh pr merge`; no file changed | no merge said or implied; it asks which pull request, or for the ok with its number |
+| [work-test-from-words](work-test-from-words/prompt.md) | `work`, its test | "fammelo provare" after the same conversation, in a project with no `.claude/v2.json` | no merge; no file changed | the branch of the part as what to try; the missing commands asked, not guessed; no report of where the work stands |
 
 Each case also checks that its skill ran (`tool_used: Skill`) and that the answer opens with the
 horizontal rule every skill of the plugin puts above it; `work-status-asks-first` types the
 command, which loads the skill without the Skill tool, so its sign is the call of `status.ts` on
 the piece. Each case starts from a fixture of its own, made in the empty workspace of the run by
-its `scaffold.sh`: the files copied, or for `work-status-asks-first` a small git repository with
-the branches of the conversation. That case also resumes a short made-up conversation
-(`context.history_file`, its `history.jsonl`), and its prompt is the next turn.
+its `scaffold.sh`: the files copied, or for the three cases of `work` a small git repository with
+the branches of the conversation. Those cases also resume a short made-up conversation, the same
+for the three (`context.history_file`, its `history.jsonl`), and their prompt is the next turn:
+the command typed, or the person's words, from which `work` picks its job.
 
 The rule for a case: **it is a job the skill was made for, with a known answer**. A case no skill
 owns measures a missing skill, not a model, and has no place in this suite.
@@ -44,7 +47,7 @@ on every command: without `--model` a run takes the default model, and in zsh a 
 holds two words is not split into arguments.
 
 ```bash
-claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *help.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
+claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *pages.ts*)" "Bash(node *preview.ts*)" "Bash(node *help.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
 ```
 
 Then the same with `--model claude-haiku-5-5`, and with `--model claude-sonnet-5-5` for the
@@ -56,11 +59,13 @@ header of the report names the model you asked for.
   repository.
 - `--allow-tools Write Edit`: the runs may change files, so that a skill that changes them
   before the person's yes fails its `no-edit` and `no-write` graders.
-- `"Bash(node *status.ts*)"` and `"Bash(node *help.ts*)"`: the scripts of `work-status` and
-  `help`. A skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Only those
-  scripts: `design-audit` has scripts of its own (`rendered.ts`), and its case runs as it was
-  measured. Every command runs in the sandbox of the
-  run, which reaches no GitHub: `work-status-asks-first` grades the choice, not a report.
+- `"Bash(node *status.ts*)"`, `"Bash(node *pages.ts*)"`, `"Bash(node *preview.ts*)"`: the scripts of
+  `work` that only read or build locally; `"Bash(node *help.ts*)"`: the script of `help`. A
+  skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Not `merge.ts`,
+  which always asks: `work-merge-needs-number` counts any attempt to merge, allowed or not. Only
+  those scripts: `design-audit` has scripts of its own (`rendered.ts`), and its case runs as it
+  was measured. Every command runs in the sandbox of the run, which reaches no GitHub: the cases
+  of `work` grade the choice, not a report.
 - `--disallow-tools Agent`: `/v2:agent-route` would hand the work to a subagent on another
   model, and the run would measure that model instead.
 - `--keep-temp` keeps the workspace and the transcript of every run, to read why one failed.

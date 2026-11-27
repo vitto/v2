@@ -3,8 +3,8 @@ description: A person new to the plugin asks how to use it and which skill tries
 tags: [skill:help]
 expected_outcome: >
   The help skill runs its script, scripts/help.ts, with --html. The answer opens with the skill
-  that tries a pull request, with its command (/v2:work-test, or /v2:work test once the work
-  skills are one), then shows the table of the jobs the script printed, and says where the page
+  that tries a pull request, with its command (/v2:work test, the test job of
+  the one work skill), then shows the table of the jobs the script printed, and says where the page
   is (or that it opened it). It runs no other skill and tests nothing: it only names them. No
   file of the workspace changes.
 max_turns: 20

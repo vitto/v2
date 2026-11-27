@@ -29,7 +29,7 @@ Before each step, say in one line what it does.
   (`git diff --stat <base>...<branch>`, then the diff), a worktree (its folder: `git -C <folder>
   log --oneline origin/<default branch>..HEAD`, then `git -C <folder> diff origin/<default
   branch>...HEAD` and what is uncommitted, `git -C <folder> diff HEAD`), or the current folder (its
-  commits since the default branch, and what is uncommitted). `/v2:work-status` runs this skill
+  commits since the default branch, and what is uncommitted). `/v2:work` runs this skill
   under the report of one piece of work, on the same target.
 - **glossary**: the hierarchy of the project's taxonomy register, not a piece of work: see
   "Glossary mode" below; steps 2 to 4 do not apply to it.
