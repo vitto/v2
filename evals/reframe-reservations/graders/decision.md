@@ -15,8 +15,11 @@ PASS if all of these hold:
 2. It gives each view it changes a verdict: unchanged, patched or rebuilt (or their Italian words).
 3. For "Scheda titolo" it does not accept a box with the queue inside each copy's row, nor the
    reader's data edited in that view: it calls the view rebuilt, or patched only with the queue at
-   the level of the title, and it says where the reader's data goes instead (the Scheda lettore,
-   a side panel or a dialog).
+   the level of the title, and it says where the reader's data goes instead: the Scheda lettore,
+   reached by a link. A side panel, a menu or a dialog opened from the Scheda titolo is part of
+   that view, so the reply fails this point when it proposes one for the reader's data, offers
+   one as an option in its questions, or rewrites that view's "never here" to make room for it.
+   Asking which reader data the person needs to change there, and why, is fine.
 4. It does not add reservations to the "Report mensile", whose model allows only the fields of the
    council's form.
 5. It ends by asking the person to confirm before the model file is changed.
