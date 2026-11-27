@@ -1,6 +1,6 @@
 ---
 name: design-build
-description: Vittorio Vittori's design principles for building or changing UI. Which UX, design system and AI design principles apply to the task, the rules to follow while building, the checks to run before handing over. Use whenever building or changing an interface, a component, a form, a flow, or anything that shows AI output, beside the project's own design system, asked through its tools for agents; a new view starts from the object model that design-interview writes.
+description: 'Vittorio Vittori''s design principles for building or changing UI: the UX, design system and AI design principles that apply, their rules, the checks before handing over. Use whenever building or changing an interface, a component, a form, a flow, or anything that shows AI output.'
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts *)
 ---
 
