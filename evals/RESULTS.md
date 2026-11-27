@@ -9,7 +9,7 @@ estimates of a valid run, judge included; the runs spent the quota of the plan.
 | Skill | Case | Opus 5.5 (reference) | Sonnet 5.5 | Haiku 5.5 | Floor | Cost a run, O / S / H |
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
-| `design-reframe` | reframe-reservations | 5/5 | pending, 1/1 | 2/8 | **Sonnet 5.5** on 0.20.0; on 0.28.0 pending | 0.35 / 0.18 / 0.04 USD |
+| `design-reframe` | reframe-reservations | 4/5, a batch pending | 5/5 | 2/8 | **Sonnet 5.5** | 0.31 / 0.18 / 0.04 USD |
 | `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
 
@@ -19,16 +19,18 @@ How to read it:
   without an API error and every judge call answered: 11 runs hit the 5-hour limit of the plan
   and are left out.
 - **The floor** needs at least 4 passes over 5 valid runs, on a case the reference passes every
-  time; Haiku holds one of the four skills, `work-status`, Sonnet all four. `design-reframe` and
-  `design-audit` hold on Sonnet with no run to spare: the one failure of each is the judged
-  rubric (two votes of three for `design-reframe`; three of three for `design-audit`, on a report
-  that, read by hand, keeps the search field out of the defects and cites rows in its summary),
-  so measure them again whenever the skill or Sonnet changes.
+  time; Haiku holds one of the four skills, `work-status`, Sonnet all four. `design-audit` holds
+  on Sonnet with no run to spare: its one failure is the judged rubric (three votes of three, on
+  a report that, read by hand, keeps the search field out of the defects and cites rows in its
+  summary), so measure it again whenever the skill or Sonnet changes. `design-reframe` held the
+  same way on 0.20.0; on 0.28.0, with the rubric of finding 7, Sonnet passes 5 of 5.
 - The figures of `design-audit` are the runs after its fix (#55); the runs before it measured the
   rule that finding 1 describes, and are left out. The same for `work-status` (#63 and #65,
   findings 5 and 6): its figures are the 15 runs on 0.26.0, after both fixes, from the branch of
   #65 before it landed. And for `design-reframe` (#70, finding 7): its Opus and Sonnet figures
-  are the runs on 0.28.0, after the fix, from the branch of #70; Haiku's are still those of 0.20.0.
+  are the last batch on 0.28.0, with `main` and #68 merged in and the rubric as finding 7 leaves
+  it, from the branch of #70; the batches before it are in finding 7. Haiku's are still those of
+  0.20.0, on the rubric of then.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
   batches; the judged graders did not change. The next run of the suite starts from these
@@ -85,6 +87,22 @@ How to read it:
    when the model has none, and the request for the yes on the last line. After the fix, 5 of 5
    on Opus (14 votes of 15), every answer "ritoccata" or "ricostruita" and the yes last.
 
+   With `main` and #68 merged into the branch the same case fell to 2 of 5 on Opus and 3 of 5 on
+   Sonnet, though the verdict words held in every answer. The failures kept the reader's data
+   editable from the Scheda titolo through a side panel, in the proposal or in a question, some
+   rewriting its "never here" to make room; the rubric accepted a side panel and failed the same
+   data edited in the view, and the judge split on it (the five answers of the 5 of 5 asked the
+   same question). The maintainer decided that a view's "never here" holds for its side panels,
+   menus and dialogs too, as section 5 of `docs/object-model.md` implies: they are part of the
+   view. The format, the skill and the case now say so. Next batch: no answer of ten offered a
+   panel, yet 2 of 5 on each model; a replica judge asked point by point failed the point on the
+   Scheda titolo for reasons the case allows (the two verdicts the skill asks for, read as a
+   hedge; the reader's name linking to the Scheda lettore). That point is three now (the queue,
+   the verdict, the reader's data): 4 of 5 on Opus, and on Sonnet 4 of 5, 5 of 5 once the verdict
+   regex reads the line under a heading. The Opus failure, three votes of three, is one the
+   replica passes three times of three; it is the only answer that ends by offering the shape as
+   asked, so the skill is unchanged until that comes back.
+
 ## What the calibration fixed
 
 - A regex with three dashes in a row closed the frontmatter of its grader: written `-{3}`.
@@ -96,6 +114,13 @@ How to read it:
   as "one column" or "links underlined": the rule is now a regex built from the levels the
   principles give, and it counts only the ids before the result of a row.
 - A verdict regex that knew "patched" but not "modificata".
+- The rubric of `reframe-reservations` accepted a side panel for the reader's data and failed the
+  same data edited in the view; a side panel is part of the view, so it now fails both, as the
+  skill does (finding 7).
+- Its point on the Scheda titolo held four conditions, and the judge failed it for reasons the case
+  allows: it is three points, each saying what passes.
+- The verdict regex of the title page looked on the line of its name only; it reads the next line
+  too, unless it is a table row.
 
 ## Cost
 
@@ -108,4 +133,6 @@ at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model a
 Finding 7 (#70) added 5.90 USD for 16 valid runs and 4 cut by the plan limit, judge included:
 the 5 runs on 0.20.0 (1.77 USD), the 5 on `main` with the skill of 0.20.0 (1.82), the 5 on Opus
 after the fix (1.75), and the first Sonnet runs after it (0.56). The batches of `main` and #68
-that found it are not counted here.
+that found it are not counted here. Its second part, with #68 merged in, added 8.06 USD: three
+batches of 5 on Opus and on Sonnet (2.31, 2.42, 2.45) and an Opus batch the plan limit cut, with
+no valid run (0.88).
