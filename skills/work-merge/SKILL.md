@@ -1,6 +1,6 @@
 ---
 name: work-merge
-description: 'Carry out the merge of one pull request the person approved by naming it - a part into the branch of its epic with a merge commit, or a pull request into the default branch through its merge queue or with a merge commit - after checking again that nothing holds it (checks, conflicts, review, the branch of the epic behind, a release running). Never --auto, --admin, --squash or --rebase. Use when the person approves a merge or asks for one; in Italian "ok #N", "mergia", "mergiala".'
+description: 'Carry out the merge of one pull request the person approved by naming it, after checking again that nothing holds it; never --auto, --admin, --squash or --rebase. Use when the person approves a merge or asks for one; in Italian "ok #N", "mergia", "mergiala".'
 argument-hint: "<pull request number>"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *)
 ---

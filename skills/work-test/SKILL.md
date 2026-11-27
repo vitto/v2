@@ -1,6 +1,6 @@
 ---
 name: work-test
-description: 'Show the work so a person can test it - for an epic, a local preview with its open parts merged together (never pushed); for a branch or a pull request, its worktree - then install, build and serve it with the commands of the project and list the pages to open as a table (Title, What to test, URL) written from the commits and the diff. Use when asked to see, try or test the work of a branch, a pull request or an epic; in Italian "testa", "fammi vedere", "fammelo provare".'
+description: 'Show the work so a person can test it: the local preview of an epic or the worktree of a branch, built and served, then the pages to open (Title, What to test, URL). Use when asked to see, try or test the work; in Italian "testa", "fammi vedere", "fammelo provare".'
 argument-hint: "[epic or pull request number]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/preview.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/pages.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/pages.ts *)
 ---
