@@ -1,7 +1,8 @@
 # Results
 
 Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
-on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65), judge
+on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65; `help` on
+2026-11-27, on the branch of the epic #73 after #80), judge
 `claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
 estimates of a valid run, judge included; the runs spent the quota of the plan.
 
@@ -11,6 +12,7 @@ estimates of a valid run, judge included; the runs spent the quota of the plan.
 | `design-reframe` | reframe-reservations | 7/7 | 4/5 | 2/8 | **Sonnet 5.5**, at the threshold | 0.32 / 0.16 / 0.04 USD |
 | `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
+| `help` | help-cheatsheet | 5/5 | 4/5 | 2/5 | **Sonnet 5.5**, at the threshold (finding 7) | 0.15 / 0.09 / 0.01 USD |
 
 How to read it:
 
@@ -18,7 +20,7 @@ How to read it:
   without an API error and every judge call answered: 11 runs hit the 5-hour limit of the plan
   and are left out.
 - **The floor** needs at least 4 passes over 5 valid runs, on a case the reference passes every
-  time; Haiku holds one of the four skills, `work-status`, Sonnet all four. `design-reframe` and
+  time; Haiku holds one of the five skills, `work-status`, Sonnet all five. `design-reframe` and
   `design-audit` hold on Sonnet with no run to spare: the one failure of each is the judged
   rubric (two votes of three for `design-reframe`; three of three for `design-audit`, on a report
   that, read by hand, keeps the search field out of the defects and cites rows in its summary),
@@ -27,6 +29,9 @@ How to read it:
   rule that finding 1 describes, and are left out. The same for `work-status` (#63 and #65,
   findings 5 and 6): its figures are the 15 runs on 0.26.0, after both fixes, from the branch of
   #65 before it landed.
+- `help` is new: before it, on `main` (0.27.0, the case copied in), the reference passed 0 runs
+  of 5. No skill ran, so neither did the script; it answered from the listing of the skills,
+  named `/v2:work-test` in 3 runs of 5, and put no rule above the answer.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
   batches; the judged graders did not change. The next run of the suite starts from these
@@ -68,6 +73,15 @@ How to read it:
    fallback (the maintainer's choice), and the rule right above the question. After the fix, 5
    runs of 5 on each of the three models.
 
+7. **`help` on Haiku retold the table instead of showing it** (2 runs of 5): the skill ran and so
+   did `help.ts`, but the answer gave a few skills in prose, with no table of the jobs and no
+   rule above it; in a third run Haiku did not load the skill, answered from the listing, and
+   named `v2:code-review`, which is no skill of v2. Sonnet missed only the rule above the answer,
+   in 1 run of 5. Before the runs, the session of #75 found that the first command of the skill,
+   `--html="${TMPDIR:-/tmp}/v2-help.html"`, is refused in `dontAsk` mode, the mode of a run (a
+   `${...}`, quotes or a heredoc fail the rule `Bash(node *help.ts*)`); #80 made it a bare
+   `--html` before these runs.
+
 ## What the calibration fixed
 
 - A regex with three dashes in a row closed the frontmatter of its grader: written `-{3}`.
@@ -87,3 +101,4 @@ the plan limit included, the 15 runs of `design-audit` after its fix (3.85 USD),
 of `work-status` (4.57 USD: 2 trial runs, 5 before its first fix, 15 after it, 15 after the
 second, 1.47 USD). Three models
 at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model at a time.
+`help-cheatsheet` (2026-11-27): 20 runs, 1.82 USD, 0.57 of it the 5 runs before the skill.
