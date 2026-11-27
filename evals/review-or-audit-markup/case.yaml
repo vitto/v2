@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: review-or-audit-markup
+# The same page and the same two plugins as review-or-audit-ux (../sync-magma.sh), with a request
+# for a review of the markup, the code that both descriptions can claim.
+plugins: [../.., plugins/magma]
+context:
+  scaffold_script: scaffold.sh

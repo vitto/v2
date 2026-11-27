@@ -119,6 +119,32 @@ How to read it:
    reader's data out of panels and dialogs, gives the title page both verdicts and asks for the
    yes last.
 
+## Where two plugins meet
+
+The four cases `review-or-audit-*` (#84) run with the Magma plugin enabled beside v2, its copy of
+magma-design-system/magma at 13f08e65b, on 2026-11-28 with the plugin 0.30.0: does the review of
+the Magma plugin (`magma:review`, the code against the rules of Magma) start where it should, and
+`design-audit` (the quality of the page) where it should? Each case grades the skill that starts
+and the one that does not, 5 runs each.
+
+| Case | Request | Starts | Opus 5.5 | Sonnet 5.5 | Cost a run, O / S |
+| --- | --- | --- | --- | --- | --- |
+| review-or-audit-ux | "fammi una review della UI di questa pagina" | `design-audit` | 5/5 | 5/5 | 0.22 / 0.14 USD |
+| review-or-audit-magma | "controlla che il template usi bene Magma" | `magma:review` | 5/5 | 5/5 | 0.14 / 0.06 USD |
+| review-or-audit-ui-check | "controlla la UI di questa pagina" | `design-audit` | 5/5 | not run | 0.22 USD |
+| review-or-audit-markup | "fammi una review del markup" | `magma:review` | 5/5 | not run | 0.15 USD |
+
+- The two skills do not compete: the descriptions of `main` send each request to its owner in
+  every run, the two harder ones included, though both descriptions say "review", "check" and
+  "UI". What decides is the object of the request: the UI or the page goes to `design-audit`,
+  Magma or the markup to `magma:review`.
+- Descriptions that drew the line more sharply were tried (`magma:review` "not the UX of the
+  screen", `design-audit` "on the page as drawn"): 5 of 5 again on the first two cases, on both
+  models, and 2 of 2 valid runs on `review-or-audit-ui-check` (3 cut by the plan limit). There
+  was nothing to fix, so the descriptions did not change; the cases stay, to catch the day one
+  of the two descriptions drifts onto the other's words.
+- Sonnet ran the first two cases only; the harder two are the reference's.
+
 ## What the calibration fixed
 
 - A regex with three dashes in a row closed the frontmatter of its grader: written `-{3}`.
@@ -139,6 +165,10 @@ How to read it:
   too, unless it is a table row.
 - A judge that answers one word held seven points: the three a regex can read are regexes, and
   the judge keeps four, two of them spelled out from the fixture's model.
+- A case that lists `plugins:` loads only those, not the plugin it belongs to: the first batches
+  of `review-or-audit-*` ran with the Magma plugin alone, and `design-audit` could not start (0 of
+  5 on the request for the UI, on both models). The cases list v2 too (`../..`), and the init of
+  a run lists the skills of both plugins.
 
 ## Cost
 
@@ -156,3 +186,9 @@ batches of 5 on Opus and on Sonnet (2.31, 2.42, 2.45) and an Opus batch the plan
 no valid run (0.88). Its third part, on 0.29.0, added 3.21 USD: the Opus batch of 4 of 5 (1.57)
 and the one with the judge split (1.64); a batch that an expired login stopped cost nothing, and
 the calls of the replica judges are not counted.
+
+The cases of #84 added 12.71 USD; their graders are `tool_used`, so no judge is paid: 4.64 for the
+figures above (Opus 1.80, 1.08 and 0.77, Sonnet 0.99), 3.59 for the descriptions tried (1.83,
+1.16, 0.60), 4.47 for the batches that ran the Magma plugin alone (four of 10 runs and one the
+plan limit cut), and 0.01 for a probe run on Haiku. The first trial runs met the plan limit before
+any valid run.
