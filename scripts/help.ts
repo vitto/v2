@@ -2,13 +2,14 @@
   The cheatsheet of the plugin: every skill, what it is for, how to call it, the words that call
   it and examples of use. The skill /v2:help shows what this prints and opens its page.
 
-    node scripts/help.ts [skill] [--html=<file>] [--root=<plugin folder>]
+    node scripts/help.ts [skill] [--html[=<file>]] [--root=<plugin folder>]
         print the table "Which skill for the job" in Markdown: a row per job of every skill
-        skill          a skill by its name (`work-map` or `/v2:work-map`): its card instead of the
-                       table, and the page opened on it
-        --html=<file>  also write the page: the ways to call a skill, the same table, a card per
-                       skill with its examples, the rules of the workflow
-        --root=<dir>   the plugin to read; the folder of this script's plugin by default
+        skill            a skill by its name (`work-map` or `/v2:work-map`): its card instead of
+                         the table, and the page opened on it
+        --html[=<file>]  also write the page: the ways to call a skill, the same table, a card
+                         per skill with its examples, the rules of the workflow; without a file,
+                         `v2-help.html` in the temporary folder of the system
+        --root=<dir>     the plugin to read; the folder of this script's plugin by default
 
   The examples of a skill, `skills/<name>/examples.md`, written by hand:
 
@@ -48,6 +49,7 @@
     description alone (scripts/plugin.spec.ts fails on it before a release).
 */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { isMain, parseArgs } from './lib/args.ts';
 import { frontmatter } from './lib/frontmatter.ts';
@@ -494,7 +496,9 @@ if (isMain(import.meta.url)) {
   const missing = skills.filter((s) => !s.examples && !s.error).map((s) => s.name);
   if (missing.length) notes.push(`Without examples.md: ${missing.join(', ')}.`);
   for (const s of skills.filter((s) => s.error)) notes.push(`Not read: ${s.error}`);
-  const htmlFile = args.value('html');
+  // a bare --html writes in the temporary folder of the system: a skill passes no ${TMPDIR} or
+  // quoted path, which the permission rule of a session in dontAsk mode refuses (seen 2026-11-27)
+  const htmlFile = args.value('html') ?? (args.flag('html') ? path.join(tmpdir(), 'v2-help.html') : undefined);
   if (htmlFile) {
     try {
       writeFileSync(htmlFile, pageOf(skills, { version, rules, date: new Date().toISOString().slice(0, 10), focus: focus?.name }));
