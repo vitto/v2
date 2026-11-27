@@ -45,7 +45,13 @@ When the new questions, these two with them, fit one dialog, ask them there. Whe
 
 When in doubt between a patch and a rebuild, propose the rebuild: coherence is worth more than speed.
 
-- **The design system**: for each view that changes, whether its patterns, blocks and domains still fit, asked again through the design system's tools. Before asking, make sure they are loaded in this session, as `../../docs/design-system.md`, from this skill's folder, says (step 2). When they are not, stop before recording any id: say what is missing and how to enable it, and ask whether to enable it or go on with the guides only, never silently. A piece a changed view needs that the design system has nothing for is a gap, with its resolution (step 3 of that file). Show any new conflict between the model and the design system too, in the format of the model's Conflicts section, with a proposed resolution. Reread the open conflicts too: the change may settle one or make one worse.
+Write each verdict with a word that can mean only that verdict, in the person's language: in Italian *invariata*, *ritoccata*, *ricostruita*; never *modificata*, which fits a patch and a rebuild alike and leaves the person to guess which. When you propose a shape other than the one the person asked for, give the verdict of both, the request as asked and your proposal ("rebuilt as asked, patched as proposed"), so they see what their version costs.
+
+A view's *Never here* holds for its side panels, menus and dialogs too: they are part of the view (`../../docs/object-model.md`, section 5). When the request puts in a view what its *Never here* excludes, the proposal keeps it where the model has it, on its own page, linked from the view; no proposal and no question offers a panel or a dialog for it as a way around. Changing a *Never here* is a change of the model, not a patch of the view: propose it only when the view's goal has changed, in the model's changes with its reason.
+
+- **The design system**: when the model has none, say so in one line; there is nothing to ask. Otherwise, for each view that changes, whether its patterns, blocks and domains still fit, asked again through its tools, loaded as `../../docs/design-system.md`, from this skill's folder, says: when they are not, stop before recording any id, say what is missing and how to enable it, and ask whether to enable it or go on with the guides only, never silently (its step 2); a piece a changed view needs that it has nothing for is a gap, with its resolution (its step 3). Show any new conflict between the model and the design system in the format of the model's Conflicts section, with a proposed resolution, and reread the open ones: the change may settle one or make one worse.
+
+The answer ends with the request for the person's yes to these changes, on its last line, after the open questions: no file changes before it, the model's included.
 
 ## 5. Then build
 
