@@ -52,7 +52,9 @@ One block per view (a page, a panel):
   - inline, when it is part of this work;
   - in a side panel, a menu or a dialog, when it needs more detail but the person must not leave (and lose what they are typing);
   - on its own page, linked, when the detail is its own work.
-- **Never here**: what this view does not show, so that it stays about its goal.
+- **Never here**: what this view does not show, so that it stays about its goal. It holds for
+  its side panels, menus and dialogs too: they are part of the view, as *Around it* says. To
+  show there what it excludes is a change of the model, not of the view.
 - **Way in and way out**: where the person comes from, and where they go next, on the paths of section 2.
 
 Nesting is the failure this section prevents: an entity that needs its own depth opens beside the view or on its own page, never as a box inside a box inside a box.
