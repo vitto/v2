@@ -80,7 +80,8 @@ How to read it:
    in 1 run of 5. Before the runs, the session of #75 found that the first command of the skill,
    `--html="${TMPDIR:-/tmp}/v2-help.html"`, is refused in `dontAsk` mode, the mode of a run (a
    `${...}`, quotes or a heredoc fail the rule `Bash(node *help.ts*)`); #80 made it a bare
-   `--html` before these runs.
+   `--html` before these runs. The floor stays Sonnet: no fix for Haiku (the maintainer's
+   choice, 2026-11-27).
 
 ## What the calibration fixed
 
