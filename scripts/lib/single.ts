@@ -1,7 +1,7 @@
 /*
   One piece of work - an issue, a pull request, a branch or a worktree - as the person asked for
   it on 2026-11-24: never a list, the state of that work alone. The agent writes above it what the
-  work does and runs /v2:work-map on the same target below it (skills/work-status/SKILL.md).
+  work does and runs /v2:work-map on the same target below it (skills/work/status.md).
   Pure functions over what scripts/lib/github.ts and scripts/lib/worktrees.ts read;
   scripts/status.ts resolves the target and prints it.
 

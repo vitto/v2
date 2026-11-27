@@ -1,30 +1,17 @@
----
-name: work-status
-description: 'Where the work stands, as tables, and the next action: an epic in the order its parts land, one piece of work, a subject, or the whole repository; with nothing named in a conversation with work, it asks first. Use when asked where things stand; in Italian "stato", "a che punto siamo".'
-argument-hint: "[epic, issue or pull request number, branch, worktree, or subject]"
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(gh issue view *), Bash(gh pr view *), Bash(git log *), Bash(git diff *), Bash(git -C *)
----
-
 # Where the work stands
 
-What the person gave, if anything: $ARGUMENTS (a number is an epic, or one issue or pull
+The status job of `/v2:work` ([SKILL.md](SKILL.md), beside this file, holds the rules of every
+job). The target, if any: the arguments after `status`, or the person's words (a number is an epic, or one issue or pull
 request; the name of a branch or of a worktree is one piece of work, section 5; other words are a
 subject, section 4; nothing at all is a question, the epic of the conversation's work or the
 whole repository, and the repository in a new conversation, section 1). The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`: rule 1 (a
 person decides every merge) and rule 2 (the parts land in the branch of the epic, the epic in the
 default branch). The script says in its header where each answer comes from.
 
-Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
-before and after it, or Markdown reads the line above as a heading) right above what this skill
-answers - its report, tables, map or questions - so the person sees where it starts. The
-one-line notes before each step stay above it. Inside the answer, a rule the same way between
-its blocks, as the maintainer asked on 2026-11-26: keep the ones the script prints (after the
+Inside the answer, a horizontal rule the same way as the one above it ([SKILL.md](SKILL.md),
+"Every job") between its blocks, as the maintainer asked on 2026-11-26: keep the ones the script prints (after the
 legends, between the epics, before the issues outside an epic, the pull requests, the worktrees
 and the next action) and put one after each block you write (each group of issues, the map).
-
-Before each step, say in one line what it does. Every answer is tables, never a retelling in
-prose: show what the script prints, in its order, without dropping rows, and add one line at most
-on what the person has to decide.
 
 ## 1. The table
 
@@ -52,8 +39,8 @@ chooses between the epic of that part and the whole repository):
   the person named - else the piece is its own answer; and ask all the same, the failure in one
   line above the question: the answer waits for the person, only the report waits for GitHub.
   How to give the script access goes after the question, never instead of it (#63: without this,
-  the reference model skipped the question in 2 runs of 5). Then put the horizontal rule of
-  "Where the answer starts" on a line of its own right above the question - above the dialog, or
+  the reference model skipped the question in 2 runs of 5). Then put a horizontal rule (`---` on a line
+  of its own, an empty line before and after it) right above the question - above the dialog, or
   above the list in chat - with the line on a failure above the rule: until the person picks,
   the question is the answer of this skill (#65: below the reference, the question came without
   it). And ask, in the question dialog (in Claude Code, `AskUserQuestion`), one question, "What
@@ -232,15 +219,12 @@ Worktree) in the language of the conversation, the words of the chips as they ar
   branch named after an epic but not linked to it being the epic's own work; a worktree to its
   branch, or, detached, to the issue its folder name ends with (`app-wt-1427`).
 - "ready" means the person can decide, never that you may merge: a merge waits for the person's ok
-  naming the pull request (`/v2:work-merge`, rule 1).
+  naming the pull request (the merge job, [merge.md](merge.md), rule 1).
 - A worktree holding work GitHub has not seen (uncommitted files, commits no remote branch holds)
   is work that can be lost or forgotten: say so.
-- When a preview of the epic exists (a `<epic>-preview` worktree), `/v2:work-test <epic>` rebuilds it
+- When a preview of the epic exists (a `<epic>-preview` worktree), `/v2:work test <epic>` rebuilds it
   and shows what it holds.
 - The tables say where the work stands, not what it is made of: for that, offer `/v2:work-map` with the
   same epic or pull request in one line at the end.
 - After builds or tests run in this conversation, add them as a table `What | Result | Detail`
   (the command, passed or failed with the counts, the names of what failed).
-
-If the script fails (`gh` not signed in, not a GitHub repository, not an issue), show its error
-and what would fix it.
