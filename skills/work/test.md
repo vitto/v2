@@ -19,6 +19,10 @@ after it, right above the report, the table or the question ([SKILL.md](SKILL.md
   creating one (`git worktree add`), never switch the branch of a worktree the person uses.
 - **Nothing given**: the current folder, its branch against the default branch.
 
+Name the work you show - its branch, its pull request, or the folder - at the top of the answer,
+also when something stops you before the preview, so the person can tell whether it is the one
+they meant.
+
 The work of each part must be committed on its own branch, in its worktree: a preview takes
 commits only, and its table flags what stays uncommitted. Never commit for the person without
 asking.
