@@ -2,14 +2,14 @@
 
 Runs of 2026-11-25 to 2026-11-27 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
 on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65;
-`design-reframe` on Opus and Sonnet on 0.28.0 with its fix, #70), judge
+`design-reframe` on 0.29.0 with its fix, #70, Sonnet on 0.28.0), judge
 `claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
 estimates of a valid run, judge included; the runs spent the quota of the plan.
 
 | Skill | Case | Opus 5.5 (reference) | Sonnet 5.5 | Haiku 5.5 | Floor | Cost a run, O / S / H |
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
-| `design-reframe` | reframe-reservations | 4/5, a batch pending | 5/5 | 2/8 | **Sonnet 5.5** | 0.31 / 0.18 / 0.04 USD |
+| `design-reframe` | reframe-reservations | 5/5 | 5/5 | 2/8 | **Sonnet 5.5** | 0.33 / 0.18 / 0.04 USD |
 | `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
 
@@ -23,18 +23,20 @@ How to read it:
   on Sonnet with no run to spare: its one failure is the judged rubric (three votes of three, on
   a report that, read by hand, keeps the search field out of the defects and cites rows in its
   summary), so measure it again whenever the skill or Sonnet changes. `design-reframe` held the
-  same way on 0.20.0; on 0.28.0, with the rubric of finding 7, Sonnet passes 5 of 5.
+  same way on 0.20.0; with its fix and the graders of finding 7, Opus and Sonnet pass 5 of 5.
 - The figures of `design-audit` are the runs after its fix (#55); the runs before it measured the
   rule that finding 1 describes, and are left out. The same for `work-status` (#63 and #65,
   findings 5 and 6): its figures are the 15 runs on 0.26.0, after both fixes, from the branch of
-  #65 before it landed. And for `design-reframe` (#70, finding 7): its Opus and Sonnet figures
-  are the last batch on 0.28.0, with `main` and #68 merged in and the rubric as finding 7 leaves
-  it, from the branch of #70; the batches before it are in finding 7. Haiku's are still those of
-  0.20.0, on the rubric of then.
+  #65 before it landed. And for `design-reframe` (#70, finding 7), from the branch of #70: its
+  Opus figure is the last batch, on 0.29.0 with the graders as finding 7 leaves them; its Sonnet
+  figure the last batch on 0.28.0, with `main` and #68 merged in, judged on the seven points that
+  hold the four the judge keeps, and passed again through the new regexes. The batches before
+  them are in finding 7. Haiku's are still those of 0.20.0, on the rubric of then.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
-  batches; the judged graders did not change. The next run of the suite starts from these
-  graders, so the PASS% column of its report is the count.
+  batches; the judged graders did not change, but for the judge of `reframe-reservations`
+  (finding 7). The next run of the suite starts from these graders, so the PASS% column of its
+  report is the count.
 
 ## Findings
 
@@ -100,8 +102,22 @@ How to read it:
    hedge; the reader's name linking to the Scheda lettore). That point is three now (the queue,
    the verdict, the reader's data): 4 of 5 on Opus, and on Sonnet 4 of 5, 5 of 5 once the verdict
    regex reads the line under a heading. The Opus failure, three votes of three, is one the
-   replica passes three times of three; it is the only answer that ends by offering the shape as
-   asked, so the skill is unchanged until that comes back.
+   replica passes three times of three. On 0.29.0, with #71 merged in, Opus gave 4 of 5 again (11
+   votes of 15), failing an answer that holds every point read by hand.
+
+   The eval judge answers one word, with no reasoning and without the task: its prompt, read from
+   the CLI 2.1.325, holds only the grader and the last message. A replica of that exact prompt
+   passed the failing answer 24 times of 24, so its noise cannot be read locally: on seven points,
+   one word is a guess. The judge now keeps the four points that need judgment (the reservation in
+   the model, the queue, the verdict of the title page, the reader's data), and three regexes,
+   tested on the 63 saved answers, read the rest: a verdict for the Banco prestiti and the Scheda
+   lettore when the answer names them, the monthly report unchanged, the request for the yes on
+   the last line, which is stricter than the judge was. Two points say what the fixture's model
+   does, where a judge read them otherwise: an entity that refers to the title passes point 1, as
+   the loan refers to a copy; reading the reader's card and showing only the name passes point 4,
+   as the Banco prestiti does. On 0.29.0, 5 of 5 on Opus, 15 votes of 15; every answer keeps the
+   reader's data out of panels and dialogs, gives the title page both verdicts and asks for the
+   yes last.
 
 ## What the calibration fixed
 
@@ -121,6 +137,8 @@ How to read it:
   allows: it is three points, each saying what passes.
 - The verdict regex of the title page looked on the line of its name only; it reads the next line
   too, unless it is a table row.
+- A judge that answers one word held seven points: the three a regex can read are regexes, and
+  the judge keeps four, two of them spelled out from the fixture's model.
 
 ## Cost
 
@@ -135,4 +153,6 @@ the 5 runs on 0.20.0 (1.77 USD), the 5 on `main` with the skill of 0.20.0 (1.82)
 after the fix (1.75), and the first Sonnet runs after it (0.56). The batches of `main` and #68
 that found it are not counted here. Its second part, with #68 merged in, added 8.06 USD: three
 batches of 5 on Opus and on Sonnet (2.31, 2.42, 2.45) and an Opus batch the plan limit cut, with
-no valid run (0.88).
+no valid run (0.88). Its third part, on 0.29.0, added 3.21 USD: the Opus batch of 4 of 5 (1.57)
+and the one with the judge split (1.64); a batch that an expired login stopped cost nothing, and
+the calls of the replica judges are not counted.
