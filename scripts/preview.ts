@@ -1,7 +1,7 @@
 /*
   The preview of an epic: its branch with every open part merged in, on a local branch nobody
   pushes, in a worktree of its own, to see and test in one place the work that converges while
-  its pieces live in several worktrees. The skill /v2:work-test builds it and shows its table.
+  its pieces live in several worktrees. The test job of /v2:work builds it and shows its table.
 
     node scripts/preview.ts <epic number> [--branch=<branch of the epic>] [--dir=<folder>] [--repo=<owner/name>] [--config=<file>]
         rebuild the preview, then print what it holds as a table, and how to see it
@@ -321,7 +321,7 @@ export const previewEpic = (
       branch,
       base: '-',
       entries: [],
-      blocked: ['the branch of the epic is unknown: `/v2:work-status` says why'],
+      blocked: ['the branch of the epic is unknown: `/v2:work <epic>` says why'],
       created: false,
       installDue: installDue(dir),
     };

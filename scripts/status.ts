@@ -1,5 +1,5 @@
 /*
-  Where the work stands, as Markdown tables. The skill /v2:work-status shows what this prints.
+  Where the work stands, as Markdown tables. The status job of /v2:work (skills/work/status.md) shows what this prints.
 
     node scripts/status.ts <epic number> [--branch=<branch of the epic>] [--repo=<owner/name>] [--config=<file>]
         the epic: a line per part in the order they land, with an icon for its state and its
