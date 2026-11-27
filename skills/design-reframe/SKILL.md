@@ -1,6 +1,6 @@
 ---
 name: design-reframe
-description: When a request adds something to an existing flow or view - a new entity, a field, a state, an action, a step - place it in the object model before touching the UI - ask only the new questions, show how the model changes and which views move, and say for each view whether it is patched or rebuilt. Notes from a call or attached documents are placed against the model first. Use when the person asks to add to, extend or change what a page, an editor or a flow does, when notes from a call ask for changes to a flow, or when a flow has become hard to follow; in Italian "aggiungi anche", "vorrei che questa parte facesse anche", "ripensiamo il flusso", "reframe", "non capisco più questa vista".
+description: 'When a request adds to a flow or a view (an entity, a field, a state, an action), place it in the object model first, then say which views are patched or rebuilt. Use when asked to extend or change what a view does; in Italian "aggiungi anche", "ripensiamo il flusso", "non capisco più questa vista".'
 ---
 
 # Reframe: the model first, then the views

@@ -1,6 +1,6 @@
 ---
 name: design-interview
-description: Before building a new view, page, section, tool or editor, interview the person and write the object model its screens are derived from - the final goal, the world and the words they think in, the entities and their hierarchy, and for each view its focal entity, the entities around it and how much of them can be edited there. It asks first how the person wants to answer - the questionnaire in chat, or a Markdown file, a Google Doc, Sheet or Form to answer later or with others. Notes from a call or attached documents are read first and their items confirmed. Use when a request creates a page, a section, a tool or an editor, or when the area being built has no object model yet; in Italian "intervista", "modello degli oggetti", "come strutturo questa pagina", "prima di costruire la UI", "da dove parto con la UI".
+description: 'Before a new view, page, section, tool or editor, interview the person and write the object model its screens come from. Use when the area has no object model yet; in Italian "intervista", "modello degli oggetti", "come strutturo questa pagina", "da dove parto con la UI".'
 ---
 
 # Interview, then the object model
