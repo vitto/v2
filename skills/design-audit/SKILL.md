@@ -1,12 +1,16 @@
 ---
 name: design-audit
 description: 'Audit a screen, a component or a change already built against Vittorio Vittori''s design principles and the area''s object model: every check pass, fail or not verifiable, then where to start. Use when asked to review, audit or check the UX or UI quality of something built.'
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts *)
+allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts *)
 ---
 
 # Audit against the v2 principles
 
 Target: $ARGUMENTS (a page, a component, a folder or the current diff). When it is empty, ask.
+
+Read the target, the principles and the docs with the Read, Glob and Grep tools, never through
+the shell (`cat`, `ls`, `find`): the only commands of this skill are its scripts, each with a
+permission of its own.
 
 Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
 before and after it, or Markdown reads the line above as a heading) right above what this skill
@@ -49,7 +53,7 @@ Then run DS1 of that file on the target. Every piece made without a component, b
 ## 3. The checks
 
 - `code` checks by reading the code. `runtime` checks on the running page when you can open it: keyboard, focus, the accessibility tree, a state reached by acting. A runtime check you could not run is not verifiable, never a pass.
-- `rendered` checks on the page as drawn, as `../../docs/rendered.md`, from this skill's folder, says: `node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts --url=<page> --widths=<narrowest>,<widest>`, at the widths and in the themes the view supports. The measured tables answer some checks; the others are read on the screenshots, each with what you looked at. The screenshots go in the report, beside the table, so the person sees what you saw. A seen check without its screenshot is not verifiable, never a pass.
+- `rendered` checks on the page as drawn, as `../../docs/rendered.md`, from this skill's folder, says: `node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts --url=<page> --widths=<narrowest>,<widest>`, at the widths and in the themes the view supports. The measured tables answer some checks; the others are read on the screenshots, each with what you looked at. The screenshots go in the report, in the row they answer, so the person sees what you saw. A seen check without its screenshot is not verifiable, never a pass. When `rendered.ts` is refused or cannot run, its checks are not verifiable, and the report is still drawn by `audit.ts` (section 4).
 - The level of a check decides its result, not the evidence at hand. The level is the one its principle writes after the id and the strength (AB1: must, rendered). A `runtime` or `rendered` check you did not run is **Not verifiable** even when the code gives an estimate: a contrast computed from the hex colours of the stylesheet, a size read from the px of the CSS, "no animations" found in the code for a motion check, a name read from an `aria-label` for a check of the accessibility tree. The estimate goes in the row, as what to confirm; the result stays Not verifiable. The code can prove such a check fails (a delete whose handler runs with no confirm and no undo); it never proves one passes.
 - Read "Don't overdo it" before reporting a fail: it is there to stop false positives.
 - When a check needs a stance the files do not take, report it as an open question, not as a fail.
@@ -58,21 +62,50 @@ Then run DS1 of that file on the target. Every piece made without a component, b
 
 ## 4. The report
 
-A table with #, checks, where and result. One row per problem, with every check id that caught it: a problem two principles catch is one row, not two. Results are **Fail** (with what to change), **Pass** (only for checks run at their level, section 3), **Not verifiable** (with what would make it verifiable, and the estimate the code gives, if any), **Open question** or, for a draft principle, **Draft: defect or choice?** until the person answers, then **Fail** or **Pass by choice** (with their reason). Defects first, passes last. For each fail, link the rule's example on the site: the file's `site` plus `#` and the rule title as a slug, when the file has a `site`.
+The report is what `${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts` prints, as it is: you write the facts as JSON, it checks what it can and prints the table with #, checks, where and result, then the Summary and the questions, and with `--html` it draws the page (the Summary first, the counts by result, a filter by result and by principle, the screenshots beside their rows). Its header holds the whole format. It reads the level, the principle and the draft mark of each check id from the principles, and links each fail to its rule's example on the site.
 
-Before writing Pass in a row, read each of its ids against its level. A row passes only the checks that ran: a `code` check read in the code, a `runtime` check run on the page, a `rendered` check measured or seen on its screenshot. When a row of passes would also hold a `runtime` or `rendered` check that did not run, take that check out: it goes to a row of its own, **Not verifiable**, with the estimate in words and what would verify it, as in `AB1 | theme.css:12 | Not verifiable: #767676 on white gives 4.5:1 by the stylesheet; measure it on the page with rendered.ts`. Never write the estimate as the result, and never call it a likely pass.
+One row per problem, with every check id that caught it (`checks`): a problem two principles catch is one row, not two. `where` is the place, `note` what the row found: a fail, a draft and an open question always have it; a not verifiable, a pass by choice and a pass may leave it out when their `verify`, `reason` or `looked` already says it. Its `result`:
+
+- `fail`, with what to change (`change`); for a gap of DS1, the resolution proposed (`resolution`: `method-adapts`, `design-system-changes` or `product-decides`).
+- `draft`, **Draft: defect or choice?**, for a check of a draft principle that fails, until the person answers: then `fail` with their `answer`, or `pass-by-choice` with their `reason`. `open`, **Open question**, for a stance the files do not take. Add `question` when the note is not the question itself.
+- `not-verifiable`, with what would make it verifiable (`verify`) and the estimate the code gives, if any (`estimate`).
+- `pass`, only for checks run at their level (section 3), with what you looked at (`looked`); `pass-by-choice`, with the person's reason or the model's exception (`reason`).
+
+Defects first, passes last. `shots` lists the screenshots of a row, each with its `caption` (the width and the theme). `ran` says what ran: `runtime`, the page opened and acted on, and where; `rendered`, the folder of `rendered.ts` with its widths and themes; `null` for what did not run.
+
+Before writing pass in a row, read each of its ids against its level. A row passes only the checks that ran: a `code` check read in the code, a `runtime` check run on the page, a `rendered` check measured or seen on its screenshot. When a row of passes would also hold a `runtime` or `rendered` check that did not run, take that check out: it goes to a row of its own, `not-verifiable`, with the estimate in words and what would verify it (AB1 at `theme.css:12`: `#767676` on white gives 4.5:1 by the stylesheet; measure it on the page with `rendered.ts`). Never write the estimate as the result, and never call it a likely pass. The script refuses a pass on a `runtime` or `rendered` check that did not run; never change `ran` to get past it.
 
 ### The Summary
 
 The report ends with a **Summary**, apart from the table: the conclusions the table supports, for the person who will not read every row.
 
-1. **Where to start.** The three defects that weigh most on the goal of the focal entity, by their row number (`#3`), each with why in a few words. Fewer when fewer fail; none when nothing fails.
-2. **The goal.** Does the view do what it exists for, as the object model states it? One answer: **yes**; **yes, after the fixes**, naming the rows; **no, to rethink**, which hands over to `design-reframe`. When the area has no object model, the goal cannot be checked: say so, and point to `design-interview` to write it.
-3. **What the checks do not cover.** Visual hierarchy, rhythm, coherence with the design language beyond what the `rendered` checks ask: what you saw that no check asks about. Each line is labelled **opinion**, never a Fail, never a Pass.
+1. **Where to start** (`start`). The three defects that weigh most on the goal of the focal entity, by their row number (`row`, `#3` in the report), each with why in a few words (`why`). Fewer when fewer fail; none when nothing fails.
+2. **The goal** (`goal`). Does the view do what it exists for, as the object model states it? One `answer`: `yes`; `after-fixes`, naming the `rows`; `rethink`, which hands over to `design-reframe`. When the area has no object model (`"model": null`), the goal cannot be checked: `no-model`, and the report points to `design-interview` to write it; say in the `note` what the model must settle first.
+3. **What the checks do not cover** (`beyond`). Visual hierarchy, rhythm, coherence with the design language beyond what the `rendered` checks ask: what you saw that no check asks about. Each line is printed as an **opinion**, never a Fail, never a Pass.
 
-Every sentence of the Summary cites a row of the table (`#3`) or a section of the object model. A sentence that cites neither carries the label **opinion**. A summary that could be written without running the audit ("good overall, a few issues") is not one.
+Every sentence of the Summary cites a row of the table (`#3`) or a section of the object model. A sentence that cites neither belongs to `beyond`, as an opinion. A summary that could be written without running the audit ("good overall, a few issues") is not one.
 
-When the audit runs as the check at the end of `design-build` or `design-reframe`, the person has just seen the work: the Summary can be the goal line alone.
+When the audit runs as the check at the end of `design-build` or `design-reframe` (`"after"`), the person has just seen the work: the Summary can be the goal alone.
+
+### Draw it
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts --html --json='{"target": "settings.html", "mode": "screen", "why": "a page people use", "lang": "en", "model": null,
+ "ran": {"runtime": null, "rendered": null},
+ "rows": [{"checks": ["EP1", "EP7"], "where": "`settings.html:30`, the delete", "result": "fail",
+           "note": "A clickable `div` that deletes at once.", "change": "a `<button>` that asks first"}],
+ "summary": {"start": [{"row": 1, "why": "the only irreversible action"}],
+             "goal": {"answer": "no-model", "note": "The model must say which entity is focal."},
+             "beyond": ["the page never names the project"]}}'
+```
+
+The JSON is one argument between single quotes, on as many lines as it needs. Inside it, write every apostrophe as the typographic one, U+2019 (the right single quotation mark), in Italian and in English alike: a straight `'` closes the quotes and breaks the command. Nothing else needs escaping. Never pass it through a heredoc, a variable or a file: the audit changes nothing, and the permission of this skill lets through only this command with plain arguments. `--html` writes the page in the temporary folder of the system and prints its path. `lang` is the person's language (`it`, else `en`), and every text is written in it.
+
+Run it even when another command was refused. A denial reads "Permission to use Bash has been denied": it names the tool, but it refuses only the command it answers, and this one has a permission of its own. So a refusal of `rendered.ts`, or of any other command, says nothing about this one: try it before you say it cannot run. When the script refuses the audit, it lists every problem with its row: fix the JSON and run it again. When this command itself fails or is refused, look first for a straight apostrophe. Never write the table by hand around a refusal; only when this very command was refused or cannot start (no Node 24), say so in one line and write the same table and Summary by hand, these rules kept, in words rather than the names of the JSON.
+
+### Show it
+
+Open the page first: in the browser of the session when it has one, else `open <file>` (macOS) or `xdg-open <file>` (Linux); when it cannot open, its path is enough. Then answer, the report last: the horizontal rule, then what the script printed, whole and as it is, since the person does not see the output of a command. The page is a file of this computer: publish it (an Artifact, for example) only when the person asks to share it.
 
 Change nothing unless asked: the audit reports. `docs/pilot-audit.md`, at the root of this plugin, is an example of the report, Summary included.
 

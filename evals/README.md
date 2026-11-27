@@ -47,7 +47,7 @@ on every command: without `--model` a run takes the default model, and in zsh a 
 holds two words is not split into arguments.
 
 ```bash
-claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *pages.ts*)" "Bash(node *preview.ts*)" "Bash(node *help.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
+claude plugin eval . --model claude-opus-5-5 --judge-model claude-sonnet-5-5 --runs 5 --ablation none --scaffold --trust-plugin --no-publish --allow-tools Write Edit "Bash(node *status.ts*)" "Bash(node *pages.ts*)" "Bash(node *preview.ts*)" "Bash(node *help.ts*)" "Bash(node *audit.ts*)" --disallow-tools Agent --max-cost-usd 25 -j 3
 ```
 
 Then the same with `--model claude-haiku-5-5`, and with `--model claude-sonnet-5-5` for the
@@ -60,12 +60,15 @@ header of the report names the model you asked for.
 - `--allow-tools Write Edit`: the runs may change files, so that a skill that changes them
   before the person's yes fails its `no-edit` and `no-write` graders.
 - `"Bash(node *status.ts*)"`, `"Bash(node *pages.ts*)"`, `"Bash(node *preview.ts*)"`: the scripts of
-  `work` that only read or build locally; `"Bash(node *help.ts*)"`: the script of `help`. A
-  skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Not `merge.ts`,
-  which always asks: `work-merge-needs-number` counts any attempt to merge, allowed or not. Only
-  those scripts: `design-audit` has scripts of its own (`rendered.ts`), and its case runs as it
-  was measured. Every command runs in the sandbox of the run, which reaches no GitHub: the cases
-  of `work` grade the choice, not a report.
+  `work` that only read or build locally; `"Bash(node *help.ts*)"`: the script of `help`;
+  `"Bash(node *audit.ts*)"`: the report of `design-audit`. A skill's own `allowed-tools` cannot
+  grant Bash in a run, so the command does. In a run, as in the `dontAsk` mode, these rules let
+  through a command with plain arguments only: a heredoc or a `${...}` in it is refused (seen
+  2026-11-27). Not `merge.ts`, which always asks: `work-merge-needs-number` counts any attempt to
+  merge, allowed or not. Not `rendered.ts` either: it would need Chrome and a running page, which
+  the fixture of `design-audit` does not have, so its checks stay not verifiable. Every command
+  runs in the sandbox of the run, which reaches no GitHub: the cases of `work` grade the choice,
+  not a report.
 - `--disallow-tools Agent`: `/v2:agent-route` would hand the work to a subagent on another
   model, and the run would measure that model instead.
 - `--keep-temp` keeps the workspace and the transcript of every run, to read why one failed.
