@@ -86,7 +86,7 @@
     "note" is optional where the result requires another field that says what was found
     (Not verifiable: "verify", Pass by choice: "reason", Pass: "looked"): in the eval runs of
     2026-11-27, 3 of the 6 audits drawn by this script were refused first only for leaving it out
-    there (evals/RESULTS.md, finding 8);
+    there (evals/RESULTS.md, finding 9);
   - everything else: the JSON given. Nothing is guessed here.
 */
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';

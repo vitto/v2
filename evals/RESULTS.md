@@ -11,7 +11,7 @@ estimates of a valid run, judge included; the runs spent the quota of the plan.
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
 | `design-reframe` | reframe-reservations | 5/5 | 5/5 | 2/8 | **Sonnet 5.5** | 0.33 / 0.18 / 0.04 USD |
-| `design-audit` | audit-project-settings | 4/4 | 5/5 | 2/5 | **Sonnet 5.5** (finding 9) | 0.67 / 0.32 / 0.06 USD |
+| `design-audit` | audit-project-settings | 4/5 | 5/5 | 3/5 | **Sonnet 5.5**, after its fix (finding 9) | 0.73 / 0.35 / 0.07 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
 | `help` | help-cheatsheet | 5/5 | 4/5 | 2/5 | **Sonnet 5.5**, at the threshold (finding 8) | 0.15 / 0.09 / 0.01 USD |
 
@@ -25,14 +25,16 @@ How to read it:
   Sonnet with no run to spare: its one failure is the rule above the answer (finding 8), so
   measure it again whenever the skill or Sonnet changes. `design-reframe` held the same way on
   0.20.0; with its fix and the graders of finding 7, Opus and Sonnet pass 5 of 5.
-- The figures of `design-audit` are the runs of the branch of #75 (1e652df), the report written
-  as JSON and drawn by `scripts/audit.ts`. Before it, on the branch of the epic #73 (79b9a78,
-  the report written by hand), the reference passed 5 runs of 5. Opus has 4 valid runs: the
-  fifth stalled on API retries until the timeout of 1200 s and is left out. On 0.21.0, after
-  its fix (#55), the case gave 5/5, 4/5 and 3/5 (the runs before #55 measured the rule that
-  finding 1 describes, and are left out); the one failure of Sonnet there was the judged rubric,
-  three votes of three, on a report that, read by hand, kept the search field out of the defects
-  and cited rows in its summary.
+- The figures of `design-audit` are the runs of the branch of #75 after the fix of finding 9
+  (327aa5d), the report written as JSON and drawn by `scripts/audit.ts`. The one failure of Opus
+  reported EP14, the public visibility checked in the markup, as an open question ("it could be
+  the project's current value") instead of a Fail, which `ep14-fail` reads. Before the fix
+  (1e652df) the case gave 4/4 (the fifth run stalled on API retries until the timeout of 1200 s),
+  5/5 and 2/5; before the script, on the branch of the epic #73 (79b9a78, the report written by
+  hand), the reference passed 5 runs of 5. On 0.21.0, after its fix (#55), the case gave 5/5, 4/5
+  and 3/5 (the runs before #55 measured the rule that finding 1 describes, and are left out); the
+  one failure of Sonnet there was the judged rubric, three votes of three, on a report that, read
+  by hand, kept the search field out of the defects and cited rows in its summary.
 - The figures of `work-status` are the 15 runs on 0.26.0, after both of its fixes (#63 and #65,
   findings 5 and 6), from the branch of #65 before it landed. Those of `design-reframe` (#70,
   finding 7) come from the branch of #70: its Opus figure is the last batch, on 0.29.0 with the
@@ -140,7 +142,7 @@ How to read it:
    `--html` before these runs. The floor stays Sonnet: no fix for Haiku (the maintainer's
    choice, 2026-11-27).
 9. **`design-audit` drew its report with `audit.ts` in 6 valid runs of 14, and wrote it by hand
-   in the others** (#75): Opus 2 of 4, Sonnet 4 of 5, Haiku 0 of 5. The script was never
+   in the others; fixed in #75.** On 1e652df: Opus 2 of 4, Sonnet 4 of 5, Haiku 0 of 5. The script was never
    refused. Every run that skipped it had met one denial before, of another command: a compound
    `ls && find; cat` looking for the files, or `rendered.ts`, left out of the runs. The message of
    a denial names the tool, not the command ("Permission to use Bash has been denied"), and the
@@ -152,6 +154,16 @@ How to read it:
    and ran it again. Haiku lost the target in 1 run (it looked for the page in the folder of the
    plugin, and its Glob and Read there were denied) and failed the judged rubric in 2, on the
    search field reported in a row of defects or in the opinions.
+
+   The skill now reads the files with Read, Glob and Grep, never through the shell; it quotes the
+   denial and says it refuses only the command it answers; a refused `rendered.ts` leaves the
+   report to `audit.ts` all the same; and `note` is optional on a not verifiable, a pass by choice
+   and a pass, whose `verify`, `reason` or `looked` already says what was found. After the fix
+   (327aa5d) `audit.ts` drew the report in 12 runs of 15, each at its first try: Opus and Sonnet
+   5 of 5, Haiku 2 of 5. The other 3 runs of Haiku had met a denial (a Glob outside the folder of
+   the run, then `rendered.ts`) and read it as all of Bash, as before; in one of them, where a
+   Grep and a `find` were denied too, it left out `design-interview`. One more run of Haiku failed
+   the judged rubric, three votes of three. The floor stays Sonnet.
 
 ## What the calibration fixed
 
@@ -182,9 +194,9 @@ of `work-status` (4.57 USD: 2 trial runs, 5 before its first fix, 15 after it, 1
 second, 1.47 USD). Three models
 at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model at a time.
 `help-cheatsheet` (2026-11-27): 20 runs, 1.82 USD, 0.57 of it the 5 runs before the skill.
-`audit-project-settings` on #75 (2026-11-27): 24 runs, 8.98 USD, 3.59 of it the 7 runs before
-the change and 0.64 the 2 trial runs; 19 more runs met the plan limit at their start and cost
-nothing.
+`audit-project-settings` on #75 (2026-11-27 and 28): 39 runs, 14.73 USD: 3.59 the 7 runs before
+the change, 0.64 the 2 trial runs, 4.75 the 15 runs after it, 5.75 the 15 runs after the fix of
+finding 9; 19 more runs met the plan limit at their start and cost nothing.
 
 Finding 7 (#70) added 5.90 USD for 16 valid runs and 4 cut by the plan limit, judge included:
 the 5 runs on 0.20.0 (1.77 USD), the 5 on `main` with the skill of 0.20.0 (1.82), the 5 on Opus
