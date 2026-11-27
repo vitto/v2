@@ -40,6 +40,8 @@
         "where": "settings.html:30, the delete",
         "result": "fail" | "draft" | "open" | "not-verifiable" | "pass-by-choice" | "pass",
         "note": "what the row found: the problem, the question, or what passes",
+                                (fail, draft, open: required; else optional, since "verify",
+                                 "reason" or "looked" already says what was found)
         "change": "what to change",                                         (fail: required)
         "answer": "the person's answer, defect",              (fail of draft checks: required)
         "resolution": "method-adapts" | "design-system-changes" | "product-decides",
@@ -81,6 +83,10 @@
     `runtime` or `rendered` check that did not run is Not verifiable, never a pass; what ran is
     what "ran" says, the one claim this script cannot check, so the report shows it;
   - the order of the rows and what each result needs: skills/design-audit/SKILL.md, section 4;
+    "note" is optional where the result requires another field that says what was found
+    (Not verifiable: "verify", Pass by choice: "reason", Pass: "looked"): in the eval runs of
+    2026-11-27, 3 of the 6 audits drawn by this script were refused first only for leaving it out
+    there (evals/RESULTS.md, finding 8);
   - everything else: the JSON given. Nothing is guessed here.
 */
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -127,7 +133,8 @@ export interface Row {
   checks: string[];
   where: string;
   result: Result;
-  note: string;
+  /** What the row found; only a fail, a draft and an open question always have it. */
+  note?: string;
   change?: string;
   answer?: string;
   resolution?: Resolution;
@@ -250,6 +257,8 @@ export const readChecks = (root: string): Map<string, Check> => {
 const isText = (value: unknown): value is string => typeof value === 'string' && value.trim() !== '';
 
 const ROW_KEYS = ['checks', 'where', 'result', 'note', 'change', 'answer', 'resolution', 'verify', 'estimate', 'reason', 'question', 'looked', 'shots'];
+/** The results whose row says what it found only in "note"; the others say it in a field of their own. */
+const NOTE_REQUIRED: readonly Result[] = ['fail', 'draft', 'open'];
 const TOP_KEYS = ['target', 'mode', 'why', 'lang', 'model', 'ran', 'after', 'rows', 'summary'];
 
 /** Where each result goes: fails first, passes last (skills/design-audit/SKILL.md, section 4). */
@@ -294,8 +303,8 @@ export const validate = (
     if (!ids.length || ids.length !== (r.checks as unknown[]).length) problems.push(`${at}: "checks" lists the check ids that caught it, at least one`);
     if (!isText(r.where)) problems.push(`${at}: "where" is missing`);
     if (!RESULTS.includes(r.result as Result)) problems.push(`${at}: "result" is one of ${RESULTS.join(', ')}`);
-    if (!isText(r.note)) problems.push(`${at}: "note", what the row found, is missing`);
-    for (const key of ['change', 'answer', 'verify', 'estimate', 'reason', 'question', 'looked'])
+    if (NOTE_REQUIRED.includes(r.result as Result) && !isText(r.note)) problems.push(`${at}: "note", what the row found, is missing`);
+    for (const key of ['note', 'change', 'answer', 'verify', 'estimate', 'reason', 'question', 'looked'])
       if (r[key] !== undefined && !isText(r[key])) problems.push(`${at}: "${key}" is a text`);
     if (r.resolution !== undefined && !RESOLUTIONS.includes(r.resolution as Resolution))
       problems.push(`${at}: "resolution" is one of ${RESOLUTIONS.join(', ')}`);
@@ -312,9 +321,8 @@ export const validate = (
       checks: ids,
       where: text('where') ?? '',
       result: (RESULTS.includes(r.result as Result) ? r.result : 'open') as Result,
-      note: text('note') ?? '',
       ...Object.fromEntries(
-        ['change', 'answer', 'verify', 'estimate', 'reason', 'question', 'looked'].filter((k) => text(k)).map((k) => [k, text(k)]),
+        ['note', 'change', 'answer', 'verify', 'estimate', 'reason', 'question', 'looked'].filter((k) => text(k)).map((k) => [k, text(k)]),
       ),
       ...(RESOLUTIONS.includes(r.resolution as Resolution) ? { resolution: r.resolution as Resolution } : {}),
       shots,
@@ -611,7 +619,7 @@ const sentence = (text: string): string => (/[.!?:)]$/.test(text) ? text : `${te
 
 /** The Result cell of a row: the result, what it found, and what its result needs. */
 export const resultCell = (row: Row, checks: Map<string, Check>, w: Words): string => {
-  const parts = [`**${sentence(w.result[row.result])}**`, sentence(row.note)];
+  const parts = [`**${sentence(w.result[row.result])}**`, ...(row.note ? [sentence(row.note)] : [])];
   if (row.result === 'fail') {
     if (row.change) parts.push(`**${w.change}:** ${sentence(row.change)}`);
     if (row.resolution) parts.push(`**${w.resolution}:** ${w.resolutions[row.resolution]}.`);
@@ -671,7 +679,7 @@ export const markdownOf = (audit: Audit, checks: Map<string, Check>): string => 
   if (asked.length) {
     lines.push('', `### ${w.questions}`, '');
     for (const { row, n } of asked)
-      lines.push(`- **#${n}** (${row.checks.join(', ')}): ${row.question ?? `${sentence(row.note)}${row.result === 'draft' ? ` ${w.defectOrChoice}` : ''}`}`);
+      lines.push(`- **#${n}** (${row.checks.join(', ')}): ${row.question ?? `${sentence(row.note ?? '')}${row.result === 'draft' ? ` ${w.defectOrChoice}` : ''}`}`);
   }
   return lines.join('\n');
 };
@@ -921,8 +929,7 @@ ${groups
 <div>
 <div class="row-head"><a class="n" href="#row-${n}">#${n}</a><span class="result">${escapeHtml(w.result[row.result])}</span>${ids.join('')}</div>
 <p class="where">${r(row.where)}</p>
-<p class="note">${r(row.note)}</p>
-${details.length ? `<dl>${details.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${r(v)}</dd>`).join('')}</dl>` : ''}
+${row.note ? `<p class="note">${r(row.note)}</p>\n` : ''}${details.length ? `<dl>${details.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${r(v)}</dd>`).join('')}</dl>` : ''}
 </div>
 ${shots.length ? `<div class="shots">${shots.join('')}</div>` : ''}
 </article>`;
@@ -932,7 +939,7 @@ ${shots.length ? `<div class="shots">${shots.join('')}</div>` : ''}
   const questions = asked.length
     ? `<h2>${escapeHtml(w.questions)}</h2>
 <ol class="questions box">${asked
-        .map(({ row, n }) => `<li>${r(`**#${n}**`)} (${escapeHtml(row.checks.join(', '))}): ${row.question ? r(row.question) : `${r(sentence(row.note))}${row.result === 'draft' ? ` <strong>${escapeHtml(w.defectOrChoice)}</strong>` : ''}`}</li>`)
+        .map(({ row, n }) => `<li>${r(`**#${n}**`)} (${escapeHtml(row.checks.join(', '))}): ${row.question ? r(row.question) : `${r(sentence(row.note ?? ''))}${row.result === 'draft' ? ` <strong>${escapeHtml(w.defectOrChoice)}</strong>` : ''}`}</li>`)
         .join('')}</ol>`
     : '';
 

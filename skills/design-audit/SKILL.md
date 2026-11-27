@@ -8,6 +8,10 @@ allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/decisions.ts *), Bash(nod
 
 Target: $ARGUMENTS (a page, a component, a folder or the current diff). When it is empty, ask.
 
+Read the target, the principles and the docs with the Read, Glob and Grep tools, never through
+the shell (`cat`, `ls`, `find`): the only commands of this skill are its scripts, each with a
+permission of its own.
+
 Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
 before and after it, or Markdown reads the line above as a heading) right above what this skill
 answers - its report, tables, map or questions - so the person sees where it starts. The
@@ -49,7 +53,7 @@ Then run DS1 of that file on the target. Every piece made without a component, b
 ## 3. The checks
 
 - `code` checks by reading the code. `runtime` checks on the running page when you can open it: keyboard, focus, the accessibility tree, a state reached by acting. A runtime check you could not run is not verifiable, never a pass.
-- `rendered` checks on the page as drawn, as `../../docs/rendered.md`, from this skill's folder, says: `node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts --url=<page> --widths=<narrowest>,<widest>`, at the widths and in the themes the view supports. The measured tables answer some checks; the others are read on the screenshots, each with what you looked at. The screenshots go in the report, in the row they answer, so the person sees what you saw. A seen check without its screenshot is not verifiable, never a pass.
+- `rendered` checks on the page as drawn, as `../../docs/rendered.md`, from this skill's folder, says: `node ${CLAUDE_PLUGIN_ROOT}/scripts/rendered.ts --url=<page> --widths=<narrowest>,<widest>`, at the widths and in the themes the view supports. The measured tables answer some checks; the others are read on the screenshots, each with what you looked at. The screenshots go in the report, in the row they answer, so the person sees what you saw. A seen check without its screenshot is not verifiable, never a pass. When `rendered.ts` is refused or cannot run, its checks are not verifiable, and the report is still drawn by `audit.ts` (section 4).
 - The level of a check decides its result, not the evidence at hand. The level is the one its principle writes after the id and the strength (AB1: must, rendered). A `runtime` or `rendered` check you did not run is **Not verifiable** even when the code gives an estimate: a contrast computed from the hex colours of the stylesheet, a size read from the px of the CSS, "no animations" found in the code for a motion check, a name read from an `aria-label` for a check of the accessibility tree. The estimate goes in the row, as what to confirm; the result stays Not verifiable. The code can prove such a check fails (a delete whose handler runs with no confirm and no undo); it never proves one passes.
 - Read "Don't overdo it" before reporting a fail: it is there to stop false positives.
 - When a check needs a stance the files do not take, report it as an open question, not as a fail.
@@ -60,7 +64,7 @@ Then run DS1 of that file on the target. Every piece made without a component, b
 
 The report is what `${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts` prints, as it is: you write the facts as JSON, it checks what it can and prints the table with #, checks, where and result, then the Summary and the questions, and with `--html` it draws the page (the Summary first, the counts by result, a filter by result and by principle, the screenshots beside their rows). Its header holds the whole format. It reads the level, the principle and the draft mark of each check id from the principles, and links each fail to its rule's example on the site.
 
-One row per problem, with every check id that caught it (`checks`): a problem two principles catch is one row, not two. `where` is the place, `note` what the row found. Its `result`:
+One row per problem, with every check id that caught it (`checks`): a problem two principles catch is one row, not two. `where` is the place, `note` what the row found: a fail, a draft and an open question always have it; a not verifiable, a pass by choice and a pass may leave it out when their `verify`, `reason` or `looked` already says it. Its `result`:
 
 - `fail`, with what to change (`change`); for a gap of DS1, the resolution proposed (`resolution`: `method-adapts`, `design-system-changes` or `product-decides`).
 - `draft`, **Draft: defect or choice?**, for a check of a draft principle that fails, until the person answers: then `fail` with their `answer`, or `pass-by-choice` with their `reason`. `open`, **Open question**, for a stance the files do not take. Add `question` when the note is not the question itself.
@@ -97,7 +101,7 @@ node ${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts --html --json='{"target": "settings.
 
 The JSON is one argument between single quotes, on as many lines as it needs. Inside it, write every apostrophe as the typographic one, U+2019 (the right single quotation mark), in Italian and in English alike: a straight `'` closes the quotes and breaks the command. Nothing else needs escaping. Never pass it through a heredoc, a variable or a file: the audit changes nothing, and the permission of this skill lets through only this command with plain arguments. `--html` writes the page in the temporary folder of the system and prints its path. `lang` is the person's language (`it`, else `en`), and every text is written in it.
 
-Run it even when another command was refused: a refusal of `rendered.ts` or of any other command says nothing about this one. When the script refuses the audit, it lists every problem with its row: fix the JSON and run it again. When the command itself fails or is refused, look first for a straight apostrophe. Never write the table by hand around a refusal; only when this command cannot run at all (it is not allowed, no Node 24), say so in one line and write the same table and Summary by hand, these rules kept, in words rather than the names of the JSON.
+Run it even when another command was refused. A denial reads "Permission to use Bash has been denied": it names the tool, but it refuses only the command it answers, and this one has a permission of its own. So a refusal of `rendered.ts`, or of any other command, says nothing about this one: try it before you say it cannot run. When the script refuses the audit, it lists every problem with its row: fix the JSON and run it again. When this command itself fails or is refused, look first for a straight apostrophe. Never write the table by hand around a refusal; only when this very command was refused or cannot start (no Node 24), say so in one line and write the same table and Summary by hand, these rules kept, in words rather than the names of the JSON.
 
 ### Show it
 

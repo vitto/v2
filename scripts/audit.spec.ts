@@ -142,6 +142,9 @@ describe('the audit, checked', () => {
     ['a row without checks', (a) => (a.rows[1].checks = []), /row 2: "checks" lists/],
     ['an unknown result', (a) => (a.rows[1].result = 'warning'), /"result" is one of/],
     ['a Fail without what to change', (a) => delete a.rows[1].change, /a Fail says what to change/],
+    ['a Fail without what it found', (a) => delete a.rows[1].note, /row 2 \(EP14\): "note", what the row found, is missing/],
+    ['a Draft without what it found', (a) => delete a.rows[3].note, /row 4 \(AB2\): "note", what the row found, is missing/],
+    ['an Open question without what it found', (a) => delete a.rows[4].note, /row 5 \(EP2\): "note", what the row found, is missing/],
     ['a Fail of draft checks only, unanswered', (a) => a.rows.splice(3, 0, { checks: ['AB2'], where: 'x', result: 'fail', note: 'n', change: 'c' }), /draft principle.*"answer"/],
     ['a Draft of checks in force', (a) => (a.rows[3].checks = ['EP4']), /none of these is/],
     ['a gap of the design system without its resolution', (a) => a.rows[0].checks.push('DS1'), /resolution proposed/],
@@ -183,6 +186,23 @@ describe('the audit, checked', () => {
     const a = sample();
     a.rows.splice(3, 0, { checks: ['AB2'], where: 'x', result: 'fail', note: 'n', change: 'c', answer: 'defect' });
     ok(a);
+  });
+
+  it('lets a Not verifiable, a Pass by choice and a Pass leave out the note their own field holds', () => {
+    const a = sample();
+    delete a.rows[5].note;
+    delete a.rows[6].note;
+    a.rows.push({ checks: ['EP12'], where: 'the save', result: 'pass-by-choice', reason: 'the model says so' });
+    a.rows.splice(6, 0, a.rows.pop());
+    const audit = ok(a);
+    assert.equal(audit.rows[5].note, undefined);
+    const md = markdownOf(audit, checks);
+    assert.match(md, /^\| 6 \| AB1, EP12 \| the whole page \| \*\*Not verifiable\.\*\* Estimate from the code: /m);
+    assert.match(md, /^\| 7 \| EP12 \| the save \| \*\*Pass by choice\.\*\* [A-Z]/m);
+    assert.match(md, /^\| 8 \| EP3 \| .+ \| \*\*Pass\.\*\* Looked at: lines 11 and 20\. \|$/m);
+    const html = pageOf(audit, checks, { date: '2026-11-27' });
+    assert.equal((html.match(/<p class="note">/g) ?? []).length, 5);
+    assert.doesNotMatch(html, /<p class="note"><\/p>/);
   });
 
   it('lets the check at the end of design-build keep the goal alone', () => {
