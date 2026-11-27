@@ -6,7 +6,8 @@ expected_outcome: >
   new entity of the title (any copy can fulfil it), referring to a reader. Each view touched gets
   a verdict: unchanged, patched or rebuilt. The title page does not take the queue inside each
   copy's row nor the reader's data (a box in a box, and "never here" in its view): rebuilt, or the
-  queue at the title's level, with the reader's data in the reader page or a side panel. The
+  queue at the title's level, with the reader's data in the reader page, linked: "never here"
+  holds for the side panels and dialogs of the view too (docs/object-model.md, section 5). The
   monthly report is unchanged. The model file is not edited before the person's yes.
 max_turns: 40
 timeout_seconds: 900
