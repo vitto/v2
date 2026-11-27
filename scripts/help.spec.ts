@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 import {
@@ -201,5 +203,25 @@ describe('the cheatsheet of this plugin', () => {
     const card = markdownOf(skills, version, help);
     assert.match(card, /^### `\/v2:help`/m);
     assert.match(card, /\| You type \| When \| You get \|/);
+  });
+});
+
+// a skill passes a bare --html: a ${TMPDIR} or a quoted path in the command is refused by the
+// permission rule of a session that runs without asking (2026-11-27, #74)
+describe('the command', () => {
+  it('a bare --html writes v2-help.html in the temporary folder of the system', () => {
+    const folder = mkdtempSync(path.join(tmpdir(), 'help-spec-'));
+    try {
+      const run = spawnSync(process.execPath, [path.join(root, 'scripts', 'help.ts'), 'help', '--html'], {
+        encoding: 'utf8',
+        env: { ...process.env, TMPDIR: folder },
+      });
+      assert.equal(run.status, 0, run.stderr);
+      const file = path.join(folder, 'v2-help.html');
+      assert.ok(existsSync(file), 'no page in the temporary folder');
+      assert.match(run.stdout, new RegExp(`The page: ${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}#help$`, 'm'));
+    } finally {
+      rmSync(folder, { recursive: true, force: true });
+    }
   });
 });
