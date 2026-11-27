@@ -1,6 +1,6 @@
 # The specs, on every pull request and on main: of the scripts, and of the plugin as it ships
 # (scripts/plugin.spec.ts: every skill's frontmatter parses, the manifests). The check
-# /v2:work-merge waits for (GOVERNANCE.md rule 1: a merge needs its checks green).
+# /v2:work merge waits for (GOVERNANCE.md rule 1: a merge needs its checks green).
 # No dependency to install.
 name: test
 

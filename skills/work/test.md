@@ -1,24 +1,15 @@
----
-name: work-test
-description: 'Show the work so a person can test it - for an epic, a local preview with its open parts merged together (never pushed); for a branch or a pull request, its worktree - then install, build and serve it with the commands of the project and list the pages to open as a table (Title, What to test, URL) written from the commits and the diff. Use when asked to see, try or test the work of a branch, a pull request or an epic; in Italian "testa", "fammi vedere", "fammelo provare".'
-argument-hint: "[epic or pull request number]"
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/status.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/preview.ts *), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/pages.ts), Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/pages.ts *)
----
-
 # Show the work, and the pages to test
 
-What to show: $ARGUMENTS. The rules are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`; rule 5: the
+The test job of `/v2:work` ([SKILL.md](SKILL.md), beside this file, holds the rules of every
+job). What to show: the target in the arguments after `test`, or in the person's words. The rules
+are `${CLAUDE_PLUGIN_ROOT}/GOVERNANCE.md`; rule 5: the
 preview is local, rebuilt on every run, never pushed. Each script says in its header where each
 answer comes from. How this project installs, builds, serves and maps its pages comes from its
 `.claude/v2.json` (the README of the plugin); without it, say what is missing and ask for the
 commands instead of guessing them.
 
-Where the answer starts: put a horizontal rule (`---` on a line of its own, with an empty line
-before and after it, or Markdown reads the line above as a heading) right above what this skill
-answers - its report, tables, map or questions - so the person sees where it starts. The
-one-line notes before each step stay above it.
-
-Before each step, say in one line what it does. Show what the scripts print as tables, as they are.
+Your answer opens under a horizontal rule: `---` on a line of its own, an empty line before and
+after it, right above the report, the table or the question ([SKILL.md](SKILL.md), "Every job").
 
 ## 1. Where the work is
 

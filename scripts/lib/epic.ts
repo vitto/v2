@@ -415,7 +415,7 @@ export const legend = (): string =>
  * `?`: GitHub has no field for it, and labels are a hint, often missing or wrong), one per row:
  * the first of this list that applies, judged on what the work changes, from the title, the
  * labels and, when they are not enough, the body. The criterion of each is the skill's
- * (skills/work-status/SKILL.md, "The domain"), held equal to this list by scripts/plugin.spec.ts.
+ * (skills/work/status.md, "The domain"), held equal to this list by scripts/plugin.spec.ts.
  *
  * - bug: the product does not do what it promises (its documentation, an accessibility floor,
  *   how it worked before), even when the fix is only a style;
