@@ -4,12 +4,20 @@
   checks what it can, prints the Markdown the skill shows in the chat and, with --html, writes the
   page, to keep open while fixing.
 
-    node scripts/audit.ts <audit.json | -> [--html=<file>] [--root=<plugin folder>]
+    node scripts/audit.ts --json='<audit>' [--html[=<file>]] [--root=<plugin folder>]
+    node scripts/audit.ts <audit.json | -> [--html[=<file>]] [--root=<plugin folder>]
         print the report in Markdown: what was audited and how, the table (#, checks, where,
-        result), the Summary, the questions for the person; `-` reads the JSON from stdin
-        --html=<file>  also write the page: the Summary first, the counts by result, a filter by
+        result), the Summary, the questions for the person
+        --json=<audit> the audit itself, one argument between single quotes: the form the skill
+                       uses, since the permission of a skill lets through a command with plain
+                       arguments and refuses a heredoc or a `${...}` (seen 2026-11-27, dontAsk);
+                       an apostrophe in a text is written as a typographic one, which closes no
+                       quote
+        <file>, -      the audit from a file, or from stdin
+        --html[=<file>] also write the page: the Summary first, the counts by result, a filter by
                        result and by principle, the screenshots beside their rows, the rows the
-                       Summary cites linked from it
+                       Summary cites linked from it; without a file, v2-audit.html in the
+                       temporary folder of the system
         --root=<dir>   the plugin whose checks to read; the folder of this script's plugin by
                        default
 
@@ -76,6 +84,7 @@
   - everything else: the JSON given. Nothing is guessed here.
 */
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { isMain, parseArgs } from './lib/args.ts';
 import { cell, table } from './lib/markdown.ts';
@@ -870,7 +879,7 @@ ${
   const countTiles = `<div class="counts">
 ${groups
   .filter((g) => counts[g])
-  .map((g) => `<div class="count tone-${g}" data-value="${g}"><b>${counts[g]}</b>${escapeHtml(w.group[g])}</div>`)
+  .map((g) => `<div class="count tone-${g}" data-value="${g}"><b>${counts[g]}</b> ${escapeHtml(w.group[g])}</div>`)
   .join('\n')}
 </div>`;
   const filters = `<div class="filters" hidden>
@@ -953,13 +962,14 @@ if (isMain(import.meta.url)) {
   const args = parseArgs(process.argv.slice(2));
   const root = path.resolve(args.value('root') ?? path.join(import.meta.dirname, '..'));
   const from = args.words;
-  if (!from) {
-    console.error('Usage: node scripts/audit.ts <audit.json | -> [--html=<file>]: the audit as JSON, from a file or from stdin (-).');
+  const given = args.value('json');
+  if (!from && given === undefined) {
+    console.error("Usage: node scripts/audit.ts --json='<audit>' [--html[=<file>]], or <audit.json | -> for a file or stdin.");
     process.exit(2);
   }
   let value: unknown;
   try {
-    value = JSON.parse(readFileSync(from === '-' ? 0 : from, 'utf8'));
+    value = JSON.parse(given ?? readFileSync(from === '-' ? 0 : from, 'utf8'));
   } catch (error) {
     console.error(`The audit was not read: ${(error as Error).message}. Nothing was written.`);
     process.exit(1);
@@ -971,7 +981,7 @@ if (isMain(import.meta.url)) {
     process.exit(1);
   }
   console.log(markdownOf(audit, checks));
-  const htmlFile = args.value('html');
+  const htmlFile = args.value('html') ?? (args.flag('html') ? path.join(tmpdir(), 'v2-audit.html') : undefined);
   if (htmlFile) {
     try {
       writeFileSync(htmlFile, pageOf(audit, checks, { date: new Date().toISOString().slice(0, 10) }));

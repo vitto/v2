@@ -86,18 +86,18 @@ When the audit runs as the check at the end of `design-build` or `design-reframe
 ### Draw it
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts - --html="${TMPDIR:-/tmp}/v2-audit.html" <<'AUDIT'
-{"target": "settings.html", "mode": "screen", "why": "a page people use", "lang": "en", "model": null,
+node ${CLAUDE_PLUGIN_ROOT}/scripts/audit.ts --html --json='{"target": "settings.html", "mode": "screen", "why": "a page people use", "lang": "en", "model": null,
  "ran": {"runtime": null, "rendered": null},
  "rows": [{"checks": ["EP1", "EP7"], "where": "`settings.html:30`, the delete", "result": "fail",
            "note": "A clickable `div` that deletes at once.", "change": "a `<button>` that asks first"}],
  "summary": {"start": [{"row": 1, "why": "the only irreversible action"}],
              "goal": {"answer": "no-model", "note": "The model must say which entity is focal."},
-             "beyond": ["the page never names the project"]}}
-AUDIT
+             "beyond": ["the page never names the project"]}}'
 ```
 
-The JSON goes through stdin, never into a file: the audit changes nothing. `lang` is the person's language (`it`, else `en`), and every text is written in it. When the script refuses the audit, it lists every problem with its row: fix the JSON and run it again. Never write the table by hand around a refusal; only when the script cannot run at all (the command not allowed, no Node 24), say so in one line and write the same table and Summary by hand, these rules kept.
+The JSON is one argument between single quotes, on as many lines as it needs. Inside it, write every apostrophe as the typographic one, U+2019 (the right single quotation mark), in Italian and in English alike: a straight `'` closes the quotes and breaks the command. Nothing else needs escaping. Never pass it through a heredoc, a variable or a file: the audit changes nothing, and the permission of this skill lets through only this command with plain arguments. `--html` writes the page in the temporary folder of the system and prints its path. `lang` is the person's language (`it`, else `en`), and every text is written in it.
+
+Run it even when another command was refused: a refusal of `rendered.ts` or of any other command says nothing about this one. When the script refuses the audit, it lists every problem with its row: fix the JSON and run it again. When the command itself fails or is refused, look first for a straight apostrophe. Never write the table by hand around a refusal; only when this command cannot run at all (it is not allowed, no Node 24), say so in one line and write the same table and Summary by hand, these rules kept, in words rather than the names of the JSON.
 
 ### Show it
 

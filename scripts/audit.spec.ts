@@ -285,9 +285,9 @@ describe('the page', () => {
   });
 
   it('counts the rows by result, each count a filter where scripts run', () => {
-    assert.match(html, /<div class="count tone-fail" data-value="fail"><b>3<\/b>Fail<\/div>/);
-    assert.match(html, /<div class="count tone-question" data-value="question"><b>2<\/b>Questions<\/div>/);
-    assert.match(html, /<div class="count tone-pass" data-value="pass"><b>1<\/b>Pass<\/div>/);
+    assert.match(html, /<div class="count tone-fail" data-value="fail"><b>3<\/b> Fail<\/div>/);
+    assert.match(html, /<div class="count tone-question" data-value="question"><b>2<\/b> Questions<\/div>/);
+    assert.match(html, /<div class="count tone-pass" data-value="pass"><b>1<\/b> Pass<\/div>/);
     assert.match(html, /<div class="filters" hidden>/, 'the filter shows only where its script runs');
     assert.match(html, /data-filter="principle" data-value="error-prevention">Error Prevention</);
     assert.match(html, /data-filter="principle" data-value="accessibility-as-a-baseline">Accessibility as a Baseline</);
@@ -353,6 +353,19 @@ describe('the command', () => {
     assert.match(readFileSync(html, 'utf8'), /^<!doctype html>/);
   });
 
+  it('reads it from --json, the form of the skill, and writes the page in the temporary folder by default', () => {
+    const a = sample();
+    a.rows[0].note = 'l\u2019unica azione: un `div` & <b>, "Elimina"';
+    const result = spawnSync('node', [AUDIT, `--json=${JSON.stringify(a, null, 1)}`, '--html'], {
+      encoding: 'utf8',
+      env: { ...process.env, TMPDIR: temp },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /l\u2019unica azione: un `div` & <b>, "Elimina"/);
+    assert.match(result.stdout, new RegExp(`\\nThe page: ${temp.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/v2-audit\\.html\\n$`));
+    assert.ok(existsSync(path.join(temp, 'v2-audit.html')));
+  });
+
   it('reads it from a file too', () => {
     const file = path.join(temp, 'audit.json');
     writeFileSync(file, JSON.stringify(sample()));
@@ -381,7 +394,7 @@ describe('the command', () => {
     assert.match(bad.stderr, /^The audit was not read: /);
     const none = run([]);
     assert.equal(none.status, 2);
-    assert.match(none.stderr, /^Usage: node scripts\/audit.ts <audit.json \| ->/);
+    assert.match(none.stderr, /^Usage: node scripts\/audit.ts --json='<audit>'/);
   });
 });
 

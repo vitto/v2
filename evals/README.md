@@ -57,12 +57,13 @@ header of the report names the model you asked for.
 - `--allow-tools Write Edit`: the runs may change files, so that a skill that changes them
   before the person's yes fails its `no-edit` and `no-write` graders.
 - `"Bash(node *status.ts*)"`, `"Bash(node *help.ts*)"` and `"Bash(node *audit.ts*)"`: the
-  scripts of `work-status`, `help` and the report of `design-audit`, which reads its JSON from
-  stdin. A skill's own `allowed-tools` cannot grant Bash in a run, so the command does. Only those
-  scripts: `rendered.ts` would need Chrome and a running page, which the fixture of
-  `design-audit` does not have, so its checks stay not verifiable. Every command runs in the
-  sandbox of the run, which reaches no GitHub: `work-status-asks-first` grades the choice, not a
-  report.
+  scripts of `work-status`, `help` and the report of `design-audit`. A skill's own
+  `allowed-tools` cannot grant Bash in a run, so the command does. In a run, as in the `dontAsk`
+  mode, these rules let through a command with plain arguments only: a heredoc or a `${...}` in
+  it is refused (seen 2026-11-27). Only those scripts: `rendered.ts` would need Chrome and a
+  running page, which the fixture of `design-audit` does not have, so its checks stay not
+  verifiable. Every command runs in the sandbox of the run, which reaches no GitHub:
+  `work-status-asks-first` grades the choice, not a report.
 - `--disallow-tools Agent`: `/v2:agent-route` would hand the work to a subagent on another
   model, and the run would measure that model instead.
 - `--keep-temp` keeps the workspace and the transcript of every run, to read why one failed.
