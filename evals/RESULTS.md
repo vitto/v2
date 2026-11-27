@@ -1,14 +1,15 @@
 # Results
 
-Runs of 2026-11-25 and 2026-11-26 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
-on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65), judge
+Runs of 2026-11-25 to 2026-11-27 on Claude Code 2.1.325 and the plugin 0.20.0 (`design-audit`
+on 0.21.0 with its fix, #55; `work-status` on 0.26.0 with its fixes, #63 and #65;
+`design-reframe` on Opus and Sonnet on 0.28.0 with its fix, #70), judge
 `claude-sonnet-5-5`, with the flags of the [README](README.md#running-it). Costs are list-price
 estimates of a valid run, judge included; the runs spent the quota of the plan.
 
 | Skill | Case | Opus 5.5 (reference) | Sonnet 5.5 | Haiku 5.5 | Floor | Cost a run, O / S / H |
 | --- | --- | --- | --- | --- | --- | --- |
 | `taxonomy` | taxonomy-two-meanings | 5/5 | 5/5 | 3/5 | **Sonnet 5.5** | 0.26 / 0.15 / 0.05 USD |
-| `design-reframe` | reframe-reservations | 7/7 | 4/5 | 2/8 | **Sonnet 5.5**, at the threshold | 0.32 / 0.16 / 0.04 USD |
+| `design-reframe` | reframe-reservations | 5/5 | pending, 1/1 | 2/8 | **Sonnet 5.5** on 0.20.0; on 0.28.0 pending | 0.35 / 0.18 / 0.04 USD |
 | `design-audit` | audit-project-settings | 5/5 | 4/5 | 3/5 | **Sonnet 5.5**, at the threshold | 0.49 / 0.25 / 0.03 USD |
 | `work-status` | work-status-asks-first | 5/5 | 5/5 | 5/5 | **Haiku 5.5**, after its fix (finding 6) | 0.18 / 0.10 / 0.02 USD |
 
@@ -26,7 +27,8 @@ How to read it:
 - The figures of `design-audit` are the runs after its fix (#55); the runs before it measured the
   rule that finding 1 describes, and are left out. The same for `work-status` (#63 and #65,
   findings 5 and 6): its figures are the 15 runs on 0.26.0, after both fixes, from the branch of
-  #65 before it landed.
+  #65 before it landed. And for `design-reframe` (#70, finding 7): its Opus and Sonnet figures
+  are the runs on 0.28.0, after the fix, from the branch of #70; Haiku's are still those of 0.20.0.
 - The figures merge the batches run while the graders were being fixed (the calibration runs
   excluded). Where a regex grader changed, it was applied again to the transcripts of the earlier
   batches; the judged graders did not change. The next run of the suite starts from these
@@ -67,6 +69,21 @@ How to read it:
    the question is written: the script on each piece even then, the conversation only its
    fallback (the maintainer's choice), and the rule right above the question. After the fix, 5
    runs of 5 on each of the three models.
+7. **`design-reframe` on the reference fell from 7 of 7 to 1 of 5 after #51; fixed in #70.** On
+   2026-11-27 the same case passed 5 of 5 on 0.20.0, 1 of 5 on `main` (0.26.0), 4 of 5 on `main`
+   with the `SKILL.md` of 0.20.0, 3 of 5 on #68 (descriptions only): the plugin moved, not the
+   model or the judge. Of what #51 changed, a run of this case reads the paragraph on the design
+   system in step 4 and section 7 of `object-model.md`; neither acts here (the fixture's model has
+   no design system, no run reads `design-system.md`, none stops or asks), nor does the question of
+   the format, which predates 0.20.0. What moved is how the reference writes what the rubric
+   grades: on `main` every answer names the verdict of the Scheda titolo "modificata", a word that
+   fits a patch and a rebuild alike, where four answers of five on 0.20.0 wrote "ritoccata" or
+   "ricostruita". Over the 20 answers of the four batches, a verdict that means only one thing
+   passed 7 times of 7, "modificata" 6 times of 13; the judge keeps votes, not reasons, so this
+   is read from the answers. Step 4 now asks for a word that can mean only the verdict, the
+   verdict of both shapes when the proposal is not what was asked, the design system in one line
+   when the model has none, and the request for the yes on the last line. After the fix, 5 of 5
+   on Opus (14 votes of 15), every answer "ritoccata" or "ricostruita" and the yes last.
 
 ## What the calibration fixed
 
@@ -87,3 +104,8 @@ the plan limit included, the 15 runs of `design-audit` after its fix (3.85 USD),
 of `work-status` (4.57 USD: 2 trial runs, 5 before its first fix, 15 after it, 15 after the
 second, 1.47 USD). Three models
 at once, 9 runs in flight, reached the 5-hour limit of the plan: run one model at a time.
+
+Finding 7 (#70) added 5.90 USD for 16 valid runs and 4 cut by the plan limit, judge included:
+the 5 runs on 0.20.0 (1.77 USD), the 5 on `main` with the skill of 0.20.0 (1.82), the 5 on Opus
+after the fix (1.75), and the first Sonnet runs after it (0.56). The batches of `main` and #68
+that found it are not counted here.
